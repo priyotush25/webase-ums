@@ -51,13 +51,33 @@ const Login = () => {
 
     const navigate = useNavigate();
 
-    const { login } = useAuth();
+    const { login, logout } = useAuth();
 
     // States
     const [role, setRole] = useState("student");
     const [showPassword, setShowPassword] = useState(false);
     const [rememberMe, setRememberMe] = useState(false);
     const [loading, setLoading] = useState(false);
+
+    // Role Based Redirect
+    const redirectByRole = (userRole) => {
+
+        const dashboards = {
+            student: "/student/dashboard",
+            teacher: "/teacher/dashboard",
+            admin: "/admin/dashboard",
+        };
+
+        const destination = dashboards[userRole];
+
+        if (!destination) {
+            throw new Error("Invalid user role");
+        }
+
+        navigate(destination, {
+            replace: true,
+        });
+    };
 
     // Handle Login
     const handleLogin = async (e) => {
@@ -89,19 +109,34 @@ const Login = () => {
                     : browserSessionPersistence
             );
 
-            // Firebase Login
-            const user = await login(email, password);
+            // Firebase + Backend Login
+            const userData = await login(email, password);
 
-            console.log("Login successful:", user.uid);
-            console.log("Selected portal:", role);
+            // Actual role from MongoDB
+            const databaseRole = userData.role;
+
+            console.log("Login Successful:", userData);
+            console.log("Selected Portal:", role);
+            console.log("Database Role:", databaseRole);
+
+            // Verify selected portal with database role
+            if (role !== databaseRole) {
+
+                // Clear both authentication sessions
+                await logout();
+
+                toast.error(
+                    `You are not authorized to access the ${role} portal.`
+                );
+
+                return;
+            }
 
             // Success Toast
             toast.success("Login successful!");
 
-            // Redirect
-            navigate("/dashboard", {
-                replace: true,
-            });
+            // Redirect based on MongoDB role
+            redirectByRole(databaseRole);
 
         } catch (err) {
 
@@ -137,9 +172,9 @@ const Login = () => {
 
             const message =
                 errorMessages[err.code] ||
+                err.message ||
                 "Login failed. Please try again.";
 
-            // Error Toast
             toast.error(message);
 
         } finally {
@@ -289,6 +324,7 @@ const Login = () => {
                                             key={item.id}
                                             type="button"
                                             onClick={() => setRole(item.id)}
+                                            disabled={loading}
                                             className={`flex flex-col items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all ${
                                                 active
                                                     ? "border-blue-800 bg-blue-50 text-blue-900"

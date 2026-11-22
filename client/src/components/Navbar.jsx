@@ -3,9 +3,11 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 
 import {
+    ChevronDown,
     GraduationCap,
     LogOut,
     Menu,
+    User,
     UserCircle,
     X
 } from "lucide-react";
@@ -15,11 +17,12 @@ import { useAuth } from "../context/AuthContext";
 
 const Navbar = () => {
 
-    const [isOpen, setIsOpen] = useState(false);
-
-    const { user, loading, logout } = useAuth();
+    const { user, role, logout, loading } = useAuth();
 
     const navigate = useNavigate();
+
+    const [isOpen, setIsOpen] = useState(false);
+    const [profileOpen, setProfileOpen] = useState(false);
 
     const navLinks = [
         { name: "Home", href: "/" },
@@ -28,56 +31,53 @@ const Navbar = () => {
         { name: "Contact", href: "/contact" }
     ];
 
-    // Logout Handler
     const handleLogout = async () => {
-
         try {
-
             await logout();
 
-            toast.success("Logout successful!");
+            toast.success("Logged out successfully.");
 
+            setProfileOpen(false);
             setIsOpen(false);
 
-            navigate("/", { replace: true });
+            navigate("/login", { replace: true });
 
         } catch (error) {
-
             console.error("Logout Error:", error);
-
             toast.error("Logout failed. Please try again.");
-
         }
-
     };
 
     return (
+        <nav className="bg-white shadow-sm sticky top-0 z-50">
 
-        <nav className="bg-white shadow-md sticky top-0 z-50">
-
-            <div className="max-w-7xl mx-auto px-4">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
                 <div className="flex items-center justify-between h-20">
 
-                    {/* Logo */}
-                    <Link to="/" className="flex items-center gap-2">
-
-                        <GraduationCap size={35} className="text-blue-900" />
+                    {/* LOGO */}
+                    <Link
+                        to="/"
+                        className="flex items-center gap-2"
+                    >
+                        <GraduationCap
+                            size={35}
+                            className="text-blue-900"
+                        />
 
                         <span className="text-xl font-bold text-blue-950">
                             UMS
                         </span>
-
                     </Link>
 
-                    {/* Desktop Navigation */}
+                    {/* DESKTOP NAVIGATION */}
                     <div className="hidden md:flex items-center gap-8">
 
                         {navLinks.map((link) => (
                             <Link
                                 key={link.name}
                                 to={link.href}
-                                className="text-gray-600 hover:text-blue-900 font-medium"
+                                className="text-gray-700 hover:text-blue-900 font-medium transition"
                             >
                                 {link.name}
                             </Link>
@@ -85,113 +85,195 @@ const Navbar = () => {
 
                     </div>
 
-                    {/* Authentication Buttons */}
-                    <div className="hidden md:flex items-center gap-3">
+                    {/* RIGHT SIDE */}
+                    <div className="hidden md:flex items-center gap-4">
 
                         {!loading && (
+                            <>
+                                {user ? (
 
-                            user ? (
+                                    /* PROFILE DROPDOWN */
+                                    <div className="relative">
 
-                                <>
-                                    <Link
-                                        to="/dashboard"
-                                        className="flex items-center gap-2 text-blue-900 font-semibold"
-                                    >
-                                        <UserCircle size={20} />
-                                        Dashboard
-                                    </Link>
+                                        <button
+                                            onClick={() =>
+                                                setProfileOpen(!profileOpen)
+                                            }
+                                            className="flex items-center gap-2 p-1 rounded-full hover:bg-gray-100"
+                                        >
 
-                                    <button
-                                        onClick={handleLogout}
-                                        className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg"
-                                    >
-                                        <LogOut size={18} />
-                                        Logout
-                                    </button>
-                                </>
+                                            {user.photoURL ? (
+                                                <img
+                                                    src={user.photoURL}
+                                                    alt="Profile"
+                                                    className="w-10 h-10 rounded-full object-cover border border-gray-200"
+                                                />
+                                            ) : (
+                                                <UserCircle
+                                                    size={38}
+                                                    className="text-blue-900"
+                                                />
+                                            )}
 
-                            ) : (
+                                            <ChevronDown size={16} />
 
-                                <>
-                                    <Link
-                                        to="/login"
-                                        className="text-blue-900 font-semibold px-4 py-2"
-                                    >
-                                        Login
-                                    </Link>
+                                        </button>
 
-                                    <Link
-                                        to="/signup"
-                                        className="bg-blue-900 hover:bg-blue-800 text-white px-5 py-2 rounded-lg font-semibold"
-                                    >
-                                        Sign Up
-                                    </Link>
-                                </>
+                                        {profileOpen && (
+                                            <div className="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2">
 
-                            )
+                                                <div className="px-4 py-3 border-b border-gray-100">
 
+                                                    <p className="font-semibold text-gray-800 truncate">
+                                                        {user.displayName || "User"}
+                                                    </p>
+
+                                                    <p className="text-xs text-gray-500 truncate">
+                                                        {user.email}
+                                                    </p>
+
+                                                    <p className="text-xs text-blue-900 font-semibold capitalize mt-1">
+                                                        {role}
+                                                    </p>
+
+                                                </div>
+
+                                                <Link
+                                                    to={`/${role}/dashboard`}
+                                                    onClick={() =>
+                                                        setProfileOpen(false)
+                                                    }
+                                                    className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50"
+                                                >
+                                                    <User size={17} />
+                                                    Dashboard
+                                                </Link>
+
+                                                <button
+                                                    onClick={handleLogout}
+                                                    className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50"
+                                                >
+                                                    <LogOut size={17} />
+                                                    Logout
+                                                </button>
+
+                                            </div>
+                                        )}
+
+                                    </div>
+
+                                ) : (
+
+                                    <>
+                                        <Link
+                                            to="/login"
+                                            className="text-blue-900 font-semibold hover:text-blue-700"
+                                        >
+                                            Login
+                                        </Link>
+
+                                        <Link
+                                            to="/signup"
+                                            className="bg-blue-900 hover:bg-blue-800 text-white px-5 py-2.5 rounded-lg font-semibold transition"
+                                        >
+                                            Sign Up
+                                        </Link>
+                                    </>
+
+                                )}
+                            </>
                         )}
 
                     </div>
 
-                    {/* Mobile Menu Button */}
+                    {/* MOBILE MENU BUTTON */}
                     <button
                         onClick={() => setIsOpen(!isOpen)}
                         className="md:hidden text-gray-700"
-                        aria-label="Toggle navigation menu"
+                        aria-label="Toggle navigation"
                     >
-                        {isOpen ? <X size={26} /> : <Menu size={26} />}
+                        {isOpen ? (
+                            <X size={27} />
+                        ) : (
+                            <Menu size={27} />
+                        )}
                     </button>
 
                 </div>
 
-                {/* Mobile Menu */}
+                {/* MOBILE MENU */}
                 {isOpen && (
-
-                    <div className="md:hidden pb-5 space-y-4">
+                    <div className="md:hidden border-t border-gray-100 py-4 space-y-3">
 
                         {navLinks.map((link) => (
                             <Link
                                 key={link.name}
                                 to={link.href}
                                 onClick={() => setIsOpen(false)}
-                                className="block text-gray-600 hover:text-blue-900 font-medium"
+                                className="block py-2 text-gray-700 hover:text-blue-900"
                             >
                                 {link.name}
                             </Link>
                         ))}
 
                         {!loading && (
-
                             user ? (
 
-                                <>
+                                <div className="border-t pt-4">
+
+                                    <div className="flex items-center gap-3 mb-4">
+
+                                        {user.photoURL ? (
+                                            <img
+                                                src={user.photoURL}
+                                                alt="Profile"
+                                                className="w-12 h-12 rounded-full object-cover"
+                                            />
+                                        ) : (
+                                            <UserCircle
+                                                size={42}
+                                                className="text-blue-900"
+                                            />
+                                        )}
+
+                                        <div>
+                                            <p className="font-semibold text-gray-800">
+                                                {user.displayName || "User"}
+                                            </p>
+
+                                            <p className="text-sm text-gray-500">
+                                                {user.email}
+                                            </p>
+                                        </div>
+
+                                    </div>
+
                                     <Link
-                                        to="/dashboard"
+                                        to={`/${role}/dashboard`}
                                         onClick={() => setIsOpen(false)}
-                                        className="flex items-center gap-2 text-blue-900 font-semibold"
+                                        className="block py-2 text-blue-900 font-semibold"
                                     >
-                                        <UserCircle size={20} />
                                         Dashboard
                                     </Link>
 
                                     <button
                                         onClick={handleLogout}
-                                        className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-lg w-full justify-center"
+                                        className="flex items-center gap-2 py-2 text-red-600 font-semibold"
                                     >
-                                        <LogOut size={18} />
+                                        <LogOut size={17} />
                                         Logout
                                     </button>
-                                </>
+
+                                </div>
 
                             ) : (
 
-                                <div className="flex flex-col gap-3">
+                                <div className="flex gap-3 pt-3 border-t">
 
                                     <Link
                                         to="/login"
                                         onClick={() => setIsOpen(false)}
-                                        className="text-center border border-blue-900 text-blue-900 px-4 py-2 rounded-lg"
+                                        className="flex-1 text-center border border-blue-900 text-blue-900 py-2 rounded-lg"
                                     >
                                         Login
                                     </Link>
@@ -199,7 +281,7 @@ const Navbar = () => {
                                     <Link
                                         to="/signup"
                                         onClick={() => setIsOpen(false)}
-                                        className="text-center bg-blue-900 text-white px-4 py-2 rounded-lg"
+                                        className="flex-1 text-center bg-blue-900 text-white py-2 rounded-lg"
                                     >
                                         Sign Up
                                     </Link>
@@ -207,17 +289,14 @@ const Navbar = () => {
                                 </div>
 
                             )
-
                         )}
 
                     </div>
-
                 )}
 
             </div>
 
         </nav>
-
     );
 };
 

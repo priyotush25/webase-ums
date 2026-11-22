@@ -1,0 +1,125 @@
+
+const API_URL = import.meta.env.VITE_API_URL;
+
+/// CREATE MONGODB USER PROFILE
+export const createUserProfile = async (user, name, image) => {
+    try {
+        if (!image) {
+            throw new Error("Profile image is missing from frontend.");
+        }
+
+        const idToken = await user.getIdToken();
+
+        const formData = new FormData();
+
+        formData.append("name", name);
+        formData.append("image", image);
+
+        console.log("Image File:", image);
+        console.log("FormData Image:", formData.get("image"));
+
+        const response = await fetch(`${API_URL}/api/auth/signup`, {
+            method: "POST",
+            credentials: "include",
+            headers: {
+                Authorization: `Bearer ${idToken}`,
+            },
+            body: formData,
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || "Profile creation failed");
+        }
+
+        return data;
+
+    } catch (error) {
+        console.error("Profile Creation Error:", error);
+        throw error;
+    }
+};
+
+
+// ========================================
+// BACKEND LOGIN
+// ========================================
+
+export const loginUser = async (user) => {
+    try {
+        const idToken = await user.getIdToken();
+
+        const response = await fetch(`${API_URL}/api/auth/login`, {
+            method: "POST",
+            credentials: "include",
+            headers: {
+                Authorization: `Bearer ${idToken}`,
+            },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || "Backend login failed");
+        }
+
+        return data;
+
+    } catch (error) {
+        console.error("Backend Login Error:", error.message);
+        throw error;
+    }
+};
+
+
+// ========================================
+// GET CURRENT LOGGED-IN USER
+// ========================================
+
+export const getCurrentUser = async () => {
+    try {
+        const response = await fetch(`${API_URL}/api/auth/me`, {
+            method: "GET",
+            credentials: "include",
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || "Failed to fetch current user");
+        }
+
+        return data;
+
+    } catch (error) {
+        console.error("Get Current User Error:", error.message);
+        throw error;
+    }
+};
+
+
+// ========================================
+// BACKEND LOGOUT
+// ========================================
+
+export const logoutUser = async () => {
+    try {
+        const response = await fetch(`${API_URL}/api/auth/logout`, {
+            method: "POST",
+            credentials: "include",
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || "Logout failed");
+        }
+
+        return data;
+
+    } catch (error) {
+        console.error("Backend Logout Error:", error.message);
+        throw error;
+    }
+};
