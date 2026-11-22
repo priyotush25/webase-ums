@@ -2,16 +2,15 @@
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
-
     {
-        // Firebase Authentication UID
+        // Firebase UID
         firebaseUid: {
             type: String,
             required: true,
             unique: true,
         },
 
-        // User Full Name
+        // User Name
         name: {
             type: String,
             required: true,
@@ -35,21 +34,17 @@ const userSchema = new mongoose.Schema(
             required: true,
         },
 
-        // Profile Picture
+        // ImgBB Image URL
         photoURL: {
             type: String,
             default: "",
         },
-
     },
-
     {
         timestamps: true,
     }
-
 );
 
-// Create User Model
 const User = mongoose.model("User", userSchema);
 
 export default User;

@@ -1,10 +1,12 @@
+
+import "dotenv/config";
+
 import cors from "cors";
-import dotenv from "dotenv";
 import express from "express";
 import connectDB from "./config/db.js";
 import firebaseApp from "./config/firebaseAdmin.js";
-
-dotenv.config();
+import verifyFirebaseToken from "./middleware/verifyFirebaseToken.js";
+import authRoutes from "./routes/authRoutes.js";
 
 const app = express();
 
@@ -18,6 +20,9 @@ app.use(
 
 app.use(express.json());
 
+// Routes
+app.use("/api/auth", authRoutes);
+
 // Test Route
 app.get("/", (req, res) => {
     res.status(200).json({
@@ -26,10 +31,8 @@ app.get("/", (req, res) => {
     });
 });
 
-
-// test route to verify Firebase Admin SDK
+// Test Firebase Admin SDK
 app.get("/api/test-firebase", (req, res) => {
-
     const projectId = firebaseApp.options.projectId;
 
     res.status(200).json({
@@ -37,14 +40,24 @@ app.get("/api/test-firebase", (req, res) => {
         message: "Firebase Admin SDK Connected Successfully",
         projectId,
     });
+});
 
+// Test Firebase Token
+app.get("/api/auth/check", verifyFirebaseToken, (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: "Firebase Token Verified Successfully",
+        user: {
+            uid: req.firebaseUser.uid,
+            email: req.firebaseUser.email,
+            name: req.firebaseUser.name,
+        },
+    });
 });
 
 // Start Server
 const startServer = async () => {
-
     try {
-
         await connectDB();
 
         const PORT = process.env.PORT || 5000;
@@ -54,11 +67,8 @@ const startServer = async () => {
         });
 
     } catch (error) {
-
         console.error("Server Startup Failed:", error.message);
-
     }
-
 };
 
 startServer();
