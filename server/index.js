@@ -1,7 +1,7 @@
 
-import "dotenv/config";
-
+import cookieParser from "cookie-parser";
 import cors from "cors";
+import "dotenv/config";
 import express from "express";
 import connectDB from "./config/db.js";
 import firebaseApp from "./config/firebaseAdmin.js";
@@ -18,7 +18,9 @@ app.use(
     })
 );
 
+
 app.use(express.json());
+app.use(cookieParser());
 
 // Routes
 app.use("/api/auth", authRoutes);

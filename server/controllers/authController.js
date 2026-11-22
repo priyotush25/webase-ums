@@ -1,6 +1,6 @@
 
 import User from "../models/User.js";
-
+import generateToken from "../utils/generateToken.js";
 // Signup Controller
 export const signup = async (req, res) => {
     try {
@@ -31,6 +31,8 @@ export const signup = async (req, res) => {
         });
 
         if (existingUser) {
+            generateToken(existingUser._id, existingUser.role, res);
+
             return res.status(200).json({
                 success: true,
                 message: "User profile already exists",
@@ -64,6 +66,8 @@ export const signup = async (req, res) => {
             role: "student",
             photoURL: "",
         });
+
+        generateToken(newUser._id, newUser.role, res);
 
         return res.status(201).json({
             success: true,
