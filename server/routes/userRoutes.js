@@ -1,9 +1,9 @@
-
 import express from "express";
 
 import {
     getAllUsers,
     getUserById,
+    getUserStats,
     updateUserRole
 } from "../controllers/userController.js";
 
@@ -12,16 +12,19 @@ import verifyJWT from "../middleware/verifyJWT.js";
 
 const router = express.Router();
 
-// All routes require Admin authentication
+// Admin Authentication
 router.use(verifyJWT, authorizeRole("admin"));
 
-// Get all users with search, filter and pagination
+// User Management
 router.get("/", getAllUsers);
 
-// Get single user
+// Dashboard Statistics
+router.get("/stats", getUserStats);
+
+// Single User
 router.get("/:userId", getUserById);
 
-// Update user role
+// Update User Role
 router.patch("/:userId/role", updateUserRole);
 
 export default router;

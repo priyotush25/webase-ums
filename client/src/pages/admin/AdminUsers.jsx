@@ -1,5 +1,12 @@
 
-import { RefreshCw, Search, ShieldAlert, Users, X } from "lucide-react";
+import {
+    RefreshCw,
+    Search,
+    ShieldAlert,
+    Users,
+    X
+} from "lucide-react";
+
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
@@ -25,10 +32,7 @@ const AdminUsers = () => {
     });
 
     const [updatingId, setUpdatingId] = useState(null);
-
-    // Confirmation Modal State
     const [pendingRoleChange, setPendingRoleChange] = useState(null);
-
 
     // Fetch Users
     const fetchUsers = useCallback(async () => {
@@ -42,23 +46,41 @@ const AdminUsers = () => {
                 role
             });
 
-            setUsers(response.data.users);
-            setPagination(response.data.pagination);
+            setUsers(response.data.users || []);
+
+            setPagination(response.data.pagination || {
+                currentPage: 1,
+                totalPages: 1,
+                totalUsers: 0,
+                limit: 10
+            });
 
         } catch (error) {
-            toast.error(error.message);
+            console.error("Fetch Users Error:", error);
+            toast.error(error.message || "Failed to fetch users");
+
         } finally {
             setLoading(false);
         }
     }, [page, search, role]);
 
-
     useEffect(() => {
         fetchUsers();
     }, [fetchUsers]);
 
+    // Search Handler
+    const handleSearch = (value) => {
+        setSearch(value);
+        setPage(1);
+    };
 
-    // Open Confirmation Modal
+    // Role Filter
+    const handleFilter = (value) => {
+        setRole(value);
+        setPage(1);
+    };
+
+    // Open Role Confirmation Modal
     const handleRoleChange = (user, newRole) => {
         if (user.role === newRole) return;
 
@@ -68,10 +90,9 @@ const AdminUsers = () => {
         });
     };
 
-
     // Confirm Role Change
     const confirmRoleChange = async () => {
-        if (!pendingRoleChange) return;
+        if (!pendingRoleChange || updatingId) return;
 
         const { user, newRole } = pendingRoleChange;
 
@@ -83,6 +104,7 @@ const AdminUsers = () => {
                 newRole
             );
 
+            // Update User in Current Table
             setUsers((previousUsers) =>
                 previousUsers.map((item) =>
                     item._id === user._id
@@ -95,42 +117,30 @@ const AdminUsers = () => {
 
             setPendingRoleChange(null);
 
+            // Refresh data to keep filters and pagination accurate
+            await fetchUsers();
+
         } catch (error) {
-            toast.error(error.message);
+            console.error("Role Update Error:", error);
+            toast.error(error.message || "Failed to update user role");
+
         } finally {
             setUpdatingId(null);
         }
     };
 
-
     // Cancel Role Change
     const cancelRoleChange = () => {
-        if (updatingId) return;
+        if (updatingId !== null) return;
 
         setPendingRoleChange(null);
     };
-
-
-    // Search Handler
-    const handleSearch = (value) => {
-        setSearch(value);
-        setPage(1);
-    };
-
-
-    // Role Filter
-    const handleFilter = (value) => {
-        setRole(value);
-        setPage(1);
-    };
-
 
     return (
         <div className="space-y-6">
 
             {/* Header */}
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-
                 <div>
                     <h1 className="text-2xl font-bold text-gray-800">
                         User Management
@@ -142,23 +152,25 @@ const AdminUsers = () => {
                 </div>
 
                 <button
+                    type="button"
                     onClick={fetchUsers}
                     disabled={loading}
-                    className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-white hover:bg-blue-700 disabled:opacity-60"
+                    className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-white transition hover:bg-blue-700 disabled:opacity-60"
                 >
-                    <RefreshCw size={17} />
+                    <RefreshCw
+                        size={17}
+                        className={loading ? "animate-spin" : ""}
+                    />
+
                     Refresh
                 </button>
-
             </div>
-
 
             {/* Statistics */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
                 <div className="rounded-xl border bg-white p-5 shadow-sm">
                     <div className="flex items-center gap-3">
-
                         <div className="rounded-lg bg-blue-100 p-3 text-blue-600">
                             <Users size={23} />
                         </div>
@@ -172,14 +184,11 @@ const AdminUsers = () => {
                                 {pagination.totalUsers}
                             </h2>
                         </div>
-
                     </div>
                 </div>
 
-
                 <div className="rounded-xl border bg-white p-5 shadow-sm">
                     <div className="flex items-center gap-3">
-
                         <div className="rounded-lg bg-green-100 p-3 text-green-600">
                             <Users size={23} />
                         </div>
@@ -193,18 +202,15 @@ const AdminUsers = () => {
                                 {pagination.currentPage} / {pagination.totalPages}
                             </h2>
                         </div>
-
                     </div>
                 </div>
 
             </div>
 
-
             {/* Search and Filter */}
             <div className="flex flex-col gap-3 rounded-xl border bg-white p-4 shadow-sm md:flex-row">
 
                 <div className="relative flex-1">
-
                     <Search
                         size={19}
                         className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
@@ -217,7 +223,6 @@ const AdminUsers = () => {
                         placeholder="Search by name or email..."
                         className="w-full rounded-lg border py-2.5 pl-10 pr-4 outline-none focus:border-blue-500"
                     />
-
                 </div>
 
                 <select
@@ -233,12 +238,10 @@ const AdminUsers = () => {
 
             </div>
 
-
             {/* Users Table */}
             <div className="overflow-hidden rounded-xl border bg-white shadow-sm">
 
                 <div className="overflow-x-auto">
-
                     <table className="w-full min-w-[750px] text-left">
 
                         <thead className="bg-gray-50 text-sm text-gray-600">
@@ -254,81 +257,77 @@ const AdminUsers = () => {
                         <tbody className="divide-y">
 
                             {loading ? (
-
                                 <tr>
-                                    <td colSpan="5" className="py-12 text-center text-gray-500">
+                                    <td
+                                        colSpan="5"
+                                        className="py-12 text-center text-gray-500"
+                                    >
                                         Loading users...
                                     </td>
                                 </tr>
-
                             ) : users.length === 0 ? (
-
                                 <tr>
-                                    <td colSpan="5" className="py-12 text-center text-gray-500">
+                                    <td
+                                        colSpan="5"
+                                        className="py-12 text-center text-gray-500"
+                                    >
                                         No users found.
                                     </td>
                                 </tr>
-
                             ) : (
-
                                 users.map((user) => (
-
-                                    <tr key={user._id} className="hover:bg-gray-50">
+                                    <tr
+                                        key={user._id}
+                                        className="hover:bg-gray-50"
+                                    >
 
                                         {/* User */}
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-
                                                 <img
                                                     src={
                                                         user.photoURL ||
                                                         "https://placehold.co/40x40"
                                                     }
-                                                    alt={user.name}
+                                                    alt={user.name || "User"}
                                                     className="h-10 w-10 rounded-full object-cover"
                                                 />
 
                                                 <span className="font-medium text-gray-800">
                                                     {user.name}
                                                 </span>
-
                                             </div>
                                         </td>
-
 
                                         {/* Email */}
                                         <td className="px-6 py-4 text-sm text-gray-600">
                                             {user.email}
                                         </td>
 
-
-                                        {/* Role */}
+                                        {/* Current Role */}
                                         <td className="px-6 py-4">
-
-                                            <span className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                                                user.role === "admin"
-                                                    ? "bg-purple-100 text-purple-700"
-                                                    : user.role === "teacher"
-                                                    ? "bg-green-100 text-green-700"
-                                                    : "bg-blue-100 text-blue-700"
-                                            }`}>
+                                            <span
+                                                className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                                                    user.role === "admin"
+                                                        ? "bg-purple-100 text-purple-700"
+                                                        : user.role === "teacher"
+                                                        ? "bg-green-100 text-green-700"
+                                                        : "bg-blue-100 text-blue-700"
+                                                }`}
+                                            >
                                                 {user.role}
                                             </span>
-
                                         </td>
-
 
                                         {/* Joined */}
                                         <td className="px-6 py-4 text-sm text-gray-600">
-                                            {new Date(
-                                                user.createdAt
-                                            ).toLocaleDateString()}
+                                            {user.createdAt
+                                                ? new Date(user.createdAt).toLocaleDateString()
+                                                : "N/A"}
                                         </td>
-
 
                                         {/* Change Role */}
                                         <td className="px-6 py-4">
-
                                             <select
                                                 value={user.role}
                                                 disabled={updatingId === user._id}
@@ -351,36 +350,29 @@ const AdminUsers = () => {
                                                 <option value="admin">
                                                     Admin
                                                 </option>
-
                                             </select>
-
                                         </td>
 
                                     </tr>
-
                                 ))
-
                             )}
 
                         </tbody>
-
                     </table>
-
                 </div>
 
-
                 {/* Pagination */}
-                <div className="flex items-center justify-between border-t px-6 py-4">
+                <div className="flex flex-col gap-3 border-t px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
 
                     <p className="text-sm text-gray-500">
                         Total: {pagination.totalUsers} users
                     </p>
 
                     <div className="flex items-center gap-3">
-
                         <button
+                            type="button"
                             disabled={page <= 1 || loading}
-                            onClick={() => setPage((p) => p - 1)}
+                            onClick={() => setPage((previous) => previous - 1)}
                             className="rounded-lg border px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-40"
                         >
                             Previous
@@ -391,19 +383,19 @@ const AdminUsers = () => {
                         </span>
 
                         <button
-                            disabled={page >= pagination.totalPages || loading}
-                            onClick={() => setPage((p) => p + 1)}
+                            type="button"
+                            disabled={
+                                page >= pagination.totalPages || loading
+                            }
+                            onClick={() => setPage((previous) => previous + 1)}
                             className="rounded-lg border px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-40"
                         >
                             Next
                         </button>
-
                     </div>
 
                 </div>
-
             </div>
-
 
             {/* Role Change Confirmation Modal */}
             {pendingRoleChange && (
@@ -447,18 +439,16 @@ const AdminUsers = () => {
 
                         </div>
 
-
                         {/* User Information */}
                         <div className="mb-5 space-y-4 rounded-xl bg-gray-50 p-4">
 
                             <div className="flex items-center gap-3">
-
                                 <img
                                     src={
                                         pendingRoleChange.user.photoURL ||
                                         "https://placehold.co/48x48"
                                     }
-                                    alt={pendingRoleChange.user.name}
+                                    alt={pendingRoleChange.user.name || "User"}
                                     className="h-12 w-12 rounded-full object-cover"
                                 />
 
@@ -471,7 +461,6 @@ const AdminUsers = () => {
                                         {pendingRoleChange.user.email}
                                     </p>
                                 </div>
-
                             </div>
 
                             <div className="flex items-center justify-between gap-3 border-t pt-4">
@@ -501,21 +490,16 @@ const AdminUsers = () => {
                                 </div>
 
                             </div>
-
                         </div>
-
 
                         {/* Warning */}
                         <div className="mb-6 flex gap-2 rounded-lg bg-orange-50 p-3 text-sm text-orange-700">
-
                             <ShieldAlert size={18} className="shrink-0" />
 
                             <p>
                                 Changing this role will affect the user's dashboard access and permissions.
                             </p>
-
                         </div>
-
 
                         {/* Action Buttons */}
                         <div className="flex justify-end gap-3">
@@ -543,7 +527,6 @@ const AdminUsers = () => {
                         </div>
 
                     </div>
-
                 </div>
             )}
 

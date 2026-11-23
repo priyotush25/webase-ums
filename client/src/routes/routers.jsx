@@ -1,19 +1,31 @@
 
 import { createBrowserRouter } from "react-router";
 
+// Layouts
 import AuthLayout from "../layouts/AuthLayout";
 import DashboardLayout from "../layouts/DashboardLayout";
 import MainLayout from "../layouts/MainLayout";
-import AdminUsers from "../pages/admin/AdminUsers";
-import Login from "../pages/auth/Login";
-import Signup from "../pages/auth/Signup";
+
+import AdminStudents from "../pages/admin/AdminStudents";
+import AdminTeachers from "../pages/admin/AdminTeachers";
+// Public Pages
 import Home from "../pages/Home";
 
-// Dashboard Pages
+// Auth Pages
+import Login from "../pages/auth/Login";
+import Signup from "../pages/auth/Signup";
+
+// Admin Pages
 import AdminDashboard from "../pages/admin/AdminDashboard";
+import AdminUsers from "../pages/admin/AdminUsers";
+
+// Student Pages
 import StudentDashboard from "../pages/student/StudentDashboard";
+
+// Teacher Pages
 import TeacherDashboard from "../pages/teacher/TeacherDashboard";
 
+// Route Guards
 import GuestRoute from "./GuestRoute";
 import ProtectedRoute from "./ProtectedRoute";
 
@@ -28,9 +40,9 @@ const routers = createBrowserRouter([
         children: [
             {
                 path: "/",
-                element: <Home />
-            }
-        ]
+                element: <Home />,
+            },
+        ],
     },
 
     // ========================================
@@ -45,19 +57,19 @@ const routers = createBrowserRouter([
                 children: [
                     {
                         path: "/login",
-                        element: <Login />
+                        element: <Login />,
                     },
                     {
                         path: "/signup",
-                        element: <Signup />
-                    }
-                ]
-            }
-        ]
+                        element: <Signup />,
+                    },
+                ],
+            },
+        ],
     },
 
     // ========================================
-    // STUDENT DASHBOARD
+    // STUDENT ROUTES
     // ========================================
 
     {
@@ -68,15 +80,29 @@ const routers = createBrowserRouter([
                 children: [
                     {
                         path: "/student/dashboard",
-                        element: <StudentDashboard />
-                    }
-                ]
-            }
-        ]
+                        element: <StudentDashboard />,
+                    },
+
+                    // Future Student Pages
+                    // {
+                    //     path: "/student/courses",
+                    //     element: <StudentCourses />,
+                    // },
+                    // {
+                    //     path: "/student/attendance",
+                    //     element: <StudentAttendance />,
+                    // },
+                    // {
+                    //     path: "/student/results",
+                    //     element: <StudentResults />,
+                    // },
+                ],
+            },
+        ],
     },
 
     // ========================================
-    // TEACHER DASHBOARD
+    // TEACHER ROUTES
     // ========================================
 
     {
@@ -87,15 +113,29 @@ const routers = createBrowserRouter([
                 children: [
                     {
                         path: "/teacher/dashboard",
-                        element: <TeacherDashboard />
-                    }
-                ]
-            }
-        ]
+                        element: <TeacherDashboard />,
+                    },
+
+                    // Future Teacher Pages
+                    // {
+                    //     path: "/teacher/courses",
+                    //     element: <TeacherCourses />,
+                    // },
+                    // {
+                    //     path: "/teacher/students",
+                    //     element: <TeacherStudents />,
+                    // },
+                    // {
+                    //     path: "/teacher/attendance",
+                    //     element: <TeacherAttendance />,
+                    // },
+                ],
+            },
+        ],
     },
 
     // ========================================
-    // ADMIN DASHBOARD
+    // ADMIN ROUTES
     // ========================================
 
     {
@@ -104,18 +144,26 @@ const routers = createBrowserRouter([
             {
                 element: <DashboardLayout />,
                 children: [
-                    {
-                        path: "/admin/dashboard",
-                        element: <AdminDashboard />
-                    },
-                    {
-                        path: "/admin/users",
-                        element: <AdminUsers />
-                    }
-                ]
-            }
-        ]
-    }
+                   {
+                    path: "/admin/dashboard",
+                    element: <AdminDashboard />,
+                },
+                {
+                    path: "/admin/users",
+                    element: <AdminUsers />,
+                },
+                {
+                    path: "/admin/students",
+                    element: <AdminStudents />,
+                },
+                {
+                    path: "/admin/teachers",
+                    element: <AdminTeachers />,
+                }
+                ],
+            },
+        ],
+    },
 
 ]);
 

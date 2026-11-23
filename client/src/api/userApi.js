@@ -1,7 +1,7 @@
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-// Get All Users
+// 1. Get All Users
 export const getAllUsers = async ({
     page = 1,
     limit = 10,
@@ -9,8 +9,8 @@ export const getAllUsers = async ({
     role = "all"
 } = {}) => {
     const params = new URLSearchParams({
-        page,
-        limit,
+        page: String(page),
+        limit: String(limit),
         search,
         role
     });
@@ -32,8 +32,7 @@ export const getAllUsers = async ({
     return data;
 };
 
-
-// Get Single User
+// 2. Get Single User
 export const getUserById = async (userId) => {
     const response = await fetch(
         `${API_URL}/api/users/${userId}`,
@@ -52,8 +51,7 @@ export const getUserById = async (userId) => {
     return data;
 };
 
-
-// Update User Role
+// 3. Update User Role
 export const updateUserRole = async (userId, role) => {
     const response = await fetch(
         `${API_URL}/api/users/${userId}/role`,
@@ -70,7 +68,28 @@ export const updateUserRole = async (userId, role) => {
     const data = await response.json();
 
     if (!response.ok) {
-        throw new Error(data.message || "Failed to update role");
+        throw new Error(data.message || "Failed to update user role");
+    }
+
+    return data;
+};
+
+// 4. Get User Statistics
+export const getUserStats = async () => {
+    const response = await fetch(
+        `${API_URL}/api/users/stats`,
+        {
+            method: "GET",
+            credentials: "include"
+        }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(
+            data.message || "Failed to fetch user statistics"
+        );
     }
 
     return data;
