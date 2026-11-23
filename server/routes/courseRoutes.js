@@ -14,12 +14,39 @@ import verifyJWT from "../middleware/verifyJWT.js";
 
 const router = express.Router();
 
-router.use(verifyJWT, authorizeRole("admin"));
+// All routes require login
+router.use(verifyJWT);
 
-router.post("/", createCourse);
-router.get("/", getAllCourses);
-router.get("/:courseId", getCourseById);
-router.patch("/:courseId", updateCourse);
-router.delete("/:courseId", deleteCourse);
+// Student and Admin can view courses
+router.get(
+    "/",
+    authorizeRole("admin", "student", "teacher"),
+    getAllCourses
+);
+
+router.get(
+    "/:courseId",
+    authorizeRole("admin", "student", "teacher"),
+    getCourseById
+);
+
+// Only Admin can manage courses
+router.post(
+    "/",
+    authorizeRole("admin"),
+    createCourse
+);
+
+router.patch(
+    "/:courseId",
+    authorizeRole("admin"),
+    updateCourse
+);
+
+router.delete(
+    "/:courseId",
+    authorizeRole("admin"),
+    deleteCourse
+);
 
 export default router;

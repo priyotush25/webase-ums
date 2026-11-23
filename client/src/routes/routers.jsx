@@ -5,16 +5,21 @@ import { createBrowserRouter } from "react-router";
 import AuthLayout from "../layouts/AuthLayout";
 import DashboardLayout from "../layouts/DashboardLayout";
 import MainLayout from "../layouts/MainLayout";
-
 import AdminStudents from "../pages/admin/AdminStudents";
 import AdminTeachers from "../pages/admin/AdminTeachers";
+import StudentCourses from "../pages/student/StudentCourses";
+
 // Public Pages
 import Home from "../pages/Home";
 import AdminCourses from "../pages/admin/AdminCourses";
 import AdminDepartments from "../pages/admin/AdminDepartments";
+
 // Auth Pages
 import Login from "../pages/auth/Login";
 import Signup from "../pages/auth/Signup";
+
+import AdminEnrollments from "../pages/admin/AdminEnrollments";
+import MyEnrollments from "../pages/student/MyEnrollments";
 
 // Admin Pages
 import AdminDashboard from "../pages/admin/AdminDashboard";
@@ -83,6 +88,15 @@ const routers = createBrowserRouter([
                         path: "/student/dashboard",
                         element: <StudentDashboard />,
                     },
+
+                    {
+                        path: "/student/courses",
+                        element: <StudentCourses />
+                    },
+                    {
+                        path: "/student/enrollments",
+                        element: <MyEnrollments />
+                    }
 
                     // Future Student Pages
                     // {
@@ -168,6 +182,10 @@ const routers = createBrowserRouter([
                     {
                         path: "/admin/courses",
                         element: <AdminCourses />,
+                    },
+                    {
+                        path: "/admin/enrollments",
+                        element: <AdminEnrollments />
                     }
                 ],
             },

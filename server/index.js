@@ -10,6 +10,7 @@ import connectDB from "./config/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import courseRoutes from "./routes/courseRoutes.js";
 import departmentRoutes from "./routes/departmentRoutes.js";
+import enrollmentRoutes from "./routes/enrollmentRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 
 // Environment Variables
@@ -60,6 +61,8 @@ app.use("/api/users", userRoutes);
 app.use("/api/departments", departmentRoutes);
 
 app.use("/api/courses", courseRoutes);
+
+app.use("/api/enrollments", enrollmentRoutes);
 
 // ========================================
 // NOT FOUND ROUTE

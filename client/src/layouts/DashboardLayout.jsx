@@ -37,6 +37,11 @@ const NAV_LINKS = {
             icon: BookOpen,
         },
         {
+            name: "My Enrollments",
+            path: "/student/enrollments",
+            icon: ClipboardCheck,
+        },
+        {
             name: "Attendance",
             path: "/student/attendance",
             icon: CalendarDays,
@@ -108,6 +113,11 @@ const NAV_LINKS = {
             icon: BookOpen,
         },
         {
+            name: "Enrollments",
+            path: "/admin/enrollments",
+            icon: ClipboardCheck,
+        },
+        {
             name: "Settings",
             path: "/admin/settings",
             icon: Settings,
@@ -133,6 +143,27 @@ const getInitials = (name = "") => {
             .slice(0, 2)
             .map((part) => part[0]?.toUpperCase())
             .join("") || "U"
+    );
+};
+
+// ========================================
+// AVATAR COMPONENT
+// ========================================
+
+const Avatar = ({ user, displayName, size = "h-10 w-10" }) => {
+    return user?.photoURL ? (
+        <img
+            src={user.photoURL}
+            alt={`${displayName} profile`}
+            className={`${size} shrink-0 rounded-full object-cover ring-2 ring-white`}
+        />
+    ) : (
+        <div
+            className={`${size} flex shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-semibold text-white`}
+            aria-hidden="true"
+        >
+            {getInitials(displayName)}
+        </div>
     );
 };
 
@@ -202,35 +233,12 @@ const DashboardLayout = () => {
     const handleLogout = async () => {
         try {
             setLoggingOut(true);
-
             await logout();
-
         } catch (error) {
             console.error("Logout Error:", error);
         } finally {
             setLoggingOut(false);
         }
-    };
-
-    // ========================================
-    // AVATAR COMPONENT
-    // ========================================
-
-    const Avatar = ({ size = "h-10 w-10" }) => {
-        return user?.photoURL ? (
-            <img
-                src={user.photoURL}
-                alt={`${displayName} profile`}
-                className={`${size} shrink-0 rounded-full object-cover ring-2 ring-white`}
-            />
-        ) : (
-            <div
-                className={`${size} flex shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-semibold text-white`}
-                aria-hidden="true"
-            >
-                {getInitials(displayName)}
-            </div>
-        );
     };
 
     // ========================================
@@ -250,9 +258,7 @@ const DashboardLayout = () => {
                 />
             )}
 
-            {/* ========================================
-                SIDEBAR
-            ======================================== */}
+            {/* Sidebar */}
 
             <aside
                 className={`
@@ -360,7 +366,10 @@ const DashboardLayout = () => {
 
                     <div className="mb-3 flex items-center gap-3 rounded-lg bg-slate-50 p-3">
 
-                        <Avatar />
+                        <Avatar
+                            user={user}
+                            displayName={displayName}
+                        />
 
                         <div className="min-w-0">
 
@@ -393,9 +402,7 @@ const DashboardLayout = () => {
 
             </aside>
 
-            {/* ========================================
-                MAIN CONTENT
-            ======================================== */}
+            {/* Main Content */}
 
             <div className="flex min-w-0 flex-1 flex-col">
 
@@ -444,7 +451,11 @@ const DashboardLayout = () => {
 
                         </div>
 
-                        <Avatar size="h-9 w-9" />
+                        <Avatar
+                            user={user}
+                            displayName={displayName}
+                            size="h-9 w-9"
+                        />
 
                     </div>
 
