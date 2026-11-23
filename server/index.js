@@ -1,17 +1,30 @@
 
 import cookieParser from "cookie-parser";
 import cors from "cors";
-import "dotenv/config";
+import dotenv from "dotenv";
 import express from "express";
+
 import connectDB from "./config/db.js";
-import firebaseApp from "./config/firebaseAdmin.js";
-import verifyFirebaseToken from "./middleware/verifyFirebaseToken.js";
+
+// Routes
 import authRoutes from "./routes/authRoutes.js";
+import courseRoutes from "./routes/courseRoutes.js";
+import departmentRoutes from "./routes/departmentRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+
+// Environment Variables
+dotenv.config();
+
+// ========================================
+// EXPRESS APP INITIALIZATION
+// ========================================
 
 const app = express();
 
-// Middleware
+// ========================================
+// MIDDLEWARE
+// ========================================
+
 app.use(
     cors({
         origin: process.env.CLIENT_URL,
@@ -19,62 +32,79 @@ app.use(
     })
 );
 
-
 app.use(express.json());
+
+app.use(express.urlencoded({ extended: true }));
+
 app.use(cookieParser());
 
-// Routes
+// ========================================
+// TEST ROUTE
+// ========================================
+
+app.get("/", (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: "UMS Server is running successfully",
+    });
+});
+
+// ========================================
+// API ROUTES
+// ========================================
+
 app.use("/api/auth", authRoutes);
 
 app.use("/api/users", userRoutes);
 
+app.use("/api/departments", departmentRoutes);
 
-// Test Route
-app.get("/", (req, res) => {
-    res.status(200).json({
-        success: true,
-        message: "UMS Backend Server is Running!",
+app.use("/api/courses", courseRoutes);
+
+// ========================================
+// NOT FOUND ROUTE
+// ========================================
+
+app.use((req, res) => {
+    res.status(404).json({
+        success: false,
+        message: `Route not found: ${req.originalUrl}`,
     });
 });
 
-// Test Firebase Admin SDK
-app.get("/api/test-firebase", (req, res) => {
-    const projectId = firebaseApp.options.projectId;
+// ========================================
+// GLOBAL ERROR HANDLER
+// ========================================
 
-    res.status(200).json({
-        success: true,
-        message: "Firebase Admin SDK Connected Successfully",
-        projectId,
+app.use((error, req, res, next) => {
+    console.error("Server Error:", error);
+
+    res.status(error.status || 500).json({
+        success: false,
+        message: error.message || "Internal Server Error",
     });
 });
 
-// Test Firebase Token
-app.get("/api/auth/check", verifyFirebaseToken, (req, res) => {
-    res.status(200).json({
-        success: true,
-        message: "Firebase Token Verified Successfully",
-        user: {
-            uid: req.firebaseUser.uid,
-            email: req.firebaseUser.email,
-            name: req.firebaseUser.name,
-        },
-    });
-});
+// ========================================
+// SERVER START
+// ========================================
 
-// Start Server
+const PORT = process.env.PORT || 5000;
+
 const startServer = async () => {
     try {
         await connectDB();
-
-        const PORT = process.env.PORT || 5000;
 
         app.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);
         });
 
     } catch (error) {
-        console.error("Server Startup Failed:", error.message);
+        console.error("Server Startup Error:", error);
+        process.exit(1);
     }
 };
 
 startServer();
+
+export default app;

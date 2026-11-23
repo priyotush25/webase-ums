@@ -10,7 +10,8 @@ import AdminStudents from "../pages/admin/AdminStudents";
 import AdminTeachers from "../pages/admin/AdminTeachers";
 // Public Pages
 import Home from "../pages/Home";
-
+import AdminCourses from "../pages/admin/AdminCourses";
+import AdminDepartments from "../pages/admin/AdminDepartments";
 // Auth Pages
 import Login from "../pages/auth/Login";
 import Signup from "../pages/auth/Signup";
@@ -144,22 +145,30 @@ const routers = createBrowserRouter([
             {
                 element: <DashboardLayout />,
                 children: [
-                   {
-                    path: "/admin/dashboard",
-                    element: <AdminDashboard />,
-                },
-                {
-                    path: "/admin/users",
-                    element: <AdminUsers />,
-                },
-                {
-                    path: "/admin/students",
-                    element: <AdminStudents />,
-                },
-                {
-                    path: "/admin/teachers",
-                    element: <AdminTeachers />,
-                }
+                    {
+                        path: "/admin/dashboard",
+                        element: <AdminDashboard />,
+                    },
+                    {
+                        path: "/admin/users",
+                        element: <AdminUsers />,
+                    },
+                    {
+                        path: "/admin/students",
+                        element: <AdminStudents />,
+                    },
+                    {
+                        path: "/admin/teachers",
+                        element: <AdminTeachers />,
+                    },
+                    {
+                        path: "/admin/departments",
+                        element: <AdminDepartments />,
+                    },
+                    {
+                        path: "/admin/courses",
+                        element: <AdminCourses />,
+                    }
                 ],
             },
         ],
