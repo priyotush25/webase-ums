@@ -7,7 +7,6 @@ import {
     Camera,
     Eye,
     EyeOff,
-    GraduationCap,
     Lock,
     Mail,
     User,
@@ -31,33 +30,24 @@ const Signup = () => {
 
     const [image, setImage] = useState(null);
     const [preview, setPreview] = useState("");
-
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [loading, setLoading] = useState(false);
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
-
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value
-        }));
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value
+        });
     };
 
-    // IMAGE SELECTION
+    // Image Selection
     const handleImageChange = (e) => {
         const file = e.target.files?.[0];
 
         if (!file) return;
 
-        const allowedTypes = [
-            "image/jpeg",
-            "image/png",
-            "image/webp"
-        ];
-
-        if (!allowedTypes.includes(file.type)) {
+        if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
             toast.error("Only JPG, PNG and WEBP images are allowed.");
             e.target.value = "";
             return;
@@ -69,15 +59,15 @@ const Signup = () => {
             return;
         }
 
+        if (preview) URL.revokeObjectURL(preview);
+
         setImage(file);
         setPreview(URL.createObjectURL(file));
     };
 
-    // REMOVE IMAGE
+    // Remove Image
     const removeImage = () => {
-        if (preview) {
-            URL.revokeObjectURL(preview);
-        }
+        if (preview) URL.revokeObjectURL(preview);
 
         setImage(null);
         setPreview("");
@@ -87,7 +77,7 @@ const Signup = () => {
         }
     };
 
-    // SIGNUP
+    // Signup
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -95,34 +85,24 @@ const Signup = () => {
 
         const { name, email, password, confirmPassword } = formData;
 
-        if (
-            !name.trim() ||
-            !email.trim() ||
-            !password ||
-            !confirmPassword
-        ) {
-            toast.warning("Please fill in all fields.");
-            return;
+        if (!name.trim() || !email.trim() || !password || !confirmPassword) {
+            return toast.warning("Please fill in all fields.");
         }
 
         if (!image) {
-            toast.warning("Please upload your profile image.");
-            return;
+            return toast.warning("Please upload your profile image.");
         }
 
         if (name.trim().length < 2) {
-            toast.warning("Name must contain at least 2 characters.");
-            return;
+            return toast.warning("Name must contain at least 2 characters.");
         }
 
         if (password.length < 6) {
-            toast.warning("Password must be at least 6 characters.");
-            return;
+            return toast.warning("Password must be at least 6 characters.");
         }
 
         if (password !== confirmPassword) {
-            toast.error("Passwords do not match.");
-            return;
+            return toast.error("Passwords do not match.");
         }
 
         try {
@@ -156,23 +136,16 @@ const Signup = () => {
             console.error("Signup Error:", err);
 
             const errorMessages = {
-                "auth/email-already-in-use":
-                    "This email is already registered. Please login.",
-
-                "auth/invalid-email":
-                    "Please enter a valid email address.",
-
-                "auth/weak-password":
-                    "Please choose a stronger password.",
-
-                "auth/network-request-failed":
-                    "Network error. Please check your internet connection."
+                "auth/email-already-in-use": "Email already registered. Please login.",
+                "auth/invalid-email": "Please enter a valid email.",
+                "auth/weak-password": "Please choose a stronger password.",
+                "auth/network-request-failed": "Check your internet connection."
             };
 
             toast.error(
                 errorMessages[err.code] ||
                 err.message ||
-                "Signup failed. Please try again."
+                "Signup failed."
             );
 
         } finally {
@@ -180,142 +153,111 @@ const Signup = () => {
         }
     };
 
+    const inputClass =
+        "w-full border border-gray-300 rounded-md py-2.5 pl-10 pr-4 outline-none focus:border-blue-800 focus:ring-1 focus:ring-blue-800";
+
     return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
+        <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
 
-            <div className="w-full max-w-md bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
+            <div className="w-full max-w-md bg-white border border-gray-200 rounded-lg p-6 sm:p-8">
 
-                {/* LOGO */}
-                <div className="text-center mb-8">
-
-                    <div className="inline-flex items-center justify-center bg-blue-900 text-white p-3 rounded-xl">
-                        <GraduationCap size={32} />
-                    </div>
-
-                    <h1 className="text-2xl font-bold text-blue-950 mt-4">
-                        Create Your Account
+                {/* Header */}
+                <div className="text-center mb-6">
+                    <h1 className="text-2xl font-bold text-gray-800">
+                        Create Account
                     </h1>
 
-                    <p className="text-sm text-gray-500 mt-2">
-                        Join our University Management System
+                    <p className="text-sm text-gray-500 mt-1">
+                        University Management System
                     </p>
-
                 </div>
 
-                {/* SIGNUP FORM */}
-                <form onSubmit={handleSubmit} className="space-y-5">
+                <form onSubmit={handleSubmit} className="space-y-4">
 
-                    {/* PROFILE IMAGE */}
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-3">
-                            Profile Image <span className="text-red-500">*</span>
-                        </label>
+                    {/* Profile Image */}
+                    <div className="flex flex-col items-center gap-2">
 
-                        <div className="flex flex-col items-center gap-3">
+                        <div className="relative">
+                            <div className="w-24 h-24 rounded-full border border-gray-300 bg-gray-50 overflow-hidden flex items-center justify-center">
 
-                            <div className="relative">
-
-                                <div className="w-28 h-28 rounded-full border-2 border-dashed border-gray-300 bg-gray-50 overflow-hidden flex items-center justify-center">
-
-                                    {preview ? (
-                                        <img
-                                            src={preview}
-                                            alt="Profile Preview"
-                                            className="w-full h-full object-cover"
-                                        />
-                                    ) : (
-                                        <User size={42} className="text-gray-400" />
-                                    )}
-
-                                </div>
-
-                                {preview && (
-                                    <button
-                                        type="button"
-                                        onClick={removeImage}
-                                        disabled={loading}
-                                        className="absolute -top-1 -right-1 bg-red-500 text-white p-1.5 rounded-full hover:bg-red-600"
-                                        aria-label="Remove profile image"
-                                    >
-                                        <X size={15} />
-                                    </button>
+                                {preview ? (
+                                    <img
+                                        src={preview}
+                                        alt="Profile"
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <User size={35} className="text-gray-400" />
                                 )}
 
                             </div>
 
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept="image/jpeg,image/png,image/webp"
-                                onChange={handleImageChange}
-                                className="hidden"
-                                disabled={loading}
-                            />
-
-                            <button
-                                type="button"
-                                onClick={() => fileInputRef.current?.click()}
-                                disabled={loading}
-                                className="flex items-center gap-2 px-4 py-2 border border-blue-900 text-blue-900 rounded-lg hover:bg-blue-50 disabled:opacity-50"
-                            >
-                                <Camera size={17} />
-                                {image ? "Change Image" : "Upload Image"}
-                            </button>
-
-                            <p className="text-xs text-gray-400">
-                                JPG, PNG or WEBP • Maximum 5 MB
-                            </p>
-
+                            {preview && (
+                                <button
+                                    type="button"
+                                    onClick={removeImage}
+                                    disabled={loading}
+                                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1"
+                                >
+                                    <X size={14} />
+                                </button>
+                            )}
                         </div>
+
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp"
+                            onChange={handleImageChange}
+                            className="hidden"
+                            disabled={loading}
+                        />
+
+                        <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={loading}
+                            className="text-sm flex items-center gap-2 text-blue-800 hover:underline"
+                        >
+                            <Camera size={16} />
+                            {image ? "Change Photo" : "Upload Photo"}
+                        </button>
+
                     </div>
 
-                    {/* FULL NAME */}
+                    {/* Name */}
                     <div>
-                        <label
-                            htmlFor="name"
-                            className="block text-sm font-semibold text-gray-700 mb-2"
-                        >
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
                             Full Name
                         </label>
 
                         <div className="relative">
-                            <User
-                                size={18}
-                                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                            />
+                            <User size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
 
                             <input
-                                id="name"
                                 type="text"
                                 name="name"
                                 value={formData.name}
                                 onChange={handleChange}
-                                placeholder="Enter your full name"
+                                placeholder="Enter your name"
                                 autoComplete="name"
                                 required
                                 disabled={loading}
-                                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900"
+                                className={inputClass}
                             />
                         </div>
                     </div>
 
-                    {/* EMAIL */}
+                    {/* Email */}
                     <div>
-                        <label
-                            htmlFor="email"
-                            className="block text-sm font-semibold text-gray-700 mb-2"
-                        >
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
                             Email Address
                         </label>
 
                         <div className="relative">
-                            <Mail
-                                size={18}
-                                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                            />
+                            <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
 
                             <input
-                                id="email"
                                 type="email"
                                 name="email"
                                 value={formData.email}
@@ -324,119 +266,92 @@ const Signup = () => {
                                 autoComplete="email"
                                 required
                                 disabled={loading}
-                                className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900"
+                                className={inputClass}
                             />
                         </div>
                     </div>
 
-                    {/* PASSWORD */}
+                    {/* Password */}
                     <div>
-                        <label
-                            htmlFor="password"
-                            className="block text-sm font-semibold text-gray-700 mb-2"
-                        >
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
                             Password
                         </label>
 
                         <div className="relative">
-                            <Lock
-                                size={18}
-                                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                            />
+                            <Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
 
                             <input
-                                id="password"
                                 type={showPassword ? "text" : "password"}
                                 name="password"
                                 value={formData.password}
                                 onChange={handleChange}
-                                placeholder="Create a password"
+                                placeholder="Enter password"
                                 autoComplete="new-password"
                                 required
                                 disabled={loading}
-                                className="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900"
+                                className="w-full border border-gray-300 rounded-md py-2.5 pl-10 pr-11 outline-none focus:border-blue-800 focus:ring-1 focus:ring-blue-800"
                             />
 
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
-                                aria-label="Toggle password visibility"
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
                             >
-                                {showPassword ? (
-                                    <EyeOff size={18} />
-                                ) : (
-                                    <Eye size={18} />
-                                )}
+                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                             </button>
                         </div>
                     </div>
 
-                    {/* CONFIRM PASSWORD */}
+                    {/* Confirm Password */}
                     <div>
-                        <label
-                            htmlFor="confirmPassword"
-                            className="block text-sm font-semibold text-gray-700 mb-2"
-                        >
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
                             Confirm Password
                         </label>
 
                         <div className="relative">
-                            <Lock
-                                size={18}
-                                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                            />
+                            <Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
 
                             <input
-                                id="confirmPassword"
                                 type={showConfirmPassword ? "text" : "password"}
                                 name="confirmPassword"
                                 value={formData.confirmPassword}
                                 onChange={handleChange}
-                                placeholder="Confirm your password"
+                                placeholder="Confirm password"
                                 autoComplete="new-password"
                                 required
                                 disabled={loading}
-                                className="w-full pl-10 pr-12 py-3 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-900/20 focus:border-blue-900"
+                                className="w-full border border-gray-300 rounded-md py-2.5 pl-10 pr-11 outline-none focus:border-blue-800 focus:ring-1 focus:ring-blue-800"
                             />
 
                             <button
                                 type="button"
-                                onClick={() =>
-                                    setShowConfirmPassword(!showConfirmPassword)
-                                }
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
-                                aria-label="Toggle confirm password visibility"
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
                             >
-                                {showConfirmPassword ? (
-                                    <EyeOff size={18} />
-                                ) : (
-                                    <Eye size={18} />
-                                )}
+                                {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                             </button>
                         </div>
                     </div>
 
-                    {/* SUBMIT */}
+                    {/* Submit */}
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full flex items-center justify-center gap-2 bg-blue-900 hover:bg-blue-800 disabled:bg-blue-400 disabled:cursor-not-allowed text-white py-3 rounded-lg font-semibold transition"
+                        className="w-full bg-blue-900 hover:bg-blue-800 text-white py-2.5 rounded-md font-medium flex items-center justify-center gap-2 disabled:opacity-50"
                     >
                         {loading ? "Creating Account..." : "Create Account"}
-
                         {!loading && <ArrowRight size={18} />}
                     </button>
 
                 </form>
 
-                {/* LOGIN LINK */}
-                <p className="text-center text-sm text-gray-500 mt-7">
+                {/* Login */}
+                <p className="text-center text-sm text-gray-600 mt-5">
                     Already have an account?
 
                     <Link
                         to="/login"
-                        className="text-blue-900 font-bold ml-1 hover:underline"
+                        className="text-blue-900 font-semibold ml-1 hover:underline"
                     >
                         Login
                     </Link>

@@ -1,11 +1,15 @@
 
-import { Navigate, Outlet } from "react-router";
+import { Navigate, Outlet, useLocation } from "react-router";
+
 import { useAuth } from "../context/AuthContext";
 
-const ProtectedRoute = () => {
+const ProtectedRoute = ({ allowedRoles }) => {
 
-    const { user, loading } = useAuth();
+    const { user, role, loading } = useAuth();
 
+    const location = useLocation();
+
+    // Authentication Loading
     if (loading) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -16,9 +20,24 @@ const ProtectedRoute = () => {
         );
     }
 
-    return user
-        ? <Outlet />
-        : <Navigate to="/login" replace />;
+    // Check User Authentication
+    if (!user) {
+        return (
+            <Navigate
+                to="/login"
+                state={{ from: location }}
+                replace
+            />
+        );
+    }
+
+    // Check User Role
+    if (!allowedRoles.includes(role)) {
+        return <Navigate to="/" replace />;
+    }
+
+    // Authorized User
+    return <Outlet />;
 
 };
 

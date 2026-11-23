@@ -1,10 +1,10 @@
 import express from "express";
-
 import {
     getMe,
     login,
     logout,
-    signup
+    signup,
+    updateUserProfile
 } from "../controllers/authController.js";
 
 import uploadImage from "../middleware/uploadImage.js";
@@ -29,5 +29,19 @@ router.get("/me", verifyJWT, getMe);
 
 // LOGOUT
 router.post("/logout", logout);
+
+// Update Profile
+router.put(
+    "/profile",
+    verifyJWT,
+    uploadImage.single("image"),
+    updateUserProfile
+);
+
+
+
+
+
+
 
 export default router;

@@ -2,6 +2,8 @@
 import User from "../models/User.js";
 import generateToken from "../utils/generateToken.js";
 import uploadToImgBB from "../utils/uploadToImgBB.js";
+
+
 // ========================================
 // SIGNUP CONTROLLER
 // ========================================
@@ -241,6 +243,92 @@ export const logout = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: "Logout failed",
+        });
+    }
+};
+
+
+
+// ========================================
+// UPDATE USER PROFILE
+// ========================================
+
+export const updateUserProfile = async (req, res) => {
+    try {
+
+        const { name } = req.body;
+
+        const updateData = {};
+
+        // Validate and update name
+        if (name !== undefined) {
+
+            const trimmedName = name.trim();
+
+            if (trimmedName.length < 2) {
+                return res.status(400).json({
+                    success: false,
+                    message: "Name must be at least 2 characters."
+                });
+            }
+
+            updateData.name = trimmedName;
+        }
+
+        // Upload new profile image if provided
+        if (req.file) {
+
+            const photoURL = await uploadToImgBB(req.file);
+
+            updateData.photoURL = photoURL;
+        }
+
+        // Check whether any field was provided
+        if (Object.keys(updateData).length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "No profile information provided."
+            });
+        }
+
+        // Update only the logged-in user's profile
+        const updatedUser = await User.findByIdAndUpdate(
+            req.user._id,
+            {
+                $set: updateData
+            },
+            {
+                new: true,
+                runValidators: true
+            }
+        ).select("-__v");
+
+        if (!updatedUser) {
+            return res.status(404).json({
+                success: false,
+                message: "User profile not found."
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Profile updated successfully.",
+            user: {
+                id: updatedUser._id,
+                name: updatedUser.name,
+                email: updatedUser.email,
+                role: updatedUser.role,
+                photoURL: updatedUser.photoURL
+            }
+        });
+
+    } catch (error) {
+
+        console.error("Update Profile Error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to update profile."
         });
     }
 };

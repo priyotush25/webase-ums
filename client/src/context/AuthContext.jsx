@@ -27,6 +27,7 @@ import { auth } from "../firebase/firebase";
 // Create Context
 const AuthContext = createContext(null);
 
+
 // Auth Provider
 export const AuthProvider = ({ children }) => {
 
@@ -34,8 +35,32 @@ export const AuthProvider = ({ children }) => {
     const [role, setRole] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Prevent auth listener from racing with signup/login
+    // Prevent Firebase Auth Listener Race Condition
     const authActionRef = useRef(false);
+
+
+    // ========================================
+    // HELPER: SET USER DATA
+    // ========================================
+
+    const setAuthenticatedUser = (firebaseUser, backendUser) => {
+
+        if (!backendUser) {
+            throw new Error("Backend user profile not found.");
+        }
+
+        const userData = {
+            ...firebaseUser,
+            ...backendUser
+        };
+
+        setUser(userData);
+        setRole(
+            backendUser.role?.toString().trim().toLowerCase() || null
+        );
+
+        return userData;
+    };
 
 
     // ========================================
@@ -52,7 +77,7 @@ export const AuthProvider = ({ children }) => {
                 throw new Error("Profile image is required.");
             }
 
-            // Step 1: Create Firebase Account
+            // Step 1: Firebase Account Create
             const result = await createUserWithEmailAndPassword(
                 auth,
                 email,
@@ -64,25 +89,26 @@ export const AuthProvider = ({ children }) => {
                 displayName: name
             });
 
-            // Step 3: Create MongoDB Profile + Upload Image
+            // Step 3: Create MongoDB Profile
             const backendResponse = await createUserProfile(
                 result.user,
                 name,
                 image
             );
 
-            // Step 4: Merge Firebase + MongoDB User Data
-            setUser({
-                ...result.user,
-                ...backendResponse.user
-            });
+            // Step 4: Set User and Role
+            const userData = setAuthenticatedUser(
+                result.user,
+                backendResponse.user
+            );
 
-            setRole(backendResponse.user.role);
-
-            return backendResponse.user;
+            return userData;
 
         } catch (error) {
 
+            console.error("Signup Error:", error);
+
+            // Cleanup Firebase Account Session
             if (auth.currentUser) {
                 try {
                     await signOut(auth);
@@ -127,18 +153,51 @@ export const AuthProvider = ({ children }) => {
             // Step 2: Backend Login
             const backendResponse = await loginUser(result.user);
 
-            // Step 3: Merge Firebase + MongoDB User Data
-            setUser({
-                ...result.user,
-                ...backendResponse.user
-            });
+            // Step 3: Get MongoDB User
+            const backendUser = backendResponse?.user;
 
-            setRole(backendResponse.user.role);
+            if (!backendUser) {
+                throw new Error(
+                    "User profile not received from backend."
+                );
+            }
 
-            return backendResponse.user;
+            // Step 4: Validate Role
+            const validRoles = [
+                "student",
+                "teacher",
+                "admin"
+            ];
+
+            const databaseRole = backendUser.role
+                ?.toString()
+                .trim()
+                .toLowerCase();
+
+            if (!validRoles.includes(databaseRole)) {
+                throw new Error("Invalid user role.");
+            }
+
+            // Step 5: Set User and Role
+            const userData = setAuthenticatedUser(
+                result.user,
+                {
+                    ...backendUser,
+                    role: databaseRole
+                }
+            );
+
+            console.log("Login Successful:", userData);
+            console.log("Database Role:", databaseRole);
+
+            // Step 6: Return MongoDB User
+            return userData;
 
         } catch (error) {
 
+            console.error("Login Error:", error);
+
+            // Cleanup Firebase Session
             if (auth.currentUser) {
                 try {
                     await signOut(auth);
@@ -173,22 +232,32 @@ export const AuthProvider = ({ children }) => {
 
         try {
 
-            // Clear Backend JWT Cookie
+            // Step 1: Clear Backend Cookie
             await logoutUser();
+
+        } catch (error) {
+
+            console.error("Backend Logout Error:", error);
 
         } finally {
 
             try {
 
-                // Clear Firebase Session
+                // Step 2: Clear Firebase Session
                 if (auth.currentUser) {
                     await signOut(auth);
                 }
 
+            } catch (error) {
+
+                console.error("Firebase Logout Error:", error);
+
             } finally {
 
+                // Step 3: Clear React State
                 setUser(null);
                 setRole(null);
+
                 authActionRef.current = false;
 
             }
@@ -197,7 +266,7 @@ export const AuthProvider = ({ children }) => {
 
 
     // ========================================
-    // AUTHENTICATION STATE
+    // AUTHENTICATION STATE RESTORE
     // ========================================
 
     useEffect(() => {
@@ -206,11 +275,12 @@ export const AuthProvider = ({ children }) => {
             auth,
             async (currentUser) => {
 
-                // Ignore intermediate Firebase events
+                // Ignore Intermediate Events
                 if (authActionRef.current) {
                     return;
                 }
 
+                // User Not Logged In
                 if (!currentUser) {
 
                     setUser(null);
@@ -222,40 +292,38 @@ export const AuthProvider = ({ children }) => {
 
                 try {
 
-                    // Restore Backend Session from HttpOnly Cookie
+                    // Step 1: Restore Backend Session
                     const backendResponse = await getCurrentUser();
 
-                    // Merge Firebase + MongoDB User Data
-                    setUser({
-                        ...currentUser,
-                        ...backendResponse.user
-                    });
-
-                    setRole(backendResponse.user.role);
+                    // Step 2: Restore User Data
+                    setAuthenticatedUser(
+                        currentUser,
+                        backendResponse.user
+                    );
 
                 } catch (error) {
 
                     console.error(
-                        "Authentication Restore Error:",
+                        "Backend Session Restore Error:",
                         error.message
                     );
 
-                    // Restore Backend Session if Cookie Expired
+                    // Step 3: Recreate Backend Session
                     try {
 
-                        const backendResponse = await loginUser(currentUser);
+                        const backendResponse = await loginUser(
+                            currentUser
+                        );
 
-                        setUser({
-                            ...currentUser,
-                            ...backendResponse.user
-                        });
-
-                        setRole(backendResponse.user.role);
+                        setAuthenticatedUser(
+                            currentUser,
+                            backendResponse.user
+                        );
 
                     } catch (loginError) {
 
                         console.error(
-                            "Backend Session Restore Failed:",
+                            "Session Restore Failed:",
                             loginError.message
                         );
 
@@ -292,11 +360,13 @@ export const AuthProvider = ({ children }) => {
         logout
     };
 
+
     return (
         <AuthContext.Provider value={authInfo}>
             {children}
         </AuthContext.Provider>
     );
+
 };
 
 
@@ -316,5 +386,6 @@ export const useAuth = () => {
 
     return context;
 };
+
 
 export default AuthContext;

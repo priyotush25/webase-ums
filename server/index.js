@@ -7,6 +7,7 @@ import connectDB from "./config/db.js";
 import firebaseApp from "./config/firebaseAdmin.js";
 import verifyFirebaseToken from "./middleware/verifyFirebaseToken.js";
 import authRoutes from "./routes/authRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
 const app = express();
 
@@ -24,6 +25,9 @@ app.use(cookieParser());
 
 // Routes
 app.use("/api/auth", authRoutes);
+
+app.use("/api/users", userRoutes);
+
 
 // Test Route
 app.get("/", (req, res) => {

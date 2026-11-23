@@ -2,30 +2,41 @@
 import { createBrowserRouter } from "react-router";
 
 import AuthLayout from "../layouts/AuthLayout";
+import DashboardLayout from "../layouts/DashboardLayout";
 import MainLayout from "../layouts/MainLayout";
-
+import AdminUsers from "../pages/admin/AdminUsers";
 import Login from "../pages/auth/Login";
 import Signup from "../pages/auth/Signup";
-import Dashboard from "../pages/Dashboard";
 import Home from "../pages/Home";
+
+// Dashboard Pages
+import AdminDashboard from "../pages/admin/AdminDashboard";
+import StudentDashboard from "../pages/student/StudentDashboard";
+import TeacherDashboard from "../pages/teacher/TeacherDashboard";
 
 import GuestRoute from "./GuestRoute";
 import ProtectedRoute from "./ProtectedRoute";
 
 const routers = createBrowserRouter([
 
-    // Public Routes
+    // ========================================
+    // PUBLIC ROUTES
+    // ========================================
+
     {
         element: <MainLayout />,
         children: [
             {
                 path: "/",
-                element: <Home />,
-            },
-        ],
+                element: <Home />
+            }
+        ]
     },
 
-    // Guest Only Routes (Login / Signup)
+    // ========================================
+    // GUEST ONLY ROUTES
+    // ========================================
+
     {
         element: <GuestRoute />,
         children: [
@@ -34,32 +45,77 @@ const routers = createBrowserRouter([
                 children: [
                     {
                         path: "/login",
-                        element: <Login />,
+                        element: <Login />
                     },
                     {
                         path: "/signup",
-                        element: <Signup />,
-                    },
-                ],
-            },
-        ],
+                        element: <Signup />
+                    }
+                ]
+            }
+        ]
     },
 
-    // Protected Routes (Only Logged In Users)
+    // ========================================
+    // STUDENT DASHBOARD
+    // ========================================
+
     {
-        element: <ProtectedRoute />,
+        element: <ProtectedRoute allowedRoles={["student"]} />,
         children: [
             {
-                element: <MainLayout />,
+                element: <DashboardLayout />,
                 children: [
                     {
-                        path: "/dashboard",
-                        element: <Dashboard />,
-                    },
-                ],
-            },
-        ],
+                        path: "/student/dashboard",
+                        element: <StudentDashboard />
+                    }
+                ]
+            }
+        ]
     },
+
+    // ========================================
+    // TEACHER DASHBOARD
+    // ========================================
+
+    {
+        element: <ProtectedRoute allowedRoles={["teacher"]} />,
+        children: [
+            {
+                element: <DashboardLayout />,
+                children: [
+                    {
+                        path: "/teacher/dashboard",
+                        element: <TeacherDashboard />
+                    }
+                ]
+            }
+        ]
+    },
+
+    // ========================================
+    // ADMIN DASHBOARD
+    // ========================================
+
+    {
+        element: <ProtectedRoute allowedRoles={["admin"]} />,
+        children: [
+            {
+                element: <DashboardLayout />,
+                children: [
+                    {
+                        path: "/admin/dashboard",
+                        element: <AdminDashboard />
+                    },
+                    {
+                        path: "/admin/users",
+                        element: <AdminUsers />
+                    }
+                ]
+            }
+        ]
+    }
 
 ]);
 
