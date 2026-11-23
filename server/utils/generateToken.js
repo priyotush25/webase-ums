@@ -4,12 +4,12 @@ import jwt from "jsonwebtoken";
 const generateToken = (userId, role, res) => {
     const token = jwt.sign(
         {
-            userId,
-            role,
+            id: userId.toString(),
+            role
         },
         process.env.JWT_SECRET,
         {
-            expiresIn: process.env.JWT_EXPIRES_IN || "1d",
+            expiresIn: "7d"
         }
     );
 
@@ -17,9 +17,11 @@ const generateToken = (userId, role, res) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
-        maxAge: 24 * 60 * 60 * 1000,
-        path: "/",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: "/"
     });
+
+    return token;
 };
 
 export default generateToken;

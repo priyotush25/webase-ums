@@ -8,7 +8,7 @@ import MainLayout from "../layouts/MainLayout";
 import AdminStudents from "../pages/admin/AdminStudents";
 import AdminTeachers from "../pages/admin/AdminTeachers";
 import StudentCourses from "../pages/student/StudentCourses";
-
+import TeacherCourses from "../pages/teacher/TeacherCourses";
 // Public Pages
 import Home from "../pages/Home";
 import AdminCourses from "../pages/admin/AdminCourses";
@@ -20,6 +20,19 @@ import Signup from "../pages/auth/Signup";
 
 import AdminEnrollments from "../pages/admin/AdminEnrollments";
 import MyEnrollments from "../pages/student/MyEnrollments";
+
+
+
+// Student
+import StudentAttendance from "../pages/student/StudentAttendance";
+
+// Teacher
+import TeacherAttendance from "../pages/teacher/TeacherAttendance";
+
+// Admin
+import AdminAttendance from "../pages/admin/AdminAttendance";
+
+
 
 // Admin Pages
 import AdminDashboard from "../pages/admin/AdminDashboard";
@@ -96,6 +109,10 @@ const routers = createBrowserRouter([
                     {
                         path: "/student/enrollments",
                         element: <MyEnrollments />
+                    },
+                    {
+                        path: "/student/attendance",
+                        element: <StudentAttendance />
                     }
 
                     // Future Student Pages
@@ -130,7 +147,14 @@ const routers = createBrowserRouter([
                         path: "/teacher/dashboard",
                         element: <TeacherDashboard />,
                     },
-
+                    {
+                        path: "/teacher/courses",
+                        element: <TeacherCourses />,
+                    },
+                    {
+                        path: "/teacher/attendance",
+                        element: <TeacherAttendance />
+                    }
                     // Future Teacher Pages
                     // {
                     //     path: "/teacher/courses",
@@ -186,6 +210,10 @@ const routers = createBrowserRouter([
                     {
                         path: "/admin/enrollments",
                         element: <AdminEnrollments />
+                    },
+                    {
+                        path: "/admin/attendance",
+                        element: <AdminAttendance />
                     }
                 ],
             },

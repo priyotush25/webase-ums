@@ -9,7 +9,7 @@ import {
 
 import uploadImage from "../middleware/uploadImage.js";
 import verifyFirebaseToken from "../middleware/verifyFirebaseToken.js";
-import verifyJWT from "../middleware/verifyJWT.js";
+import { verifyJWT } from "../middleware/verifyJWT.js";
 
 const router = express.Router();
 

@@ -362,3 +362,32 @@ export const deleteCourse = async (req, res) => {
         });
     }
 };
+
+
+
+
+export const getMyTeachingCourses = async (req, res) => {
+    try {
+        const courses = await Course.find({
+            teacher: req.user._id,
+        })
+            .populate("department", "name code")
+            .populate("teacher", "name email photoURL")
+            .sort({ createdAt: -1 });
+
+        return res.status(200).json({
+            success: true,
+            message: "Teaching courses fetched successfully",
+            total: courses.length,
+            courses,
+        });
+    } catch (error) {
+        console.error("Get My Teaching Courses Error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch teaching courses",
+        });
+    }
+};
+

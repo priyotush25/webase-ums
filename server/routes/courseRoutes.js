@@ -6,18 +6,25 @@ import {
     deleteCourse,
     getAllCourses,
     getCourseById,
+    getMyTeachingCourses,
     updateCourse,
 } from "../controllers/courseController.js";
 
-import authorizeRole from "../middleware/authorizeRole.js";
-import verifyJWT from "../middleware/verifyJWT.js";
+import { authorizeRole } from "../middleware/authorizeRole.js";
+import { verifyJWT } from "../middleware/verifyJWT.js";
 
 const router = express.Router();
 
-// All routes require login
 router.use(verifyJWT);
 
-// Student and Admin can view courses
+// Teacher: own assigned courses
+router.get(
+    "/my",
+    authorizeRole("teacher"),
+    getMyTeachingCourses
+);
+
+// All roles can read courses
 router.get(
     "/",
     authorizeRole("admin", "student", "teacher"),
@@ -30,7 +37,7 @@ router.get(
     getCourseById
 );
 
-// Only Admin can manage courses
+// Admin only
 router.post(
     "/",
     authorizeRole("admin"),

@@ -7,8 +7,8 @@ import {
     updateUserRole
 } from "../controllers/userController.js";
 
-import authorizeRole from "../middleware/authorizeRole.js";
-import verifyJWT from "../middleware/verifyJWT.js";
+import { authorizeRole } from "../middleware/authorizeRole.js";
+import { verifyJWT } from "../middleware/verifyJWT.js";
 
 const router = express.Router();
 
