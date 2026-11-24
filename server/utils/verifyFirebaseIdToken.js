@@ -28,11 +28,11 @@ const initializeFirebaseAdmin = () => {
         );
     }
 
-    // Firebase Service Account JSON
-    const serviceAccountJSON =
-        process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+    // Get Base64 encoded Service Account JSON
+    const encodedServiceAccount =
+        process.env.FIREBASE_SERVICE_ACCOUNT_JSON?.trim();
 
-    if (!serviceAccountJSON) {
+    if (!encodedServiceAccount) {
         throw new Error(
             "FIREBASE_SERVICE_ACCOUNT_JSON is not configured."
         );
@@ -41,10 +41,28 @@ const initializeFirebaseAdmin = () => {
     let serviceAccount;
 
     try {
-        serviceAccount = JSON.parse(serviceAccountJSON);
-    } catch {
+        // Decode Base64 to JSON string
+        const decodedJSON = Buffer
+            .from(encodedServiceAccount, "base64")
+            .toString("utf8");
+
+        // Parse JSON
+        serviceAccount = JSON.parse(decodedJSON);
+
+    } catch (error) {
         throw new Error(
-            "Invalid Firebase Service Account JSON."
+            "Invalid Base64 Firebase Service Account JSON."
+        );
+    }
+
+    // Check required Service Account fields
+    if (
+        !serviceAccount.project_id ||
+        !serviceAccount.client_email ||
+        !serviceAccount.private_key
+    ) {
+        throw new Error(
+            "Firebase Service Account credentials are incomplete."
         );
     }
 
@@ -55,6 +73,7 @@ const initializeFirebaseAdmin = () => {
         );
     }
 
+    // Initialize Firebase Admin
     return initializeApp({
         credential: cert(serviceAccount),
         projectId
@@ -70,7 +89,6 @@ export const verifyFirebaseIdToken = async (
     options = {}
 ) => {
     try {
-        // Check token format
         if (
             typeof token !== "string" ||
             !token.trim()
@@ -80,7 +98,7 @@ export const verifyFirebaseIdToken = async (
 
         const app = initializeFirebaseAdmin();
 
-        // Verify token and optionally check revocation
+        // Check token revocation by default
         const checkRevoked =
             options.checkRevoked ?? true;
 
@@ -89,7 +107,6 @@ export const verifyFirebaseIdToken = async (
             checkRevoked
         );
 
-        // Validate Firebase UID
         if (
             typeof decodedToken.uid !== "string" ||
             !decodedToken.uid
@@ -97,7 +114,6 @@ export const verifyFirebaseIdToken = async (
             throw new Error("Invalid Firebase UID.");
         }
 
-        // Return verified Firebase user information
         return decodedToken;
 
     } catch (error) {
@@ -110,7 +126,8 @@ export const verifyFirebaseIdToken = async (
         if (
             error.message?.includes("FIREBASE_PROJECT_ID") ||
             error.message?.includes("FIREBASE_SERVICE_ACCOUNT_JSON") ||
-            error.message?.includes("Firebase Service Account")
+            error.message?.includes("Firebase Service Account") ||
+            error.message?.includes("Invalid Base64")
         ) {
             throw error;
         }
