@@ -1,11 +1,21 @@
 
-import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import { verifyFirebaseIdToken } from "../utils/verifyFirebaseIdToken.js";
 
 export const verifyJWT = async (req, res, next) => {
     try {
-        // 1. Get token from cookie
-        const token = req.cookies?.ums_token;
+        // 1. Get Firebase ID Token
+        const authHeader = req.headers.authorization;
+
+        if (!authHeader?.startsWith("Bearer ")) {
+            return res.status(401).json({
+                success: false,
+                message: "Authentication token missing."
+            });
+        }
+
+        // 2. Extract Token
+        const token = authHeader.slice(7).trim();
 
         if (!token) {
             return res.status(401).json({
@@ -14,32 +24,13 @@ export const verifyJWT = async (req, res, next) => {
             });
         }
 
-        // 2. Check JWT secret
-        if (!process.env.JWT_SECRET) {
-            console.error("JWT_SECRET is not configured.");
+        // 3. Verify Firebase Token
+        const firebaseUser = await verifyFirebaseIdToken(token);
 
-            return res.status(500).json({
-                success: false,
-                message: "Internal server configuration error."
-            });
-        }
-
-        // 3. Verify JWT
-        const decoded = jwt.verify(
-            token,
-            process.env.JWT_SECRET
-        );
-
-        // 4. Validate decoded user ID
-        if (!decoded.id) {
-            return res.status(401).json({
-                success: false,
-                message: "Invalid authentication token."
-            });
-        }
-
-        // 5. Find user in MongoDB
-        const user = await User.findById(decoded.id);
+        // 4. Find MongoDB User using Firebase UID
+        const user = await User.findOne({
+            firebaseUid: firebaseUser.uid
+        });
 
         if (!user) {
             return res.status(401).json({
@@ -48,18 +39,29 @@ export const verifyJWT = async (req, res, next) => {
             });
         }
 
-        // 6. Attach authenticated user
+        // 5. Attach User Information
         req.user = user;
+        req.firebaseUser = firebaseUser;
 
-        // 7. Continue
-        next();
+        // 6. Continue to Controller
+        return next();
 
     } catch (error) {
-        console.error("JWT Verification Error:", error.message);
+        console.error(
+            "Authentication Verification Error:",
+            error.message
+        );
+
+        if (error.message.includes("FIREBASE_PROJECT_ID")) {
+            return res.status(500).json({
+                success: false,
+                message: "Server authentication configuration error."
+            });
+        }
 
         return res.status(401).json({
             success: false,
-            message: "Invalid or expired token. Please login again."
+            message: "Invalid or expired Firebase ID Token."
         });
     }
 };
