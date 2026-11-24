@@ -73,8 +73,19 @@ export const signup = async (req, res) => {
             });
         }
 
-        // Upload image to ImgBB
-        const photoURL = await uploadToImgBB(req.file);
+        // Upload image to ImgBB (skipped if no key is configured)
+        let photoURL = "";
+
+        if (process.env.IMGBB_API_KEY?.trim()) {
+            try {
+                photoURL = await uploadToImgBB(req.file);
+            } catch (uploadError) {
+                return res.status(502).json({
+                    success: false,
+                    message: "Profile image upload failed. Please try again."
+                });
+            }
+        }
 
         // Create MongoDB user
         const newUser = await User.create({
@@ -102,6 +113,13 @@ export const signup = async (req, res) => {
 
     } catch (error) {
         console.error("Signup Controller Error:", error);
+
+        if (error.code === 11000) {
+            return res.status(409).json({
+                success: false,
+                message: "This email is already registered."
+            });
+        }
 
         return res.status(500).json({
             success: false,

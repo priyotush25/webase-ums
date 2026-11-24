@@ -3,6 +3,8 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
+import fs from "node:fs";
+import { fileURLToPath } from "node:url";
 
 import connectDB from "./config/db.js";
 import { backfillUniversityIds } from "./models/User.js";
@@ -25,6 +27,31 @@ import routineRoutes from "./routes/routineRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 
 dotenv.config();
+
+// Local convenience: take the project id from an old serviceAccountKey.json if present
+if (!process.env.FIREBASE_PROJECT_ID?.trim()) {
+    try {
+        const keyFile = fileURLToPath(new URL("./serviceAccountKey.json", import.meta.url));
+        process.env.FIREBASE_PROJECT_ID = JSON.parse(fs.readFileSync(keyFile, "utf8")).project_id || "";
+    } catch {
+        // no key file - the variable must be set in .env
+    }
+}
+
+// Fail early with a clear message instead of obscure 500 errors later
+const requiredEnv = ["MONGODB_URI", "JWT_SECRET", "FIREBASE_PROJECT_ID"];
+const missingEnv = requiredEnv.filter((key) => !process.env[key]?.trim());
+
+if (missingEnv.length) {
+    console.error(
+        `\n[config] Missing required environment variables: ${missingEnv.join(", ")}\n` +
+        `[config] Copy server/.env.example to server/.env and fill them in.\n`
+    );
+}
+
+if (!process.env.IMGBB_API_KEY?.trim()) {
+    console.warn("[config] IMGBB_API_KEY is not set - profile photos will not be uploaded.");
+}
 
 const app = express();
 
@@ -121,6 +148,10 @@ const init = () => {
 
 app.use(async (req, res, next) => {
     try {
+        if (missingEnv.length) {
+            throw new Error(`Missing environment variables: ${missingEnv.join(", ")}`);
+        }
+
         await init();
         next();
     } catch (error) {
@@ -128,7 +159,9 @@ app.use(async (req, res, next) => {
 
         res.status(503).json({
             success: false,
-            message: "Service unavailable. Database connection failed.",
+            message: missingEnv.length
+                ? `Server is not configured (missing: ${missingEnv.join(", ")}).`
+                : "Service unavailable. Database connection failed.",
         });
     }
 });
@@ -182,7 +215,10 @@ app.use((req, res) => {
 app.use((error, req, res, next) => {
     console.error("Server Error:", error);
 
-    res.status(error.status || 500).json({
+    // Upload problems (wrong type, too large) are the client's fault
+    const status = error.name === "MulterError" ? 400 : error.status || 500;
+
+    res.status(status).json({
         success: false,
         message: error.message || "Internal Server Error",
     });

@@ -1,7 +1,5 @@
-
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -12,9 +10,14 @@ const firebaseConfig = {
     appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
+if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
+    console.error(
+        "Firebase is not configured. Copy client/.env.example to client/.env and fill in the VITE_FIREBASE_* values."
+    );
+}
+
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
-export const db = getFirestore(app);
 
 export default app;

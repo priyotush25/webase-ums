@@ -71,6 +71,8 @@ export const AuthProvider = ({ children }) => {
 
         authActionRef.current = true;
 
+        let createdFirebaseUser = null;
+
         try {
 
             if (!image) {
@@ -83,6 +85,8 @@ export const AuthProvider = ({ children }) => {
                 email,
                 password
             );
+
+            createdFirebaseUser = result.user;
 
             // Step 2: Update Firebase Profile
             await updateProfile(result.user, {
@@ -107,6 +111,16 @@ export const AuthProvider = ({ children }) => {
         } catch (error) {
 
             console.error("Signup Error:", error);
+
+            // The backend profile was not created: remove the half-made Firebase
+            // account so the person can simply try signing up again
+            if (createdFirebaseUser) {
+                try {
+                    await createdFirebaseUser.delete();
+                } catch (deleteError) {
+                    console.error("Could not remove incomplete Firebase account:", deleteError);
+                }
+            }
 
             // Cleanup Firebase Account Session
             if (auth.currentUser) {

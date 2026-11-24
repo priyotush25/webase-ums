@@ -4,19 +4,35 @@ MERN stack (MongoDB, Express 5, React 19 + Vite + Tailwind 4) with Firebase Auth
 
 ## Run
 
-```bash
-# Terminal 1 – API (http://localhost:5000)
-cd server
-npm install
-npm run dev
+### 1. Configure (required once)
 
-# Terminal 2 – Website + portal (http://localhost:5173)
-cd client
-npm install
-npm run dev
+```bash
+cp server/.env.example server/.env     # then fill in the values
+cp client/.env.example client/.env     # then fill in the values
 ```
 
-`server/.env`, `server/serviceAccountKey.json` and `client/.env` are already configured.
+| File | Variable | Where to get it |
+|---|---|---|
+| server/.env | `MONGODB_URI` | MongoDB Atlas > Connect, or `mongodb://127.0.0.1:27017/ums` locally |
+| server/.env | `JWT_SECRET` | any long random string |
+| server/.env | `FIREBASE_PROJECT_ID` | Firebase console > Project settings > General |
+| server/.env | `IMGBB_API_KEY` | optional, https://api.imgbb.com/ (profile photos) |
+| client/.env | `VITE_FIREBASE_*` | Firebase console > Project settings > Your apps (Web) |
+
+In the Firebase console also enable **Authentication > Sign-in method > Email/Password**.
+No Firebase Admin SDK / service account key is needed: the server verifies ID tokens with Google's public certificates.
+
+### 2. Start
+
+```bash
+# Terminal 1 - API (http://localhost:5000)
+cd server && npm install && npm run dev
+
+# Terminal 2 - Website + portal (http://localhost:5173)
+cd client && npm install && npm run dev
+```
+
+If a variable is missing, the server prints exactly which one at startup.
 
 ## First-time setup
 
