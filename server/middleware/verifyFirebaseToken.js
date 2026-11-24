@@ -1,5 +1,4 @@
-
-import { adminAuth } from "../config/firebaseAdmin.js";
+import { verifyFirebaseIdToken } from "../utils/verifyFirebaseIdToken.js";
 
 const verifyFirebaseToken = async (req, res, next) => {
     try {
@@ -14,14 +13,20 @@ const verifyFirebaseToken = async (req, res, next) => {
 
         const idToken = authHeader.split(" ")[1];
 
-        const decodedToken = await adminAuth.verifyIdToken(idToken);
-
-        req.firebaseUser = decodedToken;
+        req.firebaseUser = await verifyFirebaseIdToken(idToken);
 
         next();
 
     } catch (error) {
-        console.error(error.message);
+        console.error("Firebase token error:", error.message);
+
+        // A missing project id is a server problem, not a bad token
+        if (error.message.includes("FIREBASE_PROJECT_ID")) {
+            return res.status(500).json({
+                success: false,
+                message: "Server is not configured for authentication",
+            });
+        }
 
         return res.status(401).json({
             success: false,

@@ -18,6 +18,7 @@ export const verifyJWT = async (req, res, next) => {
             process.env.JWT_SECRET
         );
 
+        // JWT থেকে MongoDB User ID নেওয়া
         const user = await User.findById(decoded.id);
 
         if (!user) {
@@ -27,6 +28,7 @@ export const verifyJWT = async (req, res, next) => {
             });
         }
 
+        // Authenticated user
         req.user = user;
 
         next();
@@ -36,7 +38,7 @@ export const verifyJWT = async (req, res, next) => {
 
         return res.status(401).json({
             success: false,
-            message: "Invalid or expired token."
+            message: "Invalid or expired token. Please login again."
         });
     }
 };
