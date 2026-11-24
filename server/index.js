@@ -63,6 +63,7 @@ app.set("trust proxy", 1);
 // ========================================
 
 const allowedOrigins = [
+    // Local development
     "http://localhost:5173",
     "http://localhost:5174",
     "http://127.0.0.1:5173",
@@ -75,16 +76,36 @@ const allowedOrigins = [
         .filter(Boolean),
 ];
 
+// Vercel Preview Deployment validation
+const vercelPreviewPattern =
+    /^https:\/\/webase-[a-z0-9]+-priyotushs-projects\.vercel\.app$/;
+
 app.use(
     cors({
         origin: (origin, callback) => {
-            if (!origin || allowedOrigins.includes(origin)) {
+
+            // Allow requests without Origin
+            // Example: server-to-server requests
+            if (!origin) {
                 return callback(null, true);
             }
 
+            // Allow exact domains
+            if (allowedOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+
+            // Allow only your project's Vercel preview deployments
+            if (vercelPreviewPattern.test(origin)) {
+                return callback(null, true);
+            }
+
+            // Block unauthorized domains
             console.error("Blocked CORS Origin:", origin);
 
-            return callback(new Error("Origin not allowed by CORS"));
+            return callback(
+                new Error("Origin not allowed by CORS")
+            );
         },
 
         methods: [
