@@ -57,7 +57,6 @@ const app = express();
 
 app.disable("x-powered-by");
 app.set("trust proxy", 1);
-
 // ========================================
 // CORS CONFIGURATION
 // ========================================
@@ -69,43 +68,42 @@ const allowedOrigins = [
     "http://127.0.0.1:5173",
     "http://127.0.0.1:5174",
 
-    // Production frontend
+    // Production frontend (comma-separated in env)
     ...(process.env.CLIENT_URL || "")
         .split(",")
         .map((origin) => origin.trim().replace(/\/$/, ""))
         .filter(Boolean),
 ];
 
-// Vercel Preview Deployment validation
+// Vercel Preview + Branch deployments
+// Matches:
+//   https://webase-zae7gnxbl-priyotushs-projects.vercel.app
+//   https://webase-git-main-priyotushs-projects.vercel.app
+//   https://webase-49lem4uqu-priyotushs-projects.vercel.app
 const vercelPreviewPattern =
-    /^https:\/\/webase-[a-z0-9]+-priyotushs-projects\.vercel\.app$/;
+    /^https:\/\/webase-[a-z0-9-]+-priyotushs-projects\.vercel\.app$/i;
 
 app.use(
     cors({
         origin: (origin, callback) => {
-
-            // Allow requests without Origin
-            // Example: server-to-server requests
+            // Allow requests with no Origin (Postman, server-to-server, mobile apps)
             if (!origin) {
                 return callback(null, true);
             }
 
-            // Allow exact domains
+            // Exact match from allowlist
             if (allowedOrigins.includes(origin)) {
                 return callback(null, true);
             }
 
-            // Allow only your project's Vercel preview deployments
+            // Allow only your project's Vercel preview / branch deployments
             if (vercelPreviewPattern.test(origin)) {
                 return callback(null, true);
             }
 
-            // Block unauthorized domains
+            // Block everything else (no Error thrown → clean CORS rejection)
             console.error("Blocked CORS Origin:", origin);
-
-            return callback(
-                new Error("Origin not allowed by CORS")
-            );
+            return callback(null, false);   // ← important change
         },
 
         methods: [
@@ -123,10 +121,10 @@ app.use(
         ],
 
         credentials: true,
-
         optionsSuccessStatus: 204,
     })
 );
+
 
 // ========================================
 // BODY PARSER
