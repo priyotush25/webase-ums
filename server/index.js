@@ -57,73 +57,70 @@ const app = express();
 
 app.disable("x-powered-by");
 app.set("trust proxy", 1);
+
+
+
+
 // ========================================
 // CORS CONFIGURATION
 // ========================================
 
 const allowedOrigins = [
-    // Local development
     "http://localhost:5173",
     "http://localhost:5174",
     "http://127.0.0.1:5173",
     "http://127.0.0.1:5174",
-
-    // Production frontend (comma-separated in env)
     ...(process.env.CLIENT_URL || "")
         .split(",")
-        .map((origin) => origin.trim().replace(/\/$/, ""))
+        .map((o) => o.trim().replace(/\/$/, ""))
         .filter(Boolean),
 ];
-
-// Vercel Preview + Branch deployments
-// Matches:
-//   https://webase-zae7gnxbl-priyotushs-projects.vercel.app
-//   https://webase-git-main-priyotushs-projects.vercel.app
-//   https://webase-49lem4uqu-priyotushs-projects.vercel.app
-const vercelPreviewPattern =
-    /^https:\/\/webase-[a-z0-9-]+-priyotushs-projects\.vercel\.app$/i;
 
 app.use(
     cors({
         origin: (origin, callback) => {
-            // Allow requests with no Origin (Postman, server-to-server, mobile apps)
+            // No origin → allow (Postman, server-to-server)
             if (!origin) {
                 return callback(null, true);
             }
 
-            // Exact match from allowlist
+            // Exact match
             if (allowedOrigins.includes(origin)) {
                 return callback(null, true);
             }
 
-            // Allow only your project's Vercel preview / branch deployments
-            if (vercelPreviewPattern.test(origin)) {
+            // Vercel preview / branch deployments (সব ধরনের)
+            // webase-XXXX-priyotushs-projects.vercel.app
+            // webase-git-main-priyotushs-projects.vercel.app
+            if (
+                /^https:\/\/webase-[a-z0-9-]+-priyotushs-projects\.vercel\.app$/i.test(
+                    origin
+                )
+            ) {
                 return callback(null, true);
             }
 
-            // Block everything else (no Error thrown → clean CORS rejection)
+            // অতিরিক্ত safety: যেকোনো webase*.vercel.app allow (চাইলে পরে সরিয়ে দিতে পারেন)
+            if (
+                /^https:\/\/webase[a-z0-9-]*\.vercel\.app$/i.test(origin)
+            ) {
+                return callback(null, true);
+            }
+
             console.error("Blocked CORS Origin:", origin);
-            return callback(null, false);   // ← important change
+            return callback(null, false); // Error throw করবেন না
         },
-
-        methods: [
-            "GET",
-            "POST",
-            "PUT",
-            "PATCH",
-            "DELETE",
-            "OPTIONS",
-        ],
-
-        allowedHeaders: [
-            "Content-Type",
-            "Authorization",
-        ],
-
+        methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allowedHeaders: ["Content-Type", "Authorization"],
         credentials: true,
         optionsSuccessStatus: 204,
     })
 );
+
+
+
+
+
 
 
 // ========================================
