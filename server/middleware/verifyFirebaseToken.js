@@ -1,6 +1,6 @@
 
-import { adminAuth } from "../config/firebaseAdmin.js";
-
+// import { adminAuth } from "../config/firebaseAdmin.js";
+const adminAuth = JSON.parse(process.env.FIREBASE_SERVICES);
 const verifyFirebaseToken = async (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
