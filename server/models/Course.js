@@ -48,6 +48,14 @@ const courseSchema = new mongoose.Schema(
             trim: true,
         },
 
+        // Maximum number of approved students
+        capacity: {
+            type: Number,
+            default: 60,
+            min: [1, "Capacity must be at least 1"],
+            max: [500, "Capacity cannot exceed 500"],
+        },
+
         status: {
             type: String,
             enum: ["active", "inactive"],
