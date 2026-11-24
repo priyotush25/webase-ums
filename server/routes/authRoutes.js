@@ -3,10 +3,10 @@ import {
     getMe,
     login,
     logout,
-    signup,
-    updateUserProfile
+    signup
 } from "../controllers/authController.js";
 
+import { getMyProfile, updateMyProfile } from "../controllers/profileController.js";
 import uploadImage from "../middleware/uploadImage.js";
 import verifyFirebaseToken from "../middleware/verifyFirebaseToken.js";
 import { verifyJWT } from "../middleware/verifyJWT.js";
@@ -31,11 +31,13 @@ router.get("/me", verifyJWT, getMe);
 router.post("/logout", logout);
 
 // Update Profile
+router.get("/profile", verifyJWT, getMyProfile);
+
 router.put(
     "/profile",
     verifyJWT,
     uploadImage.single("image"),
-    updateUserProfile
+    updateMyProfile
 );
 
 
