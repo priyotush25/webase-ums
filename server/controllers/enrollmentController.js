@@ -275,6 +275,22 @@ export const updateEnrollmentStatus = async (req, res) => {
             });
         }
 
+        // Seat limit: block approvals once the course is full
+        if (status === "approved" && enrollment.status !== "approved") {
+            const course = await Course.findById(enrollment.course).select("capacity code");
+            const taken = await Enrollment.countDocuments({
+                course: enrollment.course,
+                status: "approved",
+            });
+
+            if (course && taken >= (course.capacity ?? 60)) {
+                return res.status(409).json({
+                    success: false,
+                    message: `${course.code} is full (${course.capacity} seats). Increase capacity to approve more students.`,
+                });
+            }
+        }
+
         enrollment.status = status;
         enrollment.remarks = remarks;
 

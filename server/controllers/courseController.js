@@ -58,6 +58,7 @@ export const createCourse = async (req, res) => {
             department,
             teacher,
             semester,
+            capacity,
         } = req.body;
 
         if (
@@ -93,6 +94,7 @@ export const createCourse = async (req, res) => {
             department,
             teacher: teacher || null,
             semester,
+            ...(capacity ? { capacity: Number(capacity) } : {}),
         });
 
         const populatedCourse = await populateCourse(
@@ -283,6 +285,7 @@ export const updateCourse = async (req, res) => {
                 ...(code !== undefined && { code }),
                 ...(description !== undefined && { description }),
                 ...(credit !== undefined && { credit }),
+                ...(req.body.capacity ? { capacity: Number(req.body.capacity) } : {}),
                 ...(department !== undefined && { department }),
                 ...(teacher !== undefined && { teacher: teacher || null }),
                 ...(semester !== undefined && { semester }),

@@ -31,6 +31,7 @@ export const getAllUsers = async (req, res) => {
             filter.$or = [
                 { name: { $regex: escapedSearch, $options: "i" } },
                 { email: { $regex: escapedSearch, $options: "i" } },
+                { universityId: { $regex: escapedSearch, $options: "i" } },
             ];
         }
 
@@ -41,7 +42,8 @@ export const getAllUsers = async (req, res) => {
 
         const [users, totalUsers] = await Promise.all([
             User.find(filter)
-                .select("-__v")
+                .select("-__v -firebaseUid")
+                .populate("department", "name code")
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(limit),
@@ -148,14 +150,17 @@ export const updateUserRole = async (req, res) => {
             });
         }
 
-        const user = await User.findByIdAndUpdate(
-            userId,
-            { role },
-            {
-                new: true,
-                runValidators: true,
+        const user = await User.findById(userId);
+
+        if (user) {
+            user.role = role;
+            // IDs belong to a role: clear a stale one so the hook issues the right prefix
+            const prefix = role === "student" ? "S" : role === "teacher" ? "T" : null;
+            if (user.universityId && (!prefix || !user.universityId.startsWith(prefix))) {
+                user.universityId = undefined;
             }
-        ).select("-__v");
+            await user.save();
+        }
 
         if (!user) {
             return res.status(404).json({
