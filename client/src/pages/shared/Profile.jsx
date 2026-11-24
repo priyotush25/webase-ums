@@ -1,21 +1,54 @@
-import { Camera, Mail, Save, ShieldCheck } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { Camera, Save } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 
-import { updateProfileRequest } from "../../api/authApi";
-import { Avatar, Field, PageHeader, formatDate, inputClass, primaryBtn } from "../../components/ui";
+import { getMyProfile, updateProfileRequest } from "../../api/authApi";
+import { Avatar, Badge, Field, PageHeader, Spinner, formatDate, inputClass, primaryBtn } from "../../components/ui";
 import { useAuth } from "../../context/AuthContext";
 
 const MAX_SIZE = 5 * 1024 * 1024;
 
-const Profile = ({ title = "My Profile" }) => {
-    const { user, role, updateUserData } = useAuth();
+const Row = ({ label, value }) => (
+    <div className="flex justify-between gap-4 border-b border-slate-100 py-2.5 text-sm last:border-0">
+        <dt className="text-slate-500">{label}</dt>
+        <dd className="text-right font-medium text-slate-900">{value || "-"}</dd>
+    </div>
+);
 
-    const [name, setName] = useState(user?.name || "");
+const toForm = (profile) => ({
+    name: profile.name || "",
+    phone: profile.phone || "",
+    dob: profile.dob ? profile.dob.slice(0, 10) : "",
+    gender: profile.gender || "",
+    address: profile.address || "",
+    bio: profile.bio || "",
+    guardianName: profile.guardianName || "",
+    guardianPhone: profile.guardianPhone || "",
+});
+
+const Profile = ({ title = "My Profile" }) => {
+    const { role, updateUserData } = useAuth();
+
+    const [profile, setProfile] = useState(null);
+    const [form, setForm] = useState(null);
     const [image, setImage] = useState(null);
     const [preview, setPreview] = useState("");
     const [saving, setSaving] = useState(false);
     const fileRef = useRef(null);
+
+    const load = useCallback(async () => {
+        try {
+            const response = await getMyProfile();
+            setProfile(response.user);
+            setForm(toForm(response.user));
+        } catch (error) {
+            toast.error(error.message || "Failed to load profile");
+        }
+    }, []);
+
+    useEffect(() => {
+        load();
+    }, [load]);
 
     useEffect(() => {
         if (!image) {
@@ -46,7 +79,10 @@ const Profile = ({ title = "My Profile" }) => {
         setImage(file);
     };
 
-    const changed = name.trim() !== (user?.name || "") || Boolean(image);
+    const set = (key) => (event) => setForm((previous) => ({ ...previous, [key]: event.target.value }));
+
+    const changed =
+        Boolean(image) || (profile && form && JSON.stringify(form) !== JSON.stringify(toForm(profile)));
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -54,17 +90,13 @@ const Profile = ({ title = "My Profile" }) => {
         try {
             setSaving(true);
 
-            const response = await updateProfileRequest({
-                name: name.trim(),
-                image,
-            });
+            const response = await updateProfileRequest({ ...form, image });
 
-            updateUserData({
-                name: response.user.name,
-                photoURL: response.user.photoURL,
-            });
-
+            setProfile(response.user);
+            setForm(toForm(response.user));
             setImage(null);
+
+            updateUserData({ name: response.user.name, photoURL: response.user.photoURL });
             toast.success("Profile updated");
         } catch (error) {
             toast.error(error.message || "Failed to update profile");
@@ -73,81 +105,89 @@ const Profile = ({ title = "My Profile" }) => {
         }
     };
 
+    if (!profile || !form) return <Spinner label="Loading profile..." />;
+
+    const isStudent = role === "student";
+    const isTeacher = role === "teacher";
+
     return (
         <div className="space-y-6">
-            <PageHeader title={title} subtitle="Manage your personal information and photo." />
+            <PageHeader title={title} subtitle="Your personal details. Academic information is managed by the university office." />
 
             <div className="grid gap-6 lg:grid-cols-3">
-                <div className="rounded-xl border border-slate-200 bg-white p-6 text-center shadow-sm">
-                    <div className="relative mx-auto h-28 w-28">
-                        <Avatar
-                            user={{ name: user?.name, photoURL: preview || user?.photoURL }}
-                            size="h-28 w-28 text-2xl"
-                        />
-                        <button
-                            type="button"
-                            onClick={() => fileRef.current?.click()}
-                            aria-label="Change profile photo"
-                            className="absolute bottom-0 right-0 rounded-full bg-blue-900 p-2 text-white shadow hover:bg-blue-800"
-                        >
-                            <Camera size={16} />
-                        </button>
-                        <input
-                            ref={fileRef}
-                            type="file"
-                            accept="image/jpeg,image/png,image/webp"
-                            onChange={handleFile}
-                            className="hidden"
-                        />
+                <div className="space-y-6">
+                    <div className="rounded-xl border border-slate-200 bg-white p-6 text-center shadow-sm">
+                        <div className="relative mx-auto h-28 w-28">
+                            <Avatar user={{ name: profile.name, photoURL: preview || profile.photoURL }} size="h-28 w-28 text-2xl" />
+                            <button type="button" onClick={() => fileRef.current?.click()} aria-label="Change profile photo" className="absolute bottom-0 right-0 rounded-full bg-blue-900 p-2 text-white shadow hover:bg-blue-800">
+                                <Camera size={16} />
+                            </button>
+                            <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleFile} className="hidden" />
+                        </div>
+
+                        <h3 className="mt-4 text-lg font-semibold text-slate-900">{profile.name}</h3>
+                        <p className="text-sm text-slate-500">{profile.email}</p>
+                        <div className="mt-2"><Badge color="blue">{role}</Badge></div>
+                        {profile.universityId && <p className="mt-3 font-display text-lg font-bold text-blue-900">{profile.universityId}</p>}
                     </div>
 
-                    <h3 className="mt-4 text-lg font-semibold text-slate-900">{user?.name}</h3>
-                    <p className="text-sm capitalize text-slate-500">{role}</p>
-
-                    <dl className="mt-5 space-y-2 border-t border-slate-100 pt-4 text-left text-sm">
-                        <div className="flex items-center gap-2 text-slate-600">
-                            <Mail size={15} className="shrink-0 text-slate-400" />
-                            <span className="truncate">{user?.email}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-slate-600">
-                            <ShieldCheck size={15} className="shrink-0 text-slate-400" />
-                            <span>Member since {formatDate(user?.createdAt)}</span>
-                        </div>
-                    </dl>
+                    <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                        <h3 className="mb-2 font-semibold text-slate-900">Academic information</h3>
+                        <dl>
+                            <Row label="Department" value={profile.department?.name} />
+                            {isStudent && <Row label="Program" value={profile.program} />}
+                            {isStudent && <Row label="Semester" value={profile.semester} />}
+                            {isStudent && <Row label="Batch" value={profile.batch} />}
+                            {isTeacher && <Row label="Designation" value={profile.designation} />}
+                            <Row label="Member since" value={formatDate(profile.createdAt)} />
+                        </dl>
+                        {!profile.department && role !== "admin" && (
+                            <p className="mt-3 text-xs text-slate-400">Your department will show here after the office assigns it.</p>
+                        )}
+                    </div>
                 </div>
 
-                <form
-                    onSubmit={handleSubmit}
-                    className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2"
-                >
-                    <h3 className="font-semibold text-slate-900">Edit details</h3>
+                <form onSubmit={handleSubmit} className="space-y-5 rounded-xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
+                    <h3 className="font-semibold text-slate-900">Personal details</h3>
 
-                    <Field label="Full name">
-                        <input
-                            value={name}
-                            onChange={(event) => setName(event.target.value)}
-                            required
-                            minLength={2}
-                            className={inputClass}
-                        />
-                    </Field>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                        <Field label="Full name"><input value={form.name} onChange={set("name")} required minLength={2} className={inputClass} /></Field>
+                        <Field label="Phone"><input value={form.phone} onChange={set("phone")} placeholder="01XXXXXXXXX" className={inputClass} /></Field>
+                        <Field label="Date of birth"><input type="date" max={new Date().toISOString().slice(0, 10)} value={form.dob} onChange={set("dob")} className={inputClass} /></Field>
+                        <Field label="Gender">
+                            <select value={form.gender} onChange={set("gender")} className={inputClass}>
+                                <option value="">Prefer not to say</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </Field>
+                    </div>
 
-                    <Field label="Email" hint="Email is linked to your login and cannot be changed here.">
-                        <input value={user?.email || ""} disabled className={`${inputClass} bg-slate-50 text-slate-500`} />
-                    </Field>
+                    <Field label="Address"><input value={form.address} onChange={set("address")} className={inputClass} /></Field>
 
-                    <Field label="Role">
-                        <input value={role || ""} disabled className={`${inputClass} bg-slate-50 capitalize text-slate-500`} />
-                    </Field>
-
-                    {image && (
-                        <p className="text-sm text-slate-500">New photo selected: {image.name}</p>
+                    {isStudent && (
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <Field label="Guardian's name"><input value={form.guardianName} onChange={set("guardianName")} className={inputClass} /></Field>
+                            <Field label="Guardian's phone"><input value={form.guardianPhone} onChange={set("guardianPhone")} className={inputClass} /></Field>
+                        </div>
                     )}
 
-                    <div className="flex justify-end pt-2">
+                    {isTeacher && (
+                        <Field label="Short bio" hint="Shown on the public faculty page.">
+                            <textarea rows={4} maxLength={600} value={form.bio} onChange={set("bio")} className={inputClass} />
+                        </Field>
+                    )}
+
+                    <Field label="Email" hint="Your email is your login and cannot be changed here.">
+                        <input value={profile.email} disabled className={`${inputClass} bg-slate-50 text-slate-500`} />
+                    </Field>
+
+                    {image && <p className="text-sm text-slate-500">New photo selected: {image.name}</p>}
+
+                    <div className="flex justify-end pt-1">
                         <button type="submit" disabled={!changed || saving} className={primaryBtn}>
-                            <Save size={16} />
-                            {saving ? "Saving..." : "Save Changes"}
+                            <Save size={16} /> {saving ? "Saving..." : "Save changes"}
                         </button>
                     </div>
                 </form>

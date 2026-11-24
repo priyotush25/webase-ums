@@ -12,6 +12,7 @@ import {
 import { useCallback, useEffect, useState } from "react";
 
 import { toast } from "react-toastify";
+import AcademicRecordModal from "../../components/admin/AcademicRecordModal";
 import { getAllUsers, updateUserRole } from "../../api/userApi";
 
 const AdminPeople = ({ role }) => {
@@ -34,6 +35,7 @@ const AdminPeople = ({ role }) => {
     });
 
     const [selectedUser, setSelectedUser] = useState(null);
+    const [academicUser, setAcademicUser] = useState(null);
     const [updating, setUpdating] = useState(false);
 
     const fetchUsers = useCallback(async () => {
@@ -258,8 +260,14 @@ const AdminPeople = ({ role }) => {
                                                     </div>
                                                 )}
 
-                                                <span className="font-medium text-gray-800">
-                                                    {user.name}
+                                                <span>
+                                                    <span className="block font-medium text-gray-800">
+                                                        {user.name}
+                                                    </span>
+                                                    <span className="block text-xs text-gray-500">
+                                                        {user.universityId || "No ID"}
+                                                        {user.department?.code ? ` · ${user.department.code}` : ""}
+                                                    </span>
                                                 </span>
                                             </div>
                                         </td>
@@ -283,6 +291,12 @@ const AdminPeople = ({ role }) => {
                                         </td>
 
                                         <td className="px-5 py-4">
+                                            <button
+                                                onClick={() => setAcademicUser(user)}
+                                                className="mr-2 px-3 py-2 rounded-lg bg-blue-50 text-blue-900 hover:bg-blue-100"
+                                            >
+                                                Academic Record
+                                            </button>
                                             <button
                                                 onClick={() => setSelectedUser(user)}
                                                 className="px-3 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200"
@@ -376,6 +390,13 @@ const AdminPeople = ({ role }) => {
                     </div>
                 </div>
             )}
+
+
+            <AcademicRecordModal
+                user={academicUser}
+                onClose={() => setAcademicUser(null)}
+                onSaved={fetchUsers}
+            />
 
         </div>
     );

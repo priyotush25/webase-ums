@@ -14,6 +14,7 @@ import {
     Award,
     Bell,
     CalendarClock,
+    UserRound,
     Wallet,
     Menu,
     Settings,
@@ -23,6 +24,8 @@ import {
     X,
 } from "lucide-react";
 
+import NotificationBell from "../components/dashboard/NotificationBell";
+import siteConfig from "../config/site";
 import { useAuth } from "../context/AuthContext";
 
 // ========================================
@@ -65,6 +68,11 @@ const NAV_LINKS = {
             name: "Fees",
             path: "/student/fees",
             icon: Wallet,
+        },
+        {
+            name: "ID Card",
+            path: "/student/id-card",
+            icon: UserRound,
         },
         {
             name: "Notices",
@@ -148,6 +156,11 @@ const NAV_LINKS = {
             icon: LayoutDashboard,
         },
         {
+            name: "Admissions",
+            path: "/admin/admissions",
+            icon: ClipboardCheck,
+        },
+        {
             name: "Users",
             path: "/admin/users",
             icon: Users,
@@ -186,6 +199,11 @@ const NAV_LINKS = {
             name: "Fees",
             path: "/admin/fees",
             icon: Wallet,
+        },
+        {
+            name: "Reports",
+            path: "/admin/reports",
+            icon: FileText,
         },
         {
             name: "Attendance",
@@ -398,7 +416,7 @@ const DashboardLayout = () => {
 
                         <div className="leading-tight">
                             <h2 className="text-base font-semibold text-slate-900">
-                                UMS Portal
+                                {siteConfig.shortName} Portal
                             </h2>
 
                             <p className="text-xs text-slate-500">
@@ -544,6 +562,8 @@ const DashboardLayout = () => {
                     {/* Header User */}
 
                     <div className="flex items-center gap-3">
+
+                        <NotificationBell />
 
                         <div className="hidden text-right sm:block">
 

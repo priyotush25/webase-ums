@@ -94,3 +94,19 @@ export const getUserStats = async () => {
 
     return data;
 };
+
+// Update department / semester / batch / designation (admin)
+export const updateAcademicRecord = async (userId, data) => {
+    const response = await fetch(`${API_URL}/api/users/${userId}/academic`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) throw new Error(result.message || "Failed to update academic record");
+
+    return result;
+};

@@ -32,6 +32,7 @@ const initialForm = {
     department: "",
     teacher: "",
     semester: "",
+    capacity: "60",
     status: "active",
 };
 
@@ -127,6 +128,7 @@ const AdminCourses = () => {
             department: course.department?._id || "",
             teacher: course.teacher?._id || "",
             semester: course.semester || "",
+            capacity: String(course.capacity ?? 60),
             status: course.status || "active",
         });
 
@@ -166,6 +168,7 @@ const AdminCourses = () => {
             const courseData = {
                 ...form,
                 credit: Number(form.credit),
+                capacity: Number(form.capacity) || 60,
                 teacher: form.teacher || null,
             };
 
@@ -604,6 +607,25 @@ const AdminCourses = () => {
                                         className="w-full border rounded-lg px-4 py-3"
                                     />
                                 </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium mb-2">
+                                    Seat capacity
+                                </label>
+
+                                <input
+                                    type="number"
+                                    name="capacity"
+                                    value={form.capacity}
+                                    onChange={handleChange}
+                                    min="1"
+                                    max="500"
+                                    className="w-full border rounded-lg px-4 py-3"
+                                />
+                                <p className="mt-1 text-xs text-gray-500">
+                                    Enrollment approvals stop when this many students are approved.
+                                </p>
                             </div>
 
                             <div>

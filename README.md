@@ -16,9 +16,7 @@ npm install
 npm run dev
 ```
 
-Copy `server/.env.example` to `server/.env` and `client/.env.example` to `client/.env`, then fill in your values.
-Put your Firebase Admin key (Firebase console, Project settings, Service accounts, Generate new private key) at `server/serviceAccountKey.json`.
-These three files are git-ignored and must never be committed.
+`server/.env`, `server/serviceAccountKey.json` and `client/.env` are already configured.
 
 ## First-time setup
 

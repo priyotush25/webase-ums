@@ -1,48 +1,57 @@
-import { BookOpen, Briefcase, Cpu, Languages, Zap } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
 
-import { PageBanner } from "./PublicPage";
+import { getDepartments } from "../../api/publicApi";
+import { PageBanner, Section } from "./PublicPage";
 
-const programs = [
-    { icon: Cpu, name: "Computer Science & Engineering", degree: "B.Sc. · 4 years", text: "Programming, algorithms, databases, AI and software engineering." },
-    { icon: Zap, name: "Electrical & Electronic Engineering", degree: "B.Sc. · 4 years", text: "Power systems, electronics, communication and control." },
-    { icon: Briefcase, name: "Business Administration", degree: "BBA · 4 years", text: "Management, marketing, finance and entrepreneurship." },
-    { icon: Languages, name: "English", degree: "B.A. · 4 years", text: "Literature, linguistics, translation and professional communication." },
+const levels = [
+    { name: "Bachelor", duration: "4 years · 8 semesters", credits: "140 credits", text: "Core courses in the first two years, then specialization, a project and an internship." },
+    { name: "Masters", duration: "1.5 – 2 years", credits: "36 credits", text: "Coursework with a thesis or project option, designed for working professionals too." },
 ];
 
-const Academics = () => (
-    <>
-        <PageBanner
-            eyebrow="Academics"
-            title="Programs & Departments"
-            text="Choose a program, register for courses online and track your attendance and results in one place."
-        />
+const Academics = () => {
+    const [departments, setDepartments] = useState([]);
 
-        <section className="mx-auto max-w-6xl px-4 py-16">
-            <div className="grid gap-6 md:grid-cols-2">
-                {programs.map(({ icon: Icon, name, degree, text }) => (
-                    <div key={name} className="flex gap-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                        <div className="h-fit rounded-lg bg-blue-100 p-3 text-blue-900">
-                            <Icon size={22} />
-                        </div>
-                        <div>
-                            <h3 className="font-semibold text-slate-900">{name}</h3>
-                            <p className="text-xs font-medium text-blue-800">{degree}</p>
-                            <p className="mt-2 text-sm leading-6 text-slate-600">{text}</p>
-                        </div>
-                    </div>
-                ))}
-            </div>
+    useEffect(() => {
+        getDepartments().then((r) => setDepartments(r.departments || [])).catch(() => {});
+    }, []);
 
-            <div className="mt-12 flex flex-col items-center gap-3 text-center">
-                <BookOpen className="text-blue-900" />
-                <p className="text-slate-600">Already a student? Log in to browse and enroll in this semester's courses.</p>
-                <Link to="/login" className="rounded-lg bg-blue-900 px-6 py-3 font-semibold text-white hover:bg-blue-800">
-                    Go to Student Portal
-                </Link>
-            </div>
-        </section>
-    </>
-);
+    return (
+        <>
+            <PageBanner title="Academic programs" crumbs={[["Academics"]]} text="Two program levels across every department." />
+
+            <Section>
+                <div className="grid gap-6 md:grid-cols-2">
+                    {levels.map((level) => (
+                        <div key={level.name} className="rounded-xl border border-slate-200 bg-white p-8">
+                            <h2 className="text-2xl font-bold text-blue-950">{level.name}</h2>
+                            <p className="mt-1 text-sm font-semibold text-gold-700">{level.duration} · {level.credits}</p>
+                            <p className="mt-3 leading-7 text-slate-600">{level.text}</p>
+                        </div>
+                    ))}
+                </div>
+
+                <h2 className="mt-14 text-2xl font-bold text-blue-950">Departments offering these programs</h2>
+                {departments.length === 0 ? (
+                    <p className="mt-4 text-slate-500">Departments will be listed here soon.</p>
+                ) : (
+                    <ul className="mt-6 divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white">
+                        {departments.map((dept) => (
+                            <li key={dept._id}>
+                                <Link to={`/departments/${dept.code}`} className="flex items-center justify-between gap-4 px-6 py-4 hover:bg-blue-50">
+                                    <span>
+                                        <span className="font-semibold text-slate-900">{dept.name}</span>
+                                        <span className="ml-2 text-sm text-slate-500">{dept.courseCount} courses · {dept.teacherCount} teachers</span>
+                                    </span>
+                                    <span className="text-sm font-semibold text-blue-900">{dept.code}</span>
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
+                )}
+            </Section>
+        </>
+    );
+};
 
 export default Academics;

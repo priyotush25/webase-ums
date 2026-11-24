@@ -1,44 +1,58 @@
-import { Eye, GraduationCap, Target, Users } from "lucide-react";
 import { Link } from "react-router";
 
-import { PageBanner } from "./PublicPage";
-
-const values = [
-    { icon: Target, title: "Our Mission", text: "To deliver accessible, high-quality education that prepares students for real-world challenges." },
-    { icon: Eye, title: "Our Vision", text: "To become a leading university known for innovation, research and community impact." },
-    { icon: Users, title: "Our Community", text: "A diverse campus of students, teachers and staff learning and growing together." },
-    { icon: GraduationCap, title: "Our Promise", text: "Modern teaching, transparent management and support for every learner." },
-];
+import siteConfig from "../../config/site";
+import { PageBanner, Section } from "./PublicPage";
 
 const About = () => (
     <>
-        <PageBanner
-            eyebrow="About Us"
-            title="A University Built Around Students"
-            text="From admission to graduation, our digital campus keeps students, teachers and administrators connected."
-        />
+        <PageBanner title="About the university" crumbs={[["About"]]} text={`${siteConfig.name} has served students since ${siteConfig.established}.`} />
 
-        <section className="mx-auto max-w-6xl px-4 py-16">
-            <div className="grid gap-6 sm:grid-cols-2">
-                {values.map(({ icon: Icon, title, text }) => (
-                    <div key={title} className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                        <div className="mb-4 inline-flex rounded-lg bg-blue-100 p-3 text-blue-900">
-                            <Icon size={22} />
-                        </div>
-                        <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
-                        <p className="mt-2 text-sm leading-6 text-slate-600">{text}</p>
-                    </div>
-                ))}
-            </div>
+        <Section>
+            <div className="grid gap-12 lg:grid-cols-2">
+                <div>
+                    <h2 className="text-2xl font-bold text-blue-950">Our mission</h2>
+                    <p className="mt-3 leading-7 text-slate-600">
+                        To give every capable student access to well-taught, affordable higher education that leads to real careers and responsible citizenship.
+                    </p>
 
-            <div className="mt-12 rounded-2xl bg-blue-50 p-8 text-center">
-                <h2 className="text-2xl font-bold text-blue-950">Ready to join us?</h2>
-                <p className="mt-2 text-slate-600">Create your student account and start enrolling in courses.</p>
-                <Link to="/signup" className="mt-5 inline-block rounded-lg bg-blue-900 px-6 py-3 font-semibold text-white hover:bg-blue-800">
-                    Apply Now
-                </Link>
+                    <h2 className="mt-8 text-2xl font-bold text-blue-950">Our vision</h2>
+                    <p className="mt-3 leading-7 text-slate-600">
+                        A university known for teaching quality, honest assessment and graduates who are trusted by employers.
+                    </p>
+                </div>
+
+                <div>
+                    <h2 className="text-2xl font-bold text-blue-950">Milestones</h2>
+                    <ol className="mt-4 space-y-5 border-l-2 border-gold-500 pl-6">
+                        {siteConfig.milestones.map((item) => (
+                            <li key={item.year}>
+                                <p className="font-display text-lg font-bold text-blue-900">{item.year}</p>
+                                <p className="text-slate-600">{item.text}</p>
+                            </li>
+                        ))}
+                    </ol>
+                </div>
             </div>
+        </Section>
+
+        <section className="bg-slate-50">
+            <Section>
+                <h2 className="text-2xl font-bold text-blue-950">What we stand for</h2>
+                <ul className="mt-8 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+                    {siteConfig.values.map((value) => (
+                        <li key={value.title} className="border-t-2 border-gold-500 pt-4">
+                            <h3 className="font-semibold text-slate-900">{value.title}</h3>
+                            <p className="mt-2 text-sm leading-6 text-slate-600">{value.text}</p>
+                        </li>
+                    ))}
+                </ul>
+            </Section>
         </section>
+
+        <Section className="text-center">
+            <h2 className="text-2xl font-bold text-blue-950">Join the next batch</h2>
+            <Link to="/admissions/apply" className="mt-5 inline-block rounded-lg bg-blue-900 px-6 py-3 font-semibold text-white hover:bg-blue-800">Apply online</Link>
+        </Section>
     </>
 );
 

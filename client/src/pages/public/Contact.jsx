@@ -3,63 +3,61 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 
 import { Field, inputClass, primaryBtn } from "../../components/ui";
-import { PageBanner } from "./PublicPage";
-
-const CONTACT_EMAIL = "info@university.edu";
+import siteConfig from "../../config/site";
+import { PageBanner, Section } from "./PublicPage";
 
 const Contact = () => {
     const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
 
     const set = (key) => (event) => setForm((previous) => ({ ...previous, [key]: event.target.value }));
 
-    // Opens the visitor's mail app with the message pre-filled (no backend needed)
+    // Opens the visitor's mail app with the message pre-filled
     const handleSubmit = (event) => {
         event.preventDefault();
 
         const subject = encodeURIComponent(form.subject || "Website enquiry");
-        const body = encodeURIComponent(`${form.message}\n\n— ${form.name} (${form.email})`);
+        const body = encodeURIComponent(`${form.message}\n\nFrom: ${form.name} (${form.email})`);
 
-        window.location.href = `mailto:${CONTACT_EMAIL}?subject=${subject}&body=${body}`;
-        toast.info("Opening your email app...");
+        window.location.href = `mailto:${siteConfig.email}?subject=${subject}&body=${body}`;
+        toast.info("Opening your email app");
     };
 
     const info = [
-        { icon: MapPin, label: "Campus", value: "University Road, Dhaka, Bangladesh" },
-        { icon: Phone, label: "Phone", value: "+880 1234 567890", href: "tel:+8801234567890" },
-        { icon: Mail, label: "Email", value: CONTACT_EMAIL, href: `mailto:${CONTACT_EMAIL}` },
+        { icon: MapPin, label: "Campus", value: siteConfig.address },
+        { icon: Phone, label: "Phone", value: siteConfig.phone, href: `tel:${siteConfig.phone.replace(/\s/g, "")}` },
+        { icon: Mail, label: "General enquiries", value: siteConfig.email, href: `mailto:${siteConfig.email}` },
+        { icon: Mail, label: "Admission office", value: siteConfig.admissionEmail, href: `mailto:${siteConfig.admissionEmail}` },
     ];
 
     return (
         <>
-            <PageBanner eyebrow="Contact" title="We'd Love to Hear From You" text="Questions about admission, courses or your account? Send us a message." />
+            <PageBanner title="Contact us" crumbs={[["Contact"]]} text="Office hours: Sunday to Thursday, 9:00 AM to 5:00 PM." />
 
-            <section className="mx-auto grid max-w-6xl gap-8 px-4 py-16 lg:grid-cols-5">
-                <div className="space-y-4 lg:col-span-2">
-                    {info.map(({ icon: Icon, label, value, href }) => (
-                        <div key={label} className="flex items-start gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                            <div className="rounded-lg bg-blue-100 p-3 text-blue-900"><Icon size={20} /></div>
-                            <div>
-                                <p className="text-sm text-slate-500">{label}</p>
-                                {href ? (
-                                    <a href={href} className="font-medium text-slate-900 hover:text-blue-800">{value}</a>
-                                ) : (
-                                    <p className="font-medium text-slate-900">{value}</p>
-                                )}
-                            </div>
+            <Section>
+                <div className="grid gap-8 lg:grid-cols-5">
+                    <ul className="space-y-4 lg:col-span-2">
+                        {info.map(({ icon: Icon, label, value, href }) => (
+                            <li key={label} className="flex items-start gap-4 rounded-xl border border-slate-200 bg-white p-5">
+                                <span className="rounded-lg bg-blue-50 p-3 text-blue-900"><Icon size={20} /></span>
+                                <div>
+                                    <p className="text-sm text-slate-500">{label}</p>
+                                    {href ? <a href={href} className="font-medium text-slate-900 hover:text-blue-800">{value}</a> : <p className="font-medium text-slate-900">{value}</p>}
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+
+                    <form onSubmit={handleSubmit} className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 lg:col-span-3">
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <Field label="Your name"><input required value={form.name} onChange={set("name")} className={inputClass} /></Field>
+                            <Field label="Your email"><input required type="email" value={form.email} onChange={set("email")} className={inputClass} /></Field>
                         </div>
-                    ))}
+                        <Field label="Subject"><input value={form.subject} onChange={set("subject")} className={inputClass} /></Field>
+                        <Field label="Message"><textarea required rows={5} value={form.message} onChange={set("message")} className={inputClass} /></Field>
+                        <button type="submit" className={primaryBtn}>Send message</button>
+                    </form>
                 </div>
-
-                <form onSubmit={handleSubmit} className="space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-3">
-                    <div className="grid gap-4 sm:grid-cols-2">
-                        <Field label="Your name"><input required value={form.name} onChange={set("name")} className={inputClass} /></Field>
-                        <Field label="Your email"><input required type="email" value={form.email} onChange={set("email")} className={inputClass} /></Field>
-                    </div>
-                    <Field label="Subject"><input value={form.subject} onChange={set("subject")} className={inputClass} /></Field>
-                    <Field label="Message"><textarea required rows={5} value={form.message} onChange={set("message")} className={inputClass} /></Field>
-                    <button type="submit" className={primaryBtn}>Send Message</button>
-                </form>
-            </section>
+            </Section>
         </>
     );
 };

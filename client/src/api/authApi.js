@@ -126,13 +126,25 @@ export const logoutUser = async () => {
 
 
 // ========================================
-// UPDATE PROFILE (name / photo)
+// OWN PROFILE (full details)
 // ========================================
 
-export const updateProfileRequest = async ({ name, image }) => {
+export const getMyProfile = async () => {
+    const response = await fetch(`${API_URL}/api/auth/profile`, { credentials: "include" });
+    const data = await response.json();
+
+    if (!response.ok) throw new Error(data.message || "Failed to load profile");
+
+    return data;
+};
+
+export const updateProfileRequest = async ({ image, ...fields }) => {
     const formData = new FormData();
 
-    if (name !== undefined) formData.append("name", name);
+    Object.entries(fields).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) formData.append(key, value);
+    });
+
     if (image) formData.append("image", image);
 
     const response = await fetch(`${API_URL}/api/auth/profile`, {
@@ -143,9 +155,7 @@ export const updateProfileRequest = async ({ name, image }) => {
 
     const data = await response.json();
 
-    if (!response.ok) {
-        throw new Error(data.message || "Profile update failed");
-    }
+    if (!response.ok) throw new Error(data.message || "Profile update failed");
 
     return data;
 };

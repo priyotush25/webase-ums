@@ -36,6 +36,24 @@ const gradeFor = (total) => {
 const gradeColor = (letter) =>
     letter === "F" ? "red" : letter?.startsWith("A") ? "green" : letter === "-" ? "slate" : "blue";
 
+// Group results by semester and compute each semester's GPA
+const groupBySemester = (results) => {
+    const map = new Map();
+
+    for (const item of results) {
+        const key = item.course?.semester || "Other";
+        if (!map.has(key)) map.set(key, []);
+        map.get(key).push(item);
+    }
+
+    return [...map.entries()].map(([semester, items]) => {
+        const credits = items.reduce((sum, i) => sum + Number(i.course?.credit || 0), 0);
+        const points = items.reduce((sum, i) => sum + Number(i.course?.credit || 0) * i.gradePoint, 0);
+
+        return { semester, items, credits, sgpa: credits ? points / credits : 0 };
+    });
+};
+
 // ========================================
 // STUDENT
 // ========================================
@@ -82,39 +100,48 @@ const StudentResults = () => {
                         <StatCard title="Credits earned" value={data.totalCredits} icon={Award} color="bg-purple-100 text-purple-700" />
                     </div>
 
-                    <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
-                        <table className="w-full min-w-[720px] text-left text-sm">
-                            <thead className="bg-slate-50 text-xs uppercase text-slate-500">
-                                <tr>
-                                    <th className="px-4 py-3">Course</th>
-                                    <th className="px-4 py-3">Credit</th>
-                                    <th className="px-4 py-3">Assignment /20</th>
-                                    <th className="px-4 py-3">Midterm /30</th>
-                                    <th className="px-4 py-3">Final /50</th>
-                                    <th className="px-4 py-3">Total</th>
-                                    <th className="px-4 py-3">Grade</th>
-                                    <th className="px-4 py-3">GP</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100">
-                                {data.results.map((item) => (
-                                    <tr key={item._id}>
-                                        <td className="px-4 py-3">
-                                            <p className="font-medium text-slate-900">{item.course?.title}</p>
-                                            <p className="text-xs text-slate-400">{item.course?.code} · {item.course?.semester}</p>
-                                        </td>
-                                        <td className="px-4 py-3">{item.course?.credit}</td>
-                                        <td className="px-4 py-3">{item.assignment}</td>
-                                        <td className="px-4 py-3">{item.midterm}</td>
-                                        <td className="px-4 py-3">{item.final}</td>
-                                        <td className="px-4 py-3 font-semibold">{item.total}</td>
-                                        <td className="px-4 py-3"><Badge color={gradeColor(item.letterGrade)}>{item.letterGrade}</Badge></td>
-                                        <td className="px-4 py-3">{item.gradePoint.toFixed(2)}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                    {groupBySemester(data.results).map(({ semester, items, sgpa, credits }) => (
+                        <section key={semester} className="space-y-2">
+                            <div className="flex items-baseline justify-between">
+                                <h3 className="font-display text-lg font-bold text-slate-900">{semester}</h3>
+                                <p className="text-sm text-slate-500">{credits} credits · SGPA <strong className="text-slate-900">{sgpa.toFixed(2)}</strong></p>
+                            </div>
+
+                            <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+                                <table className="w-full min-w-[720px] text-left text-sm">
+                                    <thead className="bg-slate-50 text-xs text-slate-500">
+                                        <tr>
+                                            <th className="px-4 py-3 font-medium">Course</th>
+                                            <th className="px-4 py-3 font-medium">Credit</th>
+                                            <th className="px-4 py-3 font-medium">Assignment /20</th>
+                                            <th className="px-4 py-3 font-medium">Midterm /30</th>
+                                            <th className="px-4 py-3 font-medium">Final /50</th>
+                                            <th className="px-4 py-3 font-medium">Total</th>
+                                            <th className="px-4 py-3 font-medium">Grade</th>
+                                            <th className="px-4 py-3 font-medium">GP</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100">
+                                        {items.map((item) => (
+                                            <tr key={item._id}>
+                                                <td className="px-4 py-3">
+                                                    <p className="font-medium text-slate-900">{item.course?.title}</p>
+                                                    <p className="text-xs text-slate-400">{item.course?.code}</p>
+                                                </td>
+                                                <td className="px-4 py-3">{item.course?.credit}</td>
+                                                <td className="px-4 py-3">{item.assignment}</td>
+                                                <td className="px-4 py-3">{item.midterm}</td>
+                                                <td className="px-4 py-3">{item.final}</td>
+                                                <td className="px-4 py-3 font-semibold">{item.total}</td>
+                                                <td className="px-4 py-3"><Badge color={gradeColor(item.letterGrade)}>{item.letterGrade}</Badge></td>
+                                                <td className="px-4 py-3">{item.gradePoint.toFixed(2)}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+                    ))}
                 </>
             )}
         </div>

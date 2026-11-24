@@ -5,10 +5,20 @@ import { createBrowserRouter } from "react-router";
 import ForgotPassword from "../pages/auth/ForgotPassword";
 import NotFound from "../pages/NotFound";
 import About from "../pages/public/About";
+import AdmissionApply from "../pages/public/AdmissionApply";
+import Admissions from "../pages/public/Admissions";
+import AdmissionTrack from "../pages/public/AdmissionTrack";
+import DepartmentDetail from "../pages/public/DepartmentDetail";
+import Departments from "../pages/public/Departments";
+import Faculty from "../pages/public/Faculty";
+import PublicNotices from "../pages/public/PublicNotices";
 import Academics from "../pages/public/Academics";
 import Contact from "../pages/public/Contact";
 import Legal from "../pages/public/Legal";
 import Assignments from "../pages/shared/Assignments";
+import AdminAdmissions from "../pages/admin/AdminAdmissions";
+import AdminReports from "../pages/admin/AdminReports";
+import StudentIdCard from "../pages/student/StudentIdCard";
 import Events from "../pages/shared/Events";
 import Fees from "../pages/shared/Fees";
 import Routine from "../pages/shared/Routine";
@@ -78,6 +88,13 @@ const routers = createBrowserRouter([
                 element: <Home />,
             },
             { path: "/about", element: <About /> },
+            { path: "/admissions", element: <Admissions /> },
+            { path: "/admissions/apply", element: <AdmissionApply /> },
+            { path: "/admissions/track", element: <AdmissionTrack /> },
+            { path: "/departments", element: <Departments /> },
+            { path: "/departments/:code", element: <DepartmentDetail /> },
+            { path: "/faculty", element: <Faculty /> },
+            { path: "/notices", element: <PublicNotices /> },
             { path: "/academics", element: <Academics /> },
             { path: "/contact", element: <Contact /> },
             { path: "/terms", element: <Legal type="terms" /> },
@@ -129,6 +146,7 @@ const routers = createBrowserRouter([
                     { path: "/student/notices", element: <Notices /> },
                     { path: "/student/calendar", element: <Events /> },
                     { path: "/student/fees", element: <Fees /> },
+                    { path: "/student/id-card", element: <StudentIdCard /> },
                     { path: "/student/routine", element: <Routine /> },
                     { path: "/student/results", element: <Results /> },
                     { path: "/student/assignments", element: <Assignments /> },
@@ -229,6 +247,8 @@ const routers = createBrowserRouter([
                     { path: "/admin/notices", element: <Notices /> },
                     { path: "/admin/calendar", element: <Events /> },
                     { path: "/admin/fees", element: <Fees /> },
+                    { path: "/admin/admissions", element: <AdminAdmissions /> },
+                    { path: "/admin/reports", element: <AdminReports /> },
                     { path: "/admin/routine", element: <Routine /> },
                     { path: "/admin/results", element: <Results /> },
                     { path: "/admin/assignments", element: <Assignments /> },

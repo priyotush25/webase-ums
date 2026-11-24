@@ -1,38 +1,35 @@
 import { Link } from "react-router";
 
-const FALLBACK = [
-    { _id: "cse", code: "CSE", name: "Computer Science & Engineering", description: "Programming, algorithms, databases and AI." },
-    { _id: "eee", code: "EEE", name: "Electrical & Electronic Engineering", description: "Power, electronics and communication." },
-    { _id: "bba", code: "BBA", name: "Business Administration", description: "Management, marketing and finance." },
-    { _id: "eng", code: "ENG", name: "English", description: "Literature, linguistics and communication." },
-];
-
-const HomeDepartments = ({ departments }) => {
-    const list = departments?.length ? departments : FALLBACK;
-
-    return (
-        <section className="border-t border-slate-200 bg-slate-50 py-20">
-            <div className="mx-auto max-w-6xl px-4">
-                <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
-                    <div>
-                        <h2 className="text-3xl font-bold text-blue-950">Departments</h2>
-                        <p className="mt-3 max-w-xl text-slate-600">Browse departments, then enroll in their courses from your portal.</p>
-                    </div>
-                    <Link to="/academics" className="text-sm font-semibold text-blue-900 hover:underline">All programs</Link>
+const HomeDepartments = ({ departments = [] }) => (
+    <section className="bg-white py-20">
+        <div className="mx-auto max-w-7xl px-4">
+            <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+                <div>
+                    <h2 className="text-3xl font-bold text-blue-950">Departments</h2>
+                    <p className="mt-3 max-w-xl text-slate-600">Choose a department to see its courses, faculty and how to apply.</p>
                 </div>
+                <Link to="/departments" className="text-sm font-semibold text-blue-900 hover:underline">All departments</Link>
+            </div>
 
+            {departments.length === 0 ? (
+                <p className="mt-10 rounded-xl border border-dashed border-slate-300 p-10 text-center text-slate-500">
+                    Departments will appear here once the administrator adds them.
+                </p>
+            ) : (
                 <ul className="mt-10 grid gap-px overflow-hidden rounded-xl border border-slate-200 bg-slate-200 sm:grid-cols-2 lg:grid-cols-4">
-                    {list.slice(0, 8).map((dept) => (
-                        <li key={dept._id} className="bg-white p-6">
-                            <p className="font-display text-2xl font-bold text-blue-900">{dept.code}</p>
-                            <h3 className="mt-2 font-semibold text-slate-900">{dept.name}</h3>
-                            {dept.description && <p className="mt-1 line-clamp-3 text-sm leading-6 text-slate-500">{dept.description}</p>}
+                    {departments.slice(0, 8).map((dept) => (
+                        <li key={dept._id} className="bg-white">
+                            <Link to={`/departments/${dept.code}`} className="block h-full p-6 hover:bg-blue-50">
+                                <p className="font-display text-2xl font-bold text-blue-900">{dept.code}</p>
+                                <h3 className="mt-2 font-semibold text-slate-900">{dept.name}</h3>
+                                {dept.description && <p className="mt-1 line-clamp-3 text-sm leading-6 text-slate-500">{dept.description}</p>}
+                            </Link>
                         </li>
                     ))}
                 </ul>
-            </div>
-        </section>
-    );
-};
+            )}
+        </div>
+    </section>
+);
 
 export default HomeDepartments;
