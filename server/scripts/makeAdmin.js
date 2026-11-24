@@ -20,7 +20,7 @@ try {
     const user = await User.findOneAndUpdate(
         { email },
         { $set: { role: "admin" } },
-        { new: true }
+        { returnDocument: "after" }
     );
 
     if (!user) {
