@@ -6,6 +6,7 @@ import {
     deleteEnrollment,
     getAllEnrollments,
     getMyEnrollments,
+    getMyTeachingStudents,
     updateEnrollmentStatus,
 } from "../controllers/enrollmentController.js";
 
@@ -31,6 +32,16 @@ router.get(
     "/my",
     authorizeRole("student"),
     getMyEnrollments
+);
+
+// ========================================
+// TEACHER ROUTES
+// ========================================
+
+router.get(
+    "/teacher/students",
+    authorizeRole("teacher"),
+    getMyTeachingStudents
 );
 
 // ========================================

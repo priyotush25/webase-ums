@@ -12,6 +12,7 @@ import {
 
 import { Link } from "react-router";
 import { useAuth } from "../../context/AuthContext";
+import DashboardInsights from "../../components/dashboard/DashboardInsights";
 
 const TeacherDashboard = () => {
 
@@ -255,6 +256,8 @@ const TeacherDashboard = () => {
                 </div>
 
             </section>
+
+            <DashboardInsights />
 
         </div>
     );

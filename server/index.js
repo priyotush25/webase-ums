@@ -7,11 +7,18 @@ import express from "express";
 import connectDB from "./config/db.js";
 
 // Routes
+import assignmentRoutes from "./routes/assignmentRoutes.js";
 import attendanceRoutes from "./routes/attendanceRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import courseRoutes from "./routes/courseRoutes.js";
 import departmentRoutes from "./routes/departmentRoutes.js";
 import enrollmentRoutes from "./routes/enrollmentRoutes.js";
+import noticeRoutes from "./routes/noticeRoutes.js";
+import resultRoutes from "./routes/resultRoutes.js";
+import eventRoutes from "./routes/eventRoutes.js";
+import feeRoutes from "./routes/feeRoutes.js";
+import publicRoutes from "./routes/publicRoutes.js";
+import routineRoutes from "./routes/routineRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 // Environment Variables
 dotenv.config();
@@ -21,6 +28,8 @@ dotenv.config();
 // ========================================
 
 const app = express();
+
+app.disable("x-powered-by");
 
 // ========================================
 // MIDDLEWARE
@@ -33,7 +42,7 @@ app.use(
     })
 );
 
-app.use(express.json());
+app.use(express.json({ limit: "1mb" }));
 
 app.use(express.urlencoded({ extended: true }));
 
@@ -65,6 +74,20 @@ app.use("/api/courses", courseRoutes);
 app.use("/api/enrollments", enrollmentRoutes);
 
 app.use("/api/attendance", attendanceRoutes);
+
+app.use("/api/notices", noticeRoutes);
+
+app.use("/api/assignments", assignmentRoutes);
+
+app.use("/api/results", resultRoutes);
+
+app.use("/api/routines", routineRoutes);
+
+app.use("/api/events", eventRoutes);
+
+app.use("/api/fees", feeRoutes);
+
+app.use("/api/public", publicRoutes);
 
 // ========================================
 // NOT FOUND ROUTE

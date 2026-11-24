@@ -16,6 +16,7 @@ import {
 import { Link } from "react-router";
 import { getMyEnrollments } from "../../api/enrollmentApi";
 import { useAuth } from "../../context/AuthContext";
+import DashboardInsights from "../../components/dashboard/DashboardInsights";
 
 const StudentDashboard = () => {
     const { user } = useAuth();
@@ -441,6 +442,8 @@ const StudentDashboard = () => {
                 </div>
 
             </section>
+
+            <DashboardInsights />
 
         </div>
     );

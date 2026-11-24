@@ -351,13 +351,19 @@ export const AuthProvider = ({ children }) => {
     // CONTEXT VALUES
     // ========================================
 
+    // Merge updated backend profile fields (name, photo) into current user
+    const updateUserData = (changes) => {
+        setUser((previous) => (previous ? { ...previous, ...changes } : previous));
+    };
+
     const authInfo = {
         user,
         role,
         loading,
         signup,
         login,
-        logout
+        logout,
+        updateUserData
     };
 
 

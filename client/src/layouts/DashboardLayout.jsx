@@ -7,9 +7,14 @@ import {
     Building2,
     CalendarDays,
     ClipboardCheck,
+    FileText,
     GraduationCap,
     LayoutDashboard,
     LogOut,
+    Award,
+    Bell,
+    CalendarClock,
+    Wallet,
     Menu,
     Settings,
     ShieldCheck,
@@ -47,6 +52,36 @@ const NAV_LINKS = {
             icon: CalendarDays,
         },
         {
+            name: "Routine",
+            path: "/student/routine",
+            icon: CalendarDays,
+        },
+        {
+            name: "Results",
+            path: "/student/results",
+            icon: Award,
+        },
+        {
+            name: "Fees",
+            path: "/student/fees",
+            icon: Wallet,
+        },
+        {
+            name: "Notices",
+            path: "/student/notices",
+            icon: Bell,
+        },
+        {
+            name: "Calendar",
+            path: "/student/calendar",
+            icon: CalendarClock,
+        },
+        {
+            name: "Assignments",
+            path: "/student/assignments",
+            icon: FileText,
+        },
+        {
             name: "Profile",
             path: "/student/profile",
             icon: UserCircle,
@@ -72,7 +107,32 @@ const NAV_LINKS = {
         {
             name: "Attendance",
             path: "/teacher/attendance",
-            icon: ClipboardCheck,
+            icon: CalendarDays,
+        },
+        {
+            name: "Routine",
+            path: "/teacher/routine",
+            icon: CalendarDays,
+        },
+        {
+            name: "Results",
+            path: "/teacher/results",
+            icon: Award,
+        },
+        {
+            name: "Notices",
+            path: "/teacher/notices",
+            icon: Bell,
+        },
+        {
+            name: "Calendar",
+            path: "/teacher/calendar",
+            icon: CalendarClock,
+        },
+        {
+            name: "Assignments",
+            path: "/teacher/assignments",
+            icon: FileText,
         },
         {
             name: "Profile",
@@ -113,9 +173,44 @@ const NAV_LINKS = {
             icon: BookOpen,
         },
         {
+            name: "Routine",
+            path: "/admin/routine",
+            icon: CalendarDays,
+        },
+        {
             name: "Enrollments",
             path: "/admin/enrollments",
             icon: ClipboardCheck,
+        },
+        {
+            name: "Fees",
+            path: "/admin/fees",
+            icon: Wallet,
+        },
+        {
+            name: "Attendance",
+            path: "/admin/attendance",
+            icon: CalendarDays,
+        },
+        {
+            name: "Results",
+            path: "/admin/results",
+            icon: Award,
+        },
+        {
+            name: "Notices",
+            path: "/admin/notices",
+            icon: Bell,
+        },
+        {
+            name: "Calendar",
+            path: "/admin/calendar",
+            icon: CalendarClock,
+        },
+        {
+            name: "Assignments",
+            path: "/admin/assignments",
+            icon: FileText,
         },
         {
             name: "Settings",
@@ -150,16 +245,23 @@ const getInitials = (name = "") => {
 // AVATAR COMPONENT
 // ========================================
 
-const Avatar = ({ user, displayName, size = "h-10 w-10" }) => {
+const Avatar = ({
+    user,
+    displayName,
+    size = "h-10 w-10",
+}) => {
     return user?.photoURL ? (
         <img
             src={user.photoURL}
             alt={`${displayName} profile`}
             className={`${size} shrink-0 rounded-full object-cover ring-2 ring-white`}
+            onError={(e) => {
+                e.currentTarget.style.display = "none";
+            }}
         />
     ) : (
         <div
-            className={`${size} flex shrink-0 items-center justify-center rounded-full bg-blue-600 text-xs font-semibold text-white`}
+            className={`${size} flex shrink-0 items-center justify-center rounded-full bg-blue-900 text-xs font-semibold text-white`}
             aria-hidden="true"
         >
             {getInitials(displayName)}
@@ -231,9 +333,13 @@ const DashboardLayout = () => {
     // ========================================
 
     const handleLogout = async () => {
+        if (loggingOut) return;
+
         try {
             setLoggingOut(true);
+
             await logout();
+
         } catch (error) {
             console.error("Logout Error:", error);
         } finally {
@@ -278,7 +384,7 @@ const DashboardLayout = () => {
 
                 {/* Brand */}
 
-                <div className="flex h-16 items-center justify-between border-b border-slate-200 px-5">
+                <div className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 px-5">
 
                     <div className="flex items-center gap-3">
 
@@ -362,7 +468,7 @@ const DashboardLayout = () => {
 
                 {/* User Information + Logout */}
 
-                <div className="border-t border-slate-200 p-4">
+                <div className="shrink-0 border-t border-slate-200 p-4">
 
                     <div className="mb-3 flex items-center gap-3 rounded-lg bg-slate-50 p-3">
 
@@ -378,7 +484,7 @@ const DashboardLayout = () => {
                             </p>
 
                             <p className="truncate text-xs text-slate-500">
-                                {roleTitle}
+                                {user?.email || roleTitle}
                             </p>
 
                         </div>
@@ -408,7 +514,7 @@ const DashboardLayout = () => {
 
                 {/* Header */}
 
-                <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-200 bg-white/80 px-4 backdrop-blur md:px-8">
+                <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center justify-between border-b border-slate-200 bg-white/90 px-4 backdrop-blur md:px-8">
 
                     <div className="flex items-center gap-3">
 
@@ -463,7 +569,7 @@ const DashboardLayout = () => {
 
                 {/* Nested Page Content */}
 
-                <main className="flex-1 p-4 md:p-8">
+                <main className="min-w-0 flex-1 p-4 md:p-8">
 
                     <div className="mx-auto w-full max-w-7xl">
 

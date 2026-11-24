@@ -123,3 +123,29 @@ export const logoutUser = async () => {
         throw error;
     }
 };
+
+
+// ========================================
+// UPDATE PROFILE (name / photo)
+// ========================================
+
+export const updateProfileRequest = async ({ name, image }) => {
+    const formData = new FormData();
+
+    if (name !== undefined) formData.append("name", name);
+    if (image) formData.append("image", image);
+
+    const response = await fetch(`${API_URL}/api/auth/profile`, {
+        method: "PUT",
+        credentials: "include",
+        body: formData,
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.message || "Profile update failed");
+    }
+
+    return data;
+};

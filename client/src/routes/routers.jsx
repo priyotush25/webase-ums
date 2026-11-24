@@ -1,6 +1,22 @@
 
 import { createBrowserRouter } from "react-router";
 
+// New pages
+import ForgotPassword from "../pages/auth/ForgotPassword";
+import NotFound from "../pages/NotFound";
+import About from "../pages/public/About";
+import Academics from "../pages/public/Academics";
+import Contact from "../pages/public/Contact";
+import Legal from "../pages/public/Legal";
+import Assignments from "../pages/shared/Assignments";
+import Events from "../pages/shared/Events";
+import Fees from "../pages/shared/Fees";
+import Routine from "../pages/shared/Routine";
+import Notices from "../pages/shared/Notices";
+import Profile from "../pages/shared/Profile";
+import Results from "../pages/shared/Results";
+import TeacherStudents from "../pages/teacher/TeacherStudents";
+
 // Layouts
 import AuthLayout from "../layouts/AuthLayout";
 import DashboardLayout from "../layouts/DashboardLayout";
@@ -61,6 +77,11 @@ const routers = createBrowserRouter([
                 path: "/",
                 element: <Home />,
             },
+            { path: "/about", element: <About /> },
+            { path: "/academics", element: <Academics /> },
+            { path: "/contact", element: <Contact /> },
+            { path: "/terms", element: <Legal type="terms" /> },
+            { path: "/privacy", element: <Legal type="privacy" /> },
         ],
     },
 
@@ -82,6 +103,10 @@ const routers = createBrowserRouter([
                         path: "/signup",
                         element: <Signup />,
                     },
+                    {
+                        path: "/forgot-password",
+                        element: <ForgotPassword />,
+                    },
                 ],
             },
         ],
@@ -101,6 +126,13 @@ const routers = createBrowserRouter([
                         path: "/student/dashboard",
                         element: <StudentDashboard />,
                     },
+                    { path: "/student/notices", element: <Notices /> },
+                    { path: "/student/calendar", element: <Events /> },
+                    { path: "/student/fees", element: <Fees /> },
+                    { path: "/student/routine", element: <Routine /> },
+                    { path: "/student/results", element: <Results /> },
+                    { path: "/student/assignments", element: <Assignments /> },
+                    { path: "/student/profile", element: <Profile /> },
 
                     {
                         path: "/student/courses",
@@ -147,6 +179,13 @@ const routers = createBrowserRouter([
                         path: "/teacher/dashboard",
                         element: <TeacherDashboard />,
                     },
+                    { path: "/teacher/students", element: <TeacherStudents /> },
+                    { path: "/teacher/notices", element: <Notices /> },
+                    { path: "/teacher/calendar", element: <Events /> },
+                    { path: "/teacher/routine", element: <Routine /> },
+                    { path: "/teacher/results", element: <Results /> },
+                    { path: "/teacher/assignments", element: <Assignments /> },
+                    { path: "/teacher/profile", element: <Profile /> },
                     {
                         path: "/teacher/courses",
                         element: <TeacherCourses />,
@@ -187,6 +226,14 @@ const routers = createBrowserRouter([
                         path: "/admin/dashboard",
                         element: <AdminDashboard />,
                     },
+                    { path: "/admin/notices", element: <Notices /> },
+                    { path: "/admin/calendar", element: <Events /> },
+                    { path: "/admin/fees", element: <Fees /> },
+                    { path: "/admin/routine", element: <Routine /> },
+                    { path: "/admin/results", element: <Results /> },
+                    { path: "/admin/assignments", element: <Assignments /> },
+                    { path: "/admin/profile", element: <Profile /> },
+                    { path: "/admin/settings", element: <Profile title="Settings" /> },
                     {
                         path: "/admin/users",
                         element: <AdminUsers />,
@@ -218,6 +265,15 @@ const routers = createBrowserRouter([
                 ],
             },
         ],
+    },
+
+    // ========================================
+    // NOT FOUND
+    // ========================================
+
+    {
+        path: "*",
+        element: <NotFound />,
     },
 
 ]);

@@ -351,3 +351,42 @@ export const deleteEnrollment = async (req, res) => {
         });
     }
 };
+
+
+// ========================================
+// TEACHER: STUDENTS OF MY COURSES
+// ========================================
+
+export const getMyTeachingStudents = async (req, res) => {
+    try {
+        const courses = await Course.find({ teacher: req.user._id }).select(
+            "title code semester"
+        );
+
+        const courseIds = courses.map((course) => course._id);
+
+        const enrollments = await Enrollment.find({
+            course: { $in: courseIds },
+            status: "approved",
+        })
+            .populate("student", "name email photoURL")
+            .populate("course", "title code semester")
+            .sort({ createdAt: -1 });
+
+        const rows = enrollments.filter((item) => item.student && item.course);
+
+        return res.status(200).json({
+            success: true,
+            total: rows.length,
+            courses,
+            enrollments: rows,
+        });
+    } catch (error) {
+        console.error("Get Teaching Students Error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to fetch students",
+        });
+    }
+};

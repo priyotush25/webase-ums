@@ -16,6 +16,7 @@ import { Link } from "react-router";
 import { toast } from "react-toastify";
 
 import { getUserStats } from "../../api/userApi";
+import DashboardInsights from "../../components/dashboard/DashboardInsights";
 
 const AdminDashboard = () => {
     const [stats, setStats] = useState({
@@ -375,6 +376,8 @@ const AdminDashboard = () => {
                     </div>
                 </div>
             </div>
+
+            <DashboardInsights />
 
         </div>
     );
