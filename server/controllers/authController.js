@@ -14,6 +14,8 @@ const publicUser = (user) => ({
     role: user.role,
     photoURL: user.photoURL,
     universityId: user.universityId,
+    // Students unlock courses and enrollment only after the admin approves the admission
+    admissionApproved: user.role !== "student" || Boolean(user.admission && user.department),
 });
 
 const deactivated = (res) =>

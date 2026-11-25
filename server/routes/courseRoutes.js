@@ -11,11 +11,15 @@ import {
 } from "../controllers/courseController.js";
 
 import { authorizeRole } from "../middleware/authorizeRole.js";
+import { requireAdmission } from "../middleware/requireAdmission.js";
 import { verifyJWT } from "../middleware/verifyJWT.js";
 
 const router = express.Router();
 
 router.use(verifyJWT);
+
+// Students need an approved admission for everything below
+router.use(requireAdmission);
 
 // Teacher: own assigned courses
 router.get(

@@ -1,22 +1,14 @@
 import Course from "../models/Course.js";
 import Department from "../models/Department.js";
-import Event from "../models/Event.js";
 import Notice from "../models/Notice.js";
 import User from "../models/User.js";
-
-const upcomingFilter = () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    return { $or: [{ endDate: { $gte: today } }, { endDate: null, startDate: { $gte: today } }] };
-};
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 // Home page data (no login required)
 export const getOverview = async (req, res) => {
     try {
-        const [students, teachers, courses, departments, notices, events, departmentList, faculty] =
+        const [students, teachers, courses, departments, notices, departmentList, faculty] =
             await Promise.all([
                 User.countDocuments({ role: "student" }),
                 User.countDocuments({ role: "teacher" }),
@@ -26,10 +18,6 @@ export const getOverview = async (req, res) => {
                     .select("title body priority pinned createdAt")
                     .sort({ pinned: -1, createdAt: -1 })
                     .limit(6),
-                Event.find(upcomingFilter())
-                    .select("title type startDate endDate location")
-                    .sort({ startDate: 1 })
-                    .limit(5),
                 Department.find({ status: "active" }).select("name code description").sort({ name: 1 }),
                 User.find({ role: "teacher" })
                     .select("name photoURL designation department")
@@ -42,7 +30,6 @@ export const getOverview = async (req, res) => {
             success: true,
             stats: { students, teachers, courses, departments },
             notices,
-            events,
             departments: departmentList,
             faculty,
         });
@@ -159,20 +146,5 @@ export const getPublicNotices = async (req, res) => {
     } catch (error) {
         console.error("Public Notices Error:", error);
         return res.status(500).json({ success: false, message: "Failed to load notices" });
-    }
-};
-
-// Public academic calendar
-export const getPublicEvents = async (req, res) => {
-    try {
-        const events = await Event.find(upcomingFilter())
-            .select("title type startDate endDate location description")
-            .sort({ startDate: 1 })
-            .limit(50);
-
-        return res.status(200).json({ success: true, events });
-    } catch (error) {
-        console.error("Public Events Error:", error);
-        return res.status(500).json({ success: false, message: "Failed to load events" });
     }
 };

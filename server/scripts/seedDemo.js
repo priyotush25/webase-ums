@@ -44,7 +44,6 @@ try {
         await Notice.insertMany([
             { title: "Admission Spring 2027 is open", body: "Applications are open for all departments. Apply online and track your application with the application number.", priority: "important", pinned: true, author: admin._id },
             { title: "Course registration schedule", body: "Students must send enrollment requests for the new semester before the registration deadline shown in the academic calendar.", author: admin._id },
-            { title: "Library hours during exams", body: "The library will stay open until 10:00 PM during the examination period.", author: admin._id },
         ]);
     } else if (!admin) {
         console.log("No admin found, skipped sample notices. Set a user's role to admin in MongoDB first, then run seed:demo again.");

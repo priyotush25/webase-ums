@@ -61,6 +61,9 @@ const userSchema = new mongoose.Schema(
         guardianName: { type: String, trim: true, default: "" },
         guardianPhone: { type: String, trim: true, default: "" },
 
+        // Set when an admin approves this student's admission. No admission = no enrollment.
+        admission: { type: mongoose.Schema.Types.ObjectId, ref: "Admission", default: null },
+
         // Academic information (managed by admin)
         department: { type: mongoose.Schema.Types.ObjectId, ref: "Department", default: null },
         program: { type: String, trim: true, default: "" },
@@ -102,6 +105,8 @@ userSchema.pre("save", async function () {
         }).sort({ createdAt: -1 });
 
         if (admission) {
+            this.admission = admission._id;
+            await Admission.updateOne({ _id: admission._id }, { $set: { user: this._id } });
             this.department = admission.department;
             this.program = admission.program;
             this.semester = this.semester || "1st Semester";

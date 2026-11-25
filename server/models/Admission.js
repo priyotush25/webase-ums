@@ -6,6 +6,9 @@ const admissionSchema = new mongoose.Schema(
     {
         applicationNo: { type: String, unique: true, index: true },
 
+        // The student account that applied (admission is applied from the student dashboard)
+        user: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null, index: true },
+
         name: { type: String, required: true, trim: true, maxlength: 120 },
         email: { type: String, required: true, lowercase: true, trim: true, index: true },
         phone: { type: String, required: true, trim: true, maxlength: 20 },

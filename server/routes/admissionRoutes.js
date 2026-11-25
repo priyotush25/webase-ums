@@ -2,6 +2,7 @@ import express from "express";
 
 import {
     getApplications,
+    getMyApplication,
     reviewApplication,
     submitApplication,
     trackApplication,
@@ -13,12 +14,18 @@ import { verifyJWT } from "../middleware/verifyJWT.js";
 
 const router = express.Router();
 
-// Public
+// Student: apply from the dashboard (needs an account)
 router.post(
     "/apply",
-    rateLimit({ windowMs: 60 * 60 * 1000, max: 8, message: "Too many applications from this network. Try again later." }),
+    verifyJWT,
+    authorizeRole("student"),
+    rateLimit({ windowMs: 60 * 60 * 1000, max: 8, message: "Too many applications. Try again later." }),
     submitApplication
 );
+
+router.get("/my", verifyJWT, authorizeRole("student"), getMyApplication);
+
+// Public
 
 router.get(
     "/track",

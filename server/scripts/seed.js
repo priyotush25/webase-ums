@@ -1,11 +1,10 @@
 // Usage: npm run seed
-// Adds sample departments, courses and calendar dates (safe to run more than once).
+// Adds sample departments and courses (safe to run more than once).
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 
 import Course from "../models/Course.js";
 import Department from "../models/Department.js";
-import Event from "../models/Event.js";
 
 dotenv.config();
 
@@ -47,23 +46,10 @@ try {
         for (const [title, code, credit, semester] of courses[dept.code] || []) {
             await Course.findOneAndUpdate(
                 { code },
-                { $setOnInsert: { title, code, credit, semester, department: department._id } },
+                { $setOnInsert: { title, code, credit, semester, department: department._id, isPublished: true } },
                 { upsert: true }
             );
         }
-    }
-
-    // Sample academic calendar (only when empty)
-    if ((await Event.countDocuments()) === 0) {
-        const day = 24 * 60 * 60 * 1000;
-        const from = (n) => new Date(Date.now() + n * day);
-
-        await Event.insertMany([
-            { title: "Course registration closes", type: "academic", startDate: from(5), location: "Online" },
-            { title: "Midterm examinations", type: "exam", startDate: from(14), endDate: from(21) },
-            { title: "Victory Day", type: "holiday", startDate: from(21) },
-            { title: "Annual sports day", type: "event", startDate: from(30), location: "Central field" },
-        ]);
     }
 
     console.log("Seed completed: departments and courses are ready.");

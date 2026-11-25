@@ -3,6 +3,10 @@ import mongoose from "mongoose";
 
 import Course from "../models/Course.js";
 import Enrollment from "../models/Enrollment.js";
+import Result from "../models/Result.js";
+import User from "../models/User.js";
+import { isAdmitted } from "../middleware/requireAdmission.js";
+import { sameSemester } from "../utils/academics.js";
 
 // ========================================
 // STUDENT: APPLY FOR COURSE
@@ -15,6 +19,15 @@ export const createEnrollment = async (req, res) => {
 
         const studentId = req.user._id;
 
+        // Rule 1: no enrollment before the admission is approved
+        if (!isAdmitted(req.user)) {
+            return res.status(403).json({
+                success: false,
+                code: "ADMISSION_REQUIRED",
+                message: "You cannot enroll before your admission is approved.",
+            });
+        }
+
         if (!mongoose.isValidObjectId(courseId)) {
             return res.status(400).json({
                 success: false,
@@ -22,16 +35,36 @@ export const createEnrollment = async (req, res) => {
             });
         }
 
-        // Check active course
+        // Only running, published subjects can be requested
         const course = await Course.findOne({
             _id: courseId,
             status: "active",
+            isPublished: true,
         });
 
         if (!course) {
             return res.status(404).json({
                 success: false,
                 message: "Active course not found",
+            });
+        }
+
+        // Students can only apply for courses of their own department
+        if (
+            !req.user.department ||
+            String(course.department) !== String(req.user.department)
+        ) {
+            return res.status(403).json({
+                success: false,
+                message: "You can only apply for courses of your own department",
+            });
+        }
+
+        // ... and of the student's current semester
+        if (!sameSemester(course.semester, req.user.semester)) {
+            return res.status(403).json({
+                success: false,
+                message: `You can only apply for ${req.user.semester} subjects right now`,
             });
         }
 
@@ -110,17 +143,42 @@ export const createEnrollment = async (req, res) => {
 
 export const getMyEnrollments = async (req, res) => {
     try {
-        const enrollments = await Enrollment.find({
-            student: req.user._id,
-        })
-            .populate("course", "title code credit semester status")
-            .populate("reviewedBy", "name email")
-            .sort({ createdAt: -1 });
+        const [enrollments, results] = await Promise.all([
+            Enrollment.find({ student: req.user._id })
+                .populate({
+                    path: "course",
+                    select: "title code credit semester status department",
+                    populate: { path: "department", select: "name code" },
+                })
+                .populate("reviewedBy", "name email")
+                .sort({ createdAt: -1 }),
+            Result.find({ student: req.user._id, published: true }).select(
+                "course assignment midterm final total letterGrade gradePoint remarks"
+            ),
+        ]);
+
+        const resultMap = new Map(results.map((item) => [String(item.course), item]));
+
+        // Approved = course active. Approved + published result (or finished course) = completed
+        const data = enrollments.map((item) => {
+            const row = item.toObject();
+            const course = row.course;
+
+            row.result = resultMap.get(String(course?._id)) || null;
+            row.courseState =
+                row.status === "approved"
+                    ? row.result || course?.status === "completed"
+                        ? "completed"
+                        : "active"
+                    : null;
+
+            return row;
+        });
 
         res.status(200).json({
             success: true,
             message: "Your enrollments fetched successfully",
-            data: enrollments,
+            data,
         });
     } catch (error) {
         console.error("Get My Enrollments Error:", error);
@@ -275,9 +333,29 @@ export const updateEnrollmentStatus = async (req, res) => {
             });
         }
 
+        // Approval needs an approved admission (and activates the course for the student)
+        if (status === "approved" && enrollment.status !== "approved") {
+            const student = await User.findById(enrollment.student).select("admission department role");
+
+            if (!student || !isAdmitted(student)) {
+                return res.status(409).json({
+                    success: false,
+                    message: "This student's admission is not approved. Approve the admission first.",
+                });
+            }
+        }
+
         // Seat limit: block approvals once the course is full
         if (status === "approved" && enrollment.status !== "approved") {
-            const course = await Course.findById(enrollment.course).select("capacity code");
+            const course = await Course.findById(enrollment.course).select("capacity code status");
+
+            if (course && course.status !== "active") {
+                return res.status(409).json({
+                    success: false,
+                    message: `${course.code} is not active this semester`,
+                });
+            }
+
             const taken = await Enrollment.countDocuments({
                 course: enrollment.course,
                 status: "approved",

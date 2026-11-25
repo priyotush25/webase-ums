@@ -19,14 +19,24 @@ export const getMyProfile = async (req, res) => {
     }
 };
 
-const TEXT_FIELDS = ["phone", "address", "bio", "guardianName", "guardianPhone"];
+// What each role may edit on their own profile.
+// Everything else (name, date of birth, gender, guardian name, department,
+// semester...) is recorded at admission and changed by the admin only.
+const EDITABLE_FIELDS = {
+    student: ["phone", "address", "guardianPhone"],
+    teacher: ["phone", "address", "bio"],
+    admin: ["phone", "address", "bio", "guardianName", "guardianPhone"],
+};
 
-// Own profile: personal details and photo (academic fields are admin-managed)
+// Own profile: limited contact details and photo (the rest is admin-managed)
 export const updateMyProfile = async (req, res) => {
     try {
         const update = {};
+        const role = req.user.role;
+        const editable = EDITABLE_FIELDS[role] || [];
+        const isAdmin = role === "admin";
 
-        if (req.body.name !== undefined) {
+        if (isAdmin && req.body.name !== undefined) {
             const name = String(req.body.name).trim();
             if (name.length < 2) {
                 return res.status(400).json({ success: false, message: "Name must be at least 2 characters" });
@@ -34,7 +44,7 @@ export const updateMyProfile = async (req, res) => {
             update.name = name;
         }
 
-        for (const field of TEXT_FIELDS) {
+        for (const field of editable) {
             if (req.body[field] !== undefined) update[field] = String(req.body[field]).trim();
         }
 
@@ -42,14 +52,14 @@ export const updateMyProfile = async (req, res) => {
             return res.status(400).json({ success: false, message: "Enter a valid phone number" });
         }
 
-        if (req.body.gender !== undefined) {
+        if (isAdmin && req.body.gender !== undefined) {
             if (!["", "male", "female", "other"].includes(req.body.gender)) {
                 return res.status(400).json({ success: false, message: "Invalid gender" });
             }
             update.gender = req.body.gender;
         }
 
-        if (req.body.dob !== undefined) {
+        if (isAdmin && req.body.dob !== undefined) {
             if (req.body.dob === "") update.dob = null;
             else {
                 const dob = new Date(req.body.dob);

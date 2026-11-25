@@ -2,6 +2,7 @@
 import express from "express";
 
 import { authorizeRole } from "../middleware/authorizeRole.js";
+import { requireAdmission } from "../middleware/requireAdmission.js";
 import { verifyJWT } from "../middleware/verifyJWT.js";
 
 import {
@@ -15,6 +16,9 @@ import {
 const router = express.Router();
 
 router.use(verifyJWT);
+
+// Students need an approved admission for everything below
+router.use(requireAdmission);
 
 // Student
 router.get(

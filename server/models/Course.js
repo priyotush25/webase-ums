@@ -56,9 +56,16 @@ const courseSchema = new mongoose.Schema(
             max: [500, "Capacity cannot exceed 500"],
         },
 
+        // Students only see subjects the admin has published for their semester
+        isPublished: {
+            type: Boolean,
+            default: false,
+        },
+
         status: {
             type: String,
-            enum: ["active", "inactive"],
+            // active = running this semester, completed = finished (results published)
+            enum: ["active", "inactive", "completed"],
             default: "active",
         },
     },

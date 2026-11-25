@@ -5,7 +5,6 @@ import {
     getDepartments,
     getFaculty,
     getOverview,
-    getPublicEvents,
     getPublicNotices,
 } from "../controllers/publicController.js";
 
@@ -16,6 +15,5 @@ router.get("/departments", getDepartments);
 router.get("/departments/:code", getDepartmentByCode);
 router.get("/faculty", getFaculty);
 router.get("/notices", getPublicNotices);
-router.get("/events", getPublicEvents);
 
 export default router;

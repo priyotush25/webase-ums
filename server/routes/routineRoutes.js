@@ -9,11 +9,15 @@ import {
 } from "../controllers/routineController.js";
 
 import { authorizeRole } from "../middleware/authorizeRole.js";
+import { requireAdmission } from "../middleware/requireAdmission.js";
 import { verifyJWT } from "../middleware/verifyJWT.js";
 
 const router = express.Router();
 
 router.use(verifyJWT);
+
+// Students need an approved admission for everything below
+router.use(requireAdmission);
 
 router.get("/my", authorizeRole("student", "teacher"), getMyRoutine);
 

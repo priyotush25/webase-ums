@@ -70,9 +70,12 @@ export const getMyRoutine = async (req, res) => {
         if (req.user.role === "teacher") {
             courseIds = (await Course.find({ teacher: req.user._id }).select("_id")).map((c) => c._id);
         } else {
-            courseIds = (
+            // Routine is visible only for approved enrollments whose course is active
+            const approved = (
                 await Enrollment.find({ student: req.user._id, status: "approved" }).select("course")
             ).map((e) => e.course);
+
+            courseIds = (await Course.find({ _id: { $in: approved }, status: "active" }).select("_id")).map((c) => c._id);
         }
 
         const routines = await populate(

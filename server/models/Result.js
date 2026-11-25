@@ -30,6 +30,18 @@ const resultSchema = new mongoose.Schema(
         gradePoint: { type: Number, default: 0 },
 
         remarks: { type: String, trim: true, default: "" },
+
+        // Students only see a result after the teacher publishes it
+        published: { type: Boolean, default: false },
+        publishedAt: { type: Date, default: null },
+
+        // Copy of the course details so academic history survives later course edits
+        snapshot: {
+            code: { type: String, default: "" },
+            title: { type: String, default: "" },
+            credit: { type: Number, default: 0 },
+            semester: { type: String, default: "" },
+        },
     },
     { timestamps: true }
 );
