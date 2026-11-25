@@ -54,7 +54,7 @@ const allowedOrigins = [
 // Matches this project's Vercel preview/production deployments only
 // e.g. https://webase-208tp4nhd-priyotushs-projects.vercel.app
 const vercelPreviewPattern =
-    /^https:\/\/webase-[a-z0-9]+-priyotushs-projects\.vercel\.app$/;
+    /^https:\/\/webase-[a-z0-9-]+-priyotushs-projects\.vercel\.app$/;
 
 const isAllowedOrigin = (origin) =>
     !origin ||
