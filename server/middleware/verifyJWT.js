@@ -14,7 +14,7 @@ const unauthorized = (res, message) =>
 /**
  * Authenticates a request with the httpOnly JWT cookie.
  * - Valid access token + live session  -> continue
- * - Expired access token + valid refresh cookie (bcrypt-checked) -> silently issue a new access token
+ * - Expired access token + valid refresh cookie -> silently issue a new access token
  * - Otherwise -> 401
  */
 export const verifyJWT = async (req, res, next) => {
@@ -24,6 +24,8 @@ export const verifyJWT = async (req, res, next) => {
 
         if (decoded) {
             userId = decoded.id;
+            // Make sessionId available on the normal path too (logout, etc.)
+            req.sessionId = decoded.sessionId ?? decoded.sid ?? null;
         } else {
             const session = await findRefreshSession(req.cookies?.[REFRESH_COOKIE]);
 
@@ -36,7 +38,8 @@ export const verifyJWT = async (req, res, next) => {
             req.sessionId = session.sessionId;
         }
 
-        const user = await User.findById(userId);
+        // Never load the password hash into req.user
+        const user = await User.findById(userId).select("-password");
 
         if (!user) {
             clearAuthCookies(res);
@@ -55,10 +58,24 @@ export const verifyJWT = async (req, res, next) => {
         if (!decoded) renewAccessToken(res, user, req.sessionId);
 
         req.user = user;
-        next();
+        return next();
     } catch (error) {
         console.error("JWT Verification Error:", error.message);
-        return unauthorized(res, "Invalid or expired token. Please login again.");
+
+        // Token problems -> 401, anything else (DB down, etc.) -> 500
+        const isTokenError = ["JsonWebTokenError", "TokenExpiredError", "NotBeforeError"].includes(
+            error.name
+        );
+
+        if (isTokenError) {
+            clearAuthCookies(res);
+            return unauthorized(res, "Invalid or expired token. Please login again.");
+        }
+
+        return res.status(500).json({
+            success: false,
+            message: "Authentication failed due to a server error. Please try again.",
+        });
     }
 };
 
