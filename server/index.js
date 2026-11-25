@@ -32,7 +32,6 @@ app.disable("x-powered-by");
 app.set("trust proxy", 1);
 
 
-
 // ========================================
 // CORS CONFIGURATION
 // ========================================
@@ -42,44 +41,52 @@ const allowedOrigins = [
     "http://localhost:5174",
     "http://127.0.0.1:5173",
     "http://127.0.0.1:5174",
-    "https://campusdesk-client.vercel.app",
-
-    // Production frontend(s) from env (comma-separated)
     ...(process.env.CLIENT_URL || "")
         .split(",")
-        .map((origin) => origin.trim().replace(/\/$/, ""))
+        .map((o) => o.trim().replace(/\/$/, ""))
         .filter(Boolean),
 ];
-
-// Matches this project's Vercel preview/production deployments only
-// e.g. https://webase-208tp4nhd-priyotushs-projects.vercel.app
-const vercelPreviewPattern =
-    /^https:\/\/webase-[a-z0-9-]+-priyotushs-projects\.vercel\.app$/;
-
-const isAllowedOrigin = (origin) =>
-    !origin ||
-    allowedOrigins.includes(origin) ||
-    vercelPreviewPattern.test(origin);
 
 app.use(
     cors({
         origin: (origin, callback) => {
-            if (isAllowedOrigin(origin)) {
+            // No origin → allow (Postman, server-to-server)
+            if (!origin) {
+                return callback(null, true);
+            }
+
+            // Exact match
+            if (allowedOrigins.includes(origin)) {
+                return callback(null, true);
+            }
+
+            // Vercel preview / branch deployments (সব ধরনের)
+            // webase-XXXX-priyotushs-projects.vercel.app
+            // webase-git-main-priyotushs-projects.vercel.app
+            if (
+                /^https:\/\/webase-[a-z0-9-]+-priyotushs-projects\.vercel\.app$/i.test(
+                    origin
+                )
+            ) {
+                return callback(null, true);
+            }
+
+            // অতিরিক্ত safety: যেকোনো webase*.vercel.app allow (চাইলে পরে সরিয়ে দিতে পারেন)
+            if (
+                /^https:\/\/webase[a-z0-9-]*\.vercel\.app$/i.test(origin)
+            ) {
                 return callback(null, true);
             }
 
             console.error("Blocked CORS Origin:", origin);
-            return callback(null, false); // reject without throwing a 500
+            return callback(null, false); // Error throw করবেন না
         },
-
         methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         allowedHeaders: ["Content-Type", "Authorization"],
         credentials: true,
         optionsSuccessStatus: 204,
     })
 );
-
-
 
 // ========================================
 // BODY PARSER
