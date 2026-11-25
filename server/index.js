@@ -6,6 +6,7 @@ import express from "express";
 
 import connectDB from "./config/db.js";
 import { backfillUniversityIds } from "./models/User.js";
+import { migrateAcademics } from "./utils/migrateAcademics.js";
 
 // Routes
 import admissionRoutes from "./routes/admissionRoutes.js";
@@ -15,13 +16,12 @@ import authRoutes from "./routes/authRoutes.js";
 import courseRoutes from "./routes/courseRoutes.js";
 import departmentRoutes from "./routes/departmentRoutes.js";
 import enrollmentRoutes from "./routes/enrollmentRoutes.js";
-import eventRoutes from "./routes/eventRoutes.js";
-import feeRoutes from "./routes/feeRoutes.js";
 import noticeRoutes from "./routes/noticeRoutes.js";
 import publicRoutes from "./routes/publicRoutes.js";
 import reportRoutes from "./routes/reportRoutes.js";
 import resultRoutes from "./routes/resultRoutes.js";
 import routineRoutes from "./routes/routineRoutes.js";
+import studentRoutes from "./routes/studentRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 
 dotenv.config();
@@ -114,6 +114,12 @@ const init = () => {
                     `Assigned university IDs to ${filled} existing users`
                 );
             }
+
+            const migrated = await migrateAcademics();
+
+            if (migrated.courses || migrated.results || migrated.linked) {
+                console.log("Academic data upgraded:", migrated);
+            }
         })().catch((error) => {
             initPromise = null;
             throw error;
@@ -166,11 +172,10 @@ app.use("/api/notices", noticeRoutes);
 app.use("/api/assignments", assignmentRoutes);
 app.use("/api/results", resultRoutes);
 app.use("/api/routines", routineRoutes);
-app.use("/api/events", eventRoutes);
-app.use("/api/fees", feeRoutes);
 app.use("/api/public", publicRoutes);
 app.use("/api/admissions", admissionRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/student", studentRoutes);
 
 // ========================================
 // NOT FOUND
