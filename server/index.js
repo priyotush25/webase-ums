@@ -31,6 +31,8 @@ const app = express();
 app.disable("x-powered-by");
 app.set("trust proxy", 1);
 
+
+
 // ========================================
 // CORS CONFIGURATION
 // ========================================
@@ -41,46 +43,43 @@ const allowedOrigins = [
     "http://127.0.0.1:5173",
     "http://127.0.0.1:5174",
     "https://campusdesk-client.vercel.app",
-    "https://webase-okpuamkoc-priyotushs-projects.vercel.app",
 
-    // Production frontend
+    // Production frontend(s) from env (comma-separated)
     ...(process.env.CLIENT_URL || "")
         .split(",")
         .map((origin) => origin.trim().replace(/\/$/, ""))
         .filter(Boolean),
 ];
 
+// Matches this project's Vercel preview/production deployments only
+// e.g. https://webase-208tp4nhd-priyotushs-projects.vercel.app
+const vercelPreviewPattern =
+    /^https:\/\/webase-[a-z0-9]+-priyotushs-projects\.vercel\.app$/;
+
+const isAllowedOrigin = (origin) =>
+    !origin ||
+    allowedOrigins.includes(origin) ||
+    vercelPreviewPattern.test(origin);
+
 app.use(
     cors({
         origin: (origin, callback) => {
-            if (!origin || allowedOrigins.includes(origin)) {
+            if (isAllowedOrigin(origin)) {
                 return callback(null, true);
             }
 
             console.error("Blocked CORS Origin:", origin);
-
-            return callback(new Error("Origin not allowed by CORS"));
+            return callback(null, false); // reject without throwing a 500
         },
 
-        methods: [
-            "GET",
-            "POST",
-            "PUT",
-            "PATCH",
-            "DELETE",
-            "OPTIONS",
-        ],
-
-        allowedHeaders: [
-            "Content-Type",
-            "Authorization",
-        ],
-
+        methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allowedHeaders: ["Content-Type", "Authorization"],
         credentials: true,
-
         optionsSuccessStatus: 204,
     })
 );
+
+
 
 // ========================================
 // BODY PARSER
