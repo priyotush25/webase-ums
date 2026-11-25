@@ -1,384 +1,243 @@
-
 import {
-    ArrowUpRight,
     BookOpen,
     CalendarCheck,
-    ClipboardList,
+    ClipboardCheck,
+    FileText,
     GraduationCap,
-    RefreshCw,
-    ShieldCheck,
     UserRound,
-    Users
+    Users,
+    Wallet,
 } from "lucide-react";
 
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router";
-import { toast } from "react-toastify";
 
+import { getSummary } from "../../api/reportApi";
 import { getUserStats } from "../../api/userApi";
 import DashboardInsights from "../../components/dashboard/DashboardInsights";
+import { EmptyLine, ErrorBanner, Kpi, KpiGrid, PanelLink, Shortcuts, WorkspaceHeader } from "../../components/dashboard/Workspace";
+import { Card, ProgressBar } from "../../components/ui";
+import { useAuth } from "../../context/AuthContext";
+import { taka } from "../../utils/format";
+
+const MODULES = [
+    { title: "Admissions", description: "Review applications", icon: ClipboardCheck, path: "/admin/admissions" },
+    { title: "Students", description: "Records and academic status", icon: GraduationCap, path: "/admin/students" },
+    { title: "Teachers", description: "Faculty and designations", icon: UserRound, path: "/admin/teachers" },
+    { title: "Courses", description: "Catalogue, capacity, teachers", icon: BookOpen, path: "/admin/courses" },
+    { title: "Fees", description: "Invoices and payments", icon: Wallet, path: "/admin/fees" },
+    { title: "Reports", description: "University-wide summary", icon: FileText, path: "/admin/reports" },
+];
 
 const AdminDashboard = () => {
-    const [stats, setStats] = useState({
-        totalUsers: 0,
-        totalStudents: 0,
-        totalTeachers: 0,
-        totalAdmins: 0
-    });
+    const { user } = useAuth();
 
+    const [people, setPeople] = useState(null);
+    const [summary, setSummary] = useState(null);
+    const [error, setError] = useState("");
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
-    // Fetch Dashboard Statistics
-    const fetchStats = useCallback(async (isRefresh = false) => {
-        try {
-            if (isRefresh) {
-                setRefreshing(true);
-            } else {
-                setLoading(true);
-            }
+    const load = useCallback(async (isRefresh = false) => {
+        if (isRefresh) setRefreshing(true);
+        else setLoading(true);
+        setError("");
 
-            const response = await getUserStats();
+        const [stats, report] = await Promise.allSettled([getUserStats(), getSummary()]);
 
-            setStats({
-                totalUsers: response.data.totalUsers ?? 0,
-                totalStudents: response.data.totalStudents ?? 0,
-                totalTeachers: response.data.totalTeachers ?? 0,
-                totalAdmins: response.data.totalAdmins ?? 0
+        if (stats.status === "fulfilled") {
+            setPeople({
+                total: stats.value.data?.totalUsers ?? 0,
+                student: stats.value.data?.totalStudents ?? 0,
+                teacher: stats.value.data?.totalTeachers ?? 0,
+                admin: stats.value.data?.totalAdmins ?? 0,
             });
-
-        } catch (error) {
-            console.error("Dashboard Error:", error);
-            toast.error(error.message || "Failed to load dashboard");
-
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
         }
+
+        if (report.status === "fulfilled") setSummary(report.value);
+
+        if (stats.status === "rejected" && report.status === "rejected") {
+            setError(stats.reason?.message || "Failed to load dashboard data.");
+        }
+
+        setLoading(false);
+        setRefreshing(false);
     }, []);
 
     useEffect(() => {
-        fetchStats();
-    }, [fetchStats]);
+        load();
+    }, [load]);
 
-    // Statistics Cards
-    const statCards = [
-        {
-            title: "Total Users",
-            value: stats.totalUsers,
-            icon: Users,
-            color: "bg-blue-100 text-blue-600",
-            description: "All registered users"
-        },
-        {
-            title: "Total Students",
-            value: stats.totalStudents,
-            icon: GraduationCap,
-            color: "bg-green-100 text-green-600",
-            description: "Registered students"
-        },
-        {
-            title: "Total Teachers",
-            value: stats.totalTeachers,
-            icon: UserRound,
-            color: "bg-purple-100 text-purple-600",
-            description: "Registered teachers"
-        },
-        {
-            title: "Total Admins",
-            value: stats.totalAdmins,
-            icon: ShieldCheck,
-            color: "bg-orange-100 text-orange-600",
-            description: "System administrators"
-        }
-    ];
+    const admissions = summary?.admissions || {};
+    const pendingAdmissions = (admissions.pending || 0) + (admissions.under_review || 0);
+    const courseLoad = summary?.courseLoad || [];
+    const collected = summary?.fees?.collected ?? 0;
+    const outstanding = summary?.fees?.outstanding ?? 0;
+    const billed = collected + outstanding;
+    const collectionRate = billed ? Math.round((collected / billed) * 100) : null;
 
-    // Role Distribution
-    const roleData = [
-        {
-            name: "Students",
-            value: stats.totalStudents,
-            color: "bg-green-500"
-        },
-        {
-            name: "Teachers",
-            value: stats.totalTeachers,
-            color: "bg-purple-500"
-        },
-        {
-            name: "Admins",
-            value: stats.totalAdmins,
-            color: "bg-orange-500"
-        }
-    ];
+    const roleRows = people
+        ? [
+              { label: "Students", value: people.student },
+              { label: "Teachers", value: people.teacher },
+              { label: "Admins", value: people.admin },
+          ]
+        : [];
 
-    // Quick Actions
-    const quickActions = [
-        {
-            title: "Manage Users",
-            description: "View and manage all users",
-            icon: Users,
-            path: "/admin/users",
-            color: "text-blue-600 bg-blue-100"
-        },
-        {
-            title: "Manage Students",
-            description: "Manage student information",
-            icon: GraduationCap,
-            path: "/admin/students",
-            color: "text-green-600 bg-green-100"
-        },
-        {
-            title: "Manage Teachers",
-            description: "Manage teacher information",
-            icon: UserRound,
-            path: "/admin/teachers",
-            color: "text-purple-600 bg-purple-100"
-        },
-        {
-            title: "Manage Courses",
-            description: "Create and manage courses",
-            icon: BookOpen,
-            path: "/admin/courses",
-            color: "text-orange-600 bg-orange-100"
-        },
-        {
-            title: "Attendance",
-            description: "Manage attendance records",
-            icon: CalendarCheck,
-            path: "/admin/attendance",
-            color: "text-pink-600 bg-pink-100"
-        },
-        {
-            title: "Examinations",
-            description: "Manage exams and results",
-            icon: ClipboardList,
-            path: "/admin/exams",
-            color: "text-indigo-600 bg-indigo-100"
-        }
-    ];
-
-    // Calculate Percentage
-    const getPercentage = (value) => {
-        if (!stats.totalUsers) return 0;
-
-        return Math.round((value / stats.totalUsers) * 100);
-    };
-
-    // Initial Loading
-    if (loading) {
-        return (
-            <div className="flex min-h-[60vh] items-center justify-center">
-                <div className="text-center">
-                    <RefreshCw
-                        className="mx-auto mb-3 animate-spin text-blue-600"
-                        size={32}
-                    />
-
-                    <p className="font-medium text-gray-600">
-                        Loading Admin Dashboard...
-                    </p>
-                </div>
-            </div>
-        );
-    }
+    const pct = (value) => (people?.total ? Math.round((value / people.total) * 100) : 0);
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-6">
+            <WorkspaceHeader
+                name={user?.name || user?.displayName || "Admin"}
+                subtitle="University operations at a glance."
+                onRefresh={() => load(true)}
+                refreshing={refreshing}
+            />
 
-            {/* Header */}
-            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-800">
-                        Admin Dashboard
-                    </h1>
+            {error && <ErrorBanner message={error} onRetry={() => load()} />}
 
-                    <p className="mt-1 text-sm text-gray-500">
-                        Welcome to University Management System
-                    </p>
-                </div>
+            <KpiGrid>
+                <Kpi label="Students" value={people?.student?.toLocaleString()} hint={`${people?.total ?? 0} registered users`} icon={GraduationCap} to="/admin/students" loading={loading} />
+                <Kpi label="Teachers" value={people?.teacher?.toLocaleString()} hint="Active faculty accounts" icon={Users} to="/admin/teachers" loading={loading} />
+                <Kpi label="Courses" value={summary?.totals?.courses} hint={`${summary?.totals?.enrollments ?? 0} approved enrollments`} icon={BookOpen} to="/admin/courses" loading={loading} />
+                <Kpi
+                    label="Pending admissions"
+                    value={summary ? pendingAdmissions : undefined}
+                    hint={pendingAdmissions ? "Waiting for review" : "Nothing waiting"}
+                    icon={ClipboardCheck}
+                    to="/admin/admissions"
+                    tone={pendingAdmissions ? "warn" : "default"}
+                    loading={loading}
+                />
+            </KpiGrid>
 
-                <button
-                    type="button"
-                    onClick={() => fetchStats(true)}
-                    disabled={refreshing}
-                    className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
+            <div className="grid gap-4 lg:grid-cols-3">
+                {/* Course seat usage */}
+                <Card
+                    title="Course seat usage"
+                    subtitle="Most enrolled courses"
+                    action={<PanelLink to="/admin/courses">All courses</PanelLink>}
+                    className="lg:col-span-2"
+                    flush
                 >
-                    <RefreshCw
-                        size={17}
-                        className={refreshing ? "animate-spin" : ""}
-                    />
+                    {loading ? (
+                        <EmptyLine>Loading…</EmptyLine>
+                    ) : courseLoad.length === 0 ? (
+                        <EmptyLine>No courses have been created yet.</EmptyLine>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left text-sm">
+                                <thead>
+                                    <tr className="border-b border-slate-100 text-xs font-medium text-slate-500">
+                                        <th className="px-4 py-2 font-medium">Course</th>
+                                        <th className="px-4 py-2 text-right font-medium">Enrolled</th>
+                                        <th className="w-40 px-4 py-2 font-medium">Seats filled</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {courseLoad.slice(0, 6).map((course) => {
+                                        const used = course.capacity ? Math.round((course.enrolled / course.capacity) * 100) : 0;
 
-                    {refreshing ? "Refreshing..." : "Refresh Data"}
-                </button>
-            </div>
-
-            {/* Statistics Cards */}
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-                {statCards.map((card) => {
-                    const Icon = card.icon;
-
-                    return (
-                        <div
-                            key={card.title}
-                            className="rounded-xl border border-gray-100 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
-                        >
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm font-medium text-gray-500">
-                                        {card.title}
-                                    </p>
-
-                                    <h2 className="mt-3 text-3xl font-bold text-gray-800">
-                                        {card.value.toLocaleString()}
-                                    </h2>
-                                </div>
-
-                                <div className={`rounded-xl p-3 ${card.color}`}>
-                                    <Icon size={25} />
-                                </div>
-                            </div>
-
-                            <p className="mt-4 text-xs text-gray-400">
-                                {card.description}
-                            </p>
+                                        return (
+                                            <tr key={course._id}>
+                                                <td className="px-4 py-2.5">
+                                                    <p className="font-medium text-slate-900">{course.title}</p>
+                                                    <p className="text-xs text-slate-500">{course.code}</p>
+                                                </td>
+                                                <td className="tabular px-4 py-2.5 text-right text-slate-700">
+                                                    {course.enrolled}
+                                                    <span className="text-slate-400"> / {course.capacity}</span>
+                                                </td>
+                                                <td className="px-4 py-2.5">
+                                                    <div className="flex items-center gap-2">
+                                                        <ProgressBar value={used} tone={used >= 90 ? "red" : used >= 70 ? "amber" : "blue"} />
+                                                        <span className="tabular w-9 shrink-0 text-right text-xs text-slate-500">{used}%</span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
                         </div>
-                    );
-                })}
-            </div>
+                    )}
+                </Card>
 
-            {/* Dashboard Content */}
-            <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-
-                {/* User Distribution */}
-                <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
-                    <h2 className="text-lg font-bold text-gray-800">
-                        User Distribution
-                    </h2>
-
-                    <p className="mt-1 text-sm text-gray-500">
-                        Registered users by role
-                    </p>
-
-                    <div className="mt-7 space-y-6">
-                        {roleData.map((item) => (
-                            <div key={item.name}>
-                                <div className="mb-2 flex justify-between text-sm">
-                                    <span className="font-medium text-gray-700">
-                                        {item.name}
-                                    </span>
-
-                                    <span className="font-semibold text-gray-800">
-                                        {item.value} ({getPercentage(item.value)}%)
-                                    </span>
+                {/* Finance + people */}
+                <div className="space-y-4">
+                    <Card title="Fee collection" action={<PanelLink to="/admin/fees">Open</PanelLink>}>
+                        {loading ? (
+                            <p className="text-sm text-slate-500">Loading…</p>
+                        ) : (
+                            <>
+                                <div className="flex items-baseline justify-between">
+                                    <p className="tabular text-xl font-semibold text-slate-900">{taka(collected)}</p>
+                                    <p className="text-xs text-slate-500">{collectionRate === null ? "No invoices" : `${collectionRate}% of billed`}</p>
                                 </div>
 
-                                <div className="h-3 overflow-hidden rounded-full bg-gray-100">
-                                    <div
-                                        className={`h-full rounded-full transition-all duration-500 ${item.color}`}
-                                        style={{
-                                            width: `${getPercentage(item.value)}%`
-                                        }}
-                                    />
+                                <div className="mt-3">
+                                    <ProgressBar value={collectionRate || 0} tone="green" />
                                 </div>
-                            </div>
-                        ))}
-                    </div>
 
-                    <div className="mt-7 border-t border-gray-100 pt-5">
-                        <div className="flex justify-between text-sm">
-                            <span className="font-medium text-gray-600">
-                                Total Registered Users
-                            </span>
+                                <p className="mt-3 flex justify-between text-xs text-slate-500">
+                                    <span>Outstanding</span>
+                                    <span className="tabular font-medium text-slate-700">{taka(outstanding)}</span>
+                                </p>
+                            </>
+                        )}
+                    </Card>
 
-                            <span className="font-bold text-gray-800">
-                                {stats.totalUsers}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Quick Actions */}
-                <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
-                    <h2 className="text-lg font-bold text-gray-800">
-                        Quick Actions
-                    </h2>
-
-                    <p className="mt-1 text-sm text-gray-500">
-                        Quickly access management modules
-                    </p>
-
-                    <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
-                        {quickActions.map((action) => {
-                            const Icon = action.icon;
-
-                            return (
-                                <Link
-                                    key={action.title}
-                                    to={action.path}
-                                    className="group flex items-center gap-3 rounded-lg border border-gray-100 p-3 transition hover:border-blue-200 hover:bg-blue-50"
-                                >
-                                    <div className={`rounded-lg p-2 ${action.color}`}>
-                                        <Icon size={20} />
-                                    </div>
-
-                                    <div className="min-w-0 flex-1">
-                                        <h3 className="text-sm font-semibold text-gray-800">
-                                            {action.title}
-                                        </h3>
-
-                                        <p className="mt-1 text-xs text-gray-500">
-                                            {action.description}
-                                        </p>
-                                    </div>
-
-                                    <ArrowUpRight
-                                        size={16}
-                                        className="text-gray-400 transition group-hover:text-blue-600"
-                                    />
-                                </Link>
-                            );
-                        })}
-                    </div>
+                    <Card title="People">
+                        {loading ? (
+                            <p className="text-sm text-slate-500">Loading…</p>
+                        ) : (
+                            <ul className="space-y-3">
+                                {roleRows.map((row) => (
+                                    <li key={row.label}>
+                                        <div className="mb-1 flex justify-between text-sm">
+                                            <span className="text-slate-600">{row.label}</span>
+                                            <span className="tabular font-medium text-slate-900">
+                                                {row.value} <span className="font-normal text-slate-400">· {pct(row.value)}%</span>
+                                            </span>
+                                        </div>
+                                        <ProgressBar value={pct(row.value)} />
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </Card>
                 </div>
             </div>
 
-            {/* System Overview */}
-            <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
-                <h2 className="text-lg font-bold text-gray-800">
-                    System Overview
-                </h2>
-
-                <p className="mt-1 text-sm text-gray-500">
-                    Current user statistics from MongoDB
-                </p>
-
-                <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
-                    <div className="rounded-lg bg-gray-50 p-4">
-                        <p className="text-sm text-gray-500">Students</p>
-                        <p className="mt-2 text-xl font-bold text-green-600">
-                            {getPercentage(stats.totalStudents)}%
+            {/* Attendance snapshot + modules */}
+            <div className="grid gap-4 lg:grid-cols-3">
+                <Card title="Attendance rate" subtitle="Across all recorded classes" action={<PanelLink to="/admin/attendance">Details</PanelLink>}>
+                    <div className="flex items-center gap-3">
+                        <CalendarCheck size={18} className="text-slate-400" aria-hidden="true" />
+                        <p className="tabular text-2xl font-semibold text-slate-900">
+                            {loading ? "…" : summary?.attendanceRate != null ? `${summary.attendanceRate}%` : "—"}
                         </p>
                     </div>
 
-                    <div className="rounded-lg bg-gray-50 p-4">
-                        <p className="text-sm text-gray-500">Teachers</p>
-                        <p className="mt-2 text-xl font-bold text-purple-600">
-                            {getPercentage(stats.totalTeachers)}%
-                        </p>
+                    <p className="mt-2 text-xs text-slate-500">
+                        {summary?.attendanceRate == null && !loading ? "No attendance has been recorded yet." : "Present and late count as attended."}
+                    </p>
+                </Card>
+
+                <div className="lg:col-span-2">
+                    <div className="mb-2 flex items-center justify-between">
+                        <h3 className="text-sm font-semibold text-slate-900">Modules</h3>
+                        <Link to="/admin/reports" className="text-xs font-medium text-blue-900 hover:underline">
+                            View reports
+                        </Link>
                     </div>
 
-                    <div className="rounded-lg bg-gray-50 p-4">
-                        <p className="text-sm text-gray-500">Admins</p>
-                        <p className="mt-2 text-xl font-bold text-orange-600">
-                            {getPercentage(stats.totalAdmins)}%
-                        </p>
-                    </div>
+                    <Shortcuts items={MODULES} columns="sm:grid-cols-2 xl:grid-cols-3" />
                 </div>
             </div>
 
             <DashboardInsights />
-
         </div>
     );
 };

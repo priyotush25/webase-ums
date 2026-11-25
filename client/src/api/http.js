@@ -1,4 +1,4 @@
-const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:5000").replace(/\/$/, "");
+const API_URL = import.meta.env.VITE_API_URL;
 
 // Creates a small fetch wrapper for one API base path (e.g. "/api/notices")
 export const createRequest = (basePath) => async (endpoint = "", options = {}) => {

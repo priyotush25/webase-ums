@@ -9,8 +9,8 @@ const HomeUpdates = ({ notices = [], events = [], loading }) => (
     <section className="bg-white py-16">
         <div className="mx-auto grid max-w-7xl gap-10 px-4 lg:grid-cols-5">
             <div className="lg:col-span-3">
-                <div className="flex items-end justify-between border-b-2 border-blue-900 pb-3">
-                    <h2 className="text-2xl font-bold text-blue-950">Latest notices</h2>
+                <div className="flex items-end justify-between border-b border-slate-200 pb-3">
+                    <h2 className="text-xl font-semibold text-blue-950">Latest notices</h2>
                     <Link to="/notices" className="text-sm font-semibold text-blue-900 hover:underline">View all</Link>
                 </div>
 
@@ -38,8 +38,8 @@ const HomeUpdates = ({ notices = [], events = [], loading }) => (
             </div>
 
             <div id="calendar" className="lg:col-span-2">
-                <div className="flex items-end justify-between border-b-2 border-gold-500 pb-3">
-                    <h2 className="text-2xl font-bold text-blue-950">Academic calendar</h2>
+                <div className="flex items-end justify-between border-b border-slate-200 pb-3">
+                    <h2 className="text-xl font-semibold text-blue-950">Academic calendar</h2>
                 </div>
 
                 {loading ? (

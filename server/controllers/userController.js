@@ -1,6 +1,7 @@
 
 import mongoose from "mongoose";
 import User from "../models/User.js";
+import { revokeAllSessions } from "../utils/authSession.js";
 
 // ========================================
 // GET ALL USERS
@@ -222,5 +223,51 @@ export const getUserStats = async (req, res) => {
             success: false,
             message: "Failed to fetch user statistics",
         });
+    }
+};
+
+
+// ========================================
+// ACTIVATE / DEACTIVATE USER
+// ========================================
+
+export const updateUserStatus = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { isActive } = req.body;
+
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ success: false, message: "Invalid user ID" });
+        }
+
+        if (typeof isActive !== "boolean") {
+            return res.status(400).json({ success: false, message: "isActive must be true or false" });
+        }
+
+        if (req.user._id.toString() === userId) {
+            return res.status(403).json({ success: false, message: "You cannot deactivate your own account" });
+        }
+
+        const user = await User.findByIdAndUpdate(
+            userId,
+            { $set: { isActive } },
+            { new: true }
+        ).select("-__v -firebaseUid");
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        // Deactivated users are signed out of every device immediately
+        if (!isActive) await revokeAllSessions(user._id);
+
+        res.status(200).json({
+            success: true,
+            message: isActive ? "User activated" : "User deactivated",
+            data: user,
+        });
+    } catch (error) {
+        console.error("Update User Status Error:", error);
+        res.status(500).json({ success: false, message: "Failed to update user status" });
     }
 };

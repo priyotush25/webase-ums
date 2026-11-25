@@ -4,7 +4,8 @@ import {
     getAllUsers,
     getUserById,
     getUserStats,
-    updateUserRole
+    updateUserRole,
+    updateUserStatus
 } from "../controllers/userController.js";
 
 import { updateAcademicRecord } from "../controllers/profileController.js";
@@ -27,6 +28,9 @@ router.get("/:userId", getUserById);
 
 // Update User Role
 router.patch("/:userId/role", updateUserRole);
+
+// Activate / deactivate account
+router.patch("/:userId/status", updateUserStatus);
 
 // Update academic record (department, semester, batch, designation)
 router.patch("/:userId/academic", updateAcademicRecord);

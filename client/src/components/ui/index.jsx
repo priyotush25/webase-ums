@@ -2,9 +2,9 @@ import { RefreshCw, X } from "lucide-react";
 import { useEffect } from "react";
 
 export const PageHeader = ({ title, subtitle, children }) => (
-    <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-            <h2 className="text-2xl font-bold text-slate-900">{title}</h2>
+    <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
+        <div className="min-w-0">
+            <h2 className="text-xl font-semibold tracking-tight text-slate-900">{title}</h2>
             {subtitle && <p className="mt-1 text-sm text-slate-500">{subtitle}</p>}
         </div>
         {children && <div className="flex flex-wrap items-center gap-2">{children}</div>}
@@ -13,50 +13,76 @@ export const PageHeader = ({ title, subtitle, children }) => (
 
 export const Spinner = ({ label = "Loading..." }) => (
     <div className="flex items-center justify-center gap-2 py-16 text-sm text-slate-500" role="status">
-        <RefreshCw size={18} className="animate-spin" />
+        <RefreshCw size={16} className="animate-spin" />
         {label}
     </div>
 );
 
 export const EmptyState = ({ icon: Icon, title, text }) => (
-    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white px-6 py-14 text-center">
+    <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white px-6 py-12 text-center">
         {Icon && (
-            <div className="mb-3 rounded-full bg-slate-100 p-3 text-slate-500">
-                <Icon size={24} />
+            <div className="mb-3 rounded-md bg-slate-100 p-2.5 text-slate-500">
+                <Icon size={20} />
             </div>
         )}
-        <h3 className="font-semibold text-slate-800">{title}</h3>
+        <h3 className="text-sm font-semibold text-slate-800">{title}</h3>
         {text && <p className="mt-1 max-w-sm text-sm text-slate-500">{text}</p>}
     </div>
 );
 
-export const StatCard = ({ title, value, icon: Icon, color = "bg-blue-100 text-blue-700" }) => (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="flex items-center justify-between">
-            <div>
-                <p className="text-sm text-slate-500">{title}</p>
-                <h3 className="mt-2 text-2xl font-bold text-slate-900">{value}</h3>
-            </div>
-            {Icon && (
-                <div className={`rounded-xl p-3 ${color}`}>
-                    <Icon size={22} />
-                </div>
-            )}
+// Minimal KPI card. `color` is accepted for backwards compatibility but the
+// ERP style keeps icons neutral so numbers carry the emphasis.
+export const StatCard = ({ title, value, icon: Icon, hint }) => (
+    <div className="rounded-lg border border-slate-200 bg-white p-4">
+        <div className="flex items-center justify-between gap-3">
+            <p className="text-[13px] font-medium text-slate-500">{title}</p>
+            {Icon && <Icon size={16} className="shrink-0 text-slate-400" aria-hidden="true" />}
         </div>
+        <p className="tabular mt-2 text-2xl font-semibold tracking-tight text-slate-900">{value}</p>
+        {hint && <p className="mt-1 text-xs text-slate-500">{hint}</p>}
     </div>
 );
 
+// Generic surface used across the workspace
+export const Card = ({ title, subtitle, action, children, className = "", flush = false }) => (
+    <section className={`rounded-lg border border-slate-200 bg-white ${className}`}>
+        {(title || action) && (
+            <div className="flex items-center justify-between gap-3 border-b border-slate-100 px-4 py-3">
+                <div className="min-w-0">
+                    {title && <h3 className="truncate text-sm font-semibold text-slate-900">{title}</h3>}
+                    {subtitle && <p className="truncate text-xs text-slate-500">{subtitle}</p>}
+                </div>
+                {action}
+            </div>
+        )}
+        <div className={flush ? "" : "p-4"}>{children}</div>
+    </section>
+);
+
+export const ProgressBar = ({ value = 0, tone = "blue" }) => {
+    const tones = { blue: "bg-blue-800", green: "bg-emerald-600", amber: "bg-amber-500", red: "bg-red-500" };
+    const width = Math.max(0, Math.min(100, Number(value) || 0));
+
+    return (
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-valuenow={width} aria-valuemin={0} aria-valuemax={100}>
+            <div className={`h-full rounded-full ${tones[tone] || tones.blue}`} style={{ width: `${width}%` }} />
+        </div>
+    );
+};
+
+export const Skeleton = ({ className = "" }) => <div className={`animate-pulse rounded bg-slate-100 ${className}`} aria-hidden="true" />;
+
 const BADGE_COLORS = {
-    slate: "bg-slate-100 text-slate-700",
-    blue: "bg-blue-100 text-blue-700",
-    green: "bg-emerald-100 text-emerald-700",
-    amber: "bg-amber-100 text-amber-700",
-    red: "bg-red-100 text-red-700",
-    purple: "bg-purple-100 text-purple-700",
+    slate: "bg-slate-100 text-slate-700 ring-slate-200",
+    blue: "bg-blue-50 text-blue-800 ring-blue-100",
+    green: "bg-emerald-50 text-emerald-700 ring-emerald-100",
+    amber: "bg-amber-50 text-amber-700 ring-amber-100",
+    red: "bg-red-50 text-red-700 ring-red-100",
+    purple: "bg-purple-50 text-purple-700 ring-purple-100",
 };
 
 export const Badge = ({ children, color = "slate" }) => (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${BADGE_COLORS[color]}`}>
+    <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${BADGE_COLORS[color] || BADGE_COLORS.slate}`}>
         {children}
     </span>
 );
@@ -75,22 +101,22 @@ export const Modal = ({ open, title, onClose, children, wide = false }) => {
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/50 p-4 sm:items-center"
+            className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-slate-900/40 p-4 sm:items-center"
             onMouseDown={(event) => event.target === event.currentTarget && onClose()}
         >
             <div
                 role="dialog"
                 aria-modal="true"
                 aria-label={title}
-                className={`w-full ${wide ? "max-w-2xl" : "max-w-lg"} rounded-2xl bg-white shadow-xl`}
+                className={`w-full ${wide ? "max-w-2xl" : "max-w-lg"} rounded-xl bg-white shadow-xl ring-1 ring-slate-900/5`}
             >
-                <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-                    <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
+                <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3.5">
+                    <h3 className="text-base font-semibold text-slate-900">{title}</h3>
                     <button
                         type="button"
                         onClick={onClose}
                         aria-label="Close"
-                        className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100"
+                        className="rounded-md p-1.5 text-slate-500 hover:bg-slate-100"
                     >
                         <X size={18} />
                     </button>
@@ -103,20 +129,20 @@ export const Modal = ({ open, title, onClose, children, wide = false }) => {
 
 export const Field = ({ label, children, hint }) => (
     <label className="block">
-        <span className="mb-1.5 block text-sm font-medium text-slate-700">{label}</span>
+        <span className="mb-1.5 block text-[13px] font-medium text-slate-700">{label}</span>
         {children}
         {hint && <span className="mt-1 block text-xs text-slate-400">{hint}</span>}
     </label>
 );
 
 export const inputClass =
-    "w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-700/20";
+    "w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-800/15";
 
 export const primaryBtn =
-    "inline-flex items-center justify-center gap-2 rounded-lg bg-blue-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60";
+    "inline-flex items-center justify-center gap-2 rounded-md bg-blue-900 px-3.5 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60";
 
 export const ghostBtn =
-    "inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60";
+    "inline-flex items-center justify-center gap-2 rounded-md border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60";
 
 export const formatDate = (value, withTime = false) => {
     if (!value) return "-";

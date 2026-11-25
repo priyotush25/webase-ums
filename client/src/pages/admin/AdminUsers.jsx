@@ -12,7 +12,8 @@ import { toast } from "react-toastify";
 
 import {
     getAllUsers,
-    updateUserRole
+    updateUserRole,
+    updateUserStatus
 } from "../../api/userApi";
 
 const AdminUsers = () => {
@@ -124,6 +125,31 @@ const AdminUsers = () => {
             console.error("Role Update Error:", error);
             toast.error(error.message || "Failed to update user role");
 
+        } finally {
+            setUpdatingId(null);
+        }
+    };
+
+    // Activate / Deactivate Account
+    const handleStatusToggle = async (user) => {
+        if (updatingId) return;
+
+        const nextActive = user.isActive === false;
+
+        try {
+            setUpdatingId(user._id);
+
+            const response = await updateUserStatus(user._id, nextActive);
+
+            setUsers((previous) =>
+                previous.map((item) =>
+                    item._id === user._id ? { ...item, ...response.data } : item
+                )
+            );
+
+            toast.success(response.message);
+        } catch (error) {
+            toast.error(error.message || "Failed to update user status");
         } finally {
             setUpdatingId(null);
         }
@@ -242,7 +268,7 @@ const AdminUsers = () => {
             <div className="overflow-hidden rounded-xl border bg-white shadow-sm">
 
                 <div className="overflow-x-auto">
-                    <table className="w-full min-w-[750px] text-left">
+                    <table className="w-full min-w-[850px] text-left">
 
                         <thead className="bg-gray-50 text-sm text-gray-600">
                             <tr>
@@ -251,6 +277,7 @@ const AdminUsers = () => {
                                 <th className="px-6 py-4">Role</th>
                                 <th className="px-6 py-4">Joined</th>
                                 <th className="px-6 py-4">Change Role</th>
+                                <th className="px-6 py-4">Status</th>
                             </tr>
                         </thead>
 
@@ -259,7 +286,7 @@ const AdminUsers = () => {
                             {loading ? (
                                 <tr>
                                     <td
-                                        colSpan="5"
+                                        colSpan="6"
                                         className="py-12 text-center text-gray-500"
                                     >
                                         Loading users...
@@ -268,7 +295,7 @@ const AdminUsers = () => {
                             ) : users.length === 0 ? (
                                 <tr>
                                     <td
-                                        colSpan="5"
+                                        colSpan="6"
                                         className="py-12 text-center text-gray-500"
                                     >
                                         No users found.
@@ -351,6 +378,23 @@ const AdminUsers = () => {
                                                     Admin
                                                 </option>
                                             </select>
+                                        </td>
+
+                                        {/* Status */}
+                                        <td className="px-6 py-4">
+                                            <button
+                                                type="button"
+                                                disabled={updatingId === user._id}
+                                                onClick={() => handleStatusToggle(user)}
+                                                className={`rounded-full px-3 py-1 text-xs font-semibold disabled:opacity-50 ${
+                                                    user.isActive === false
+                                                        ? "bg-red-100 text-red-700 hover:bg-red-200"
+                                                        : "bg-emerald-100 text-emerald-700 hover:bg-emerald-200"
+                                                }`}
+                                                title={user.isActive === false ? "Click to activate" : "Click to deactivate"}
+                                            >
+                                                {user.isActive === false ? "Inactive" : "Active"}
+                                            </button>
                                         </td>
 
                                     </tr>

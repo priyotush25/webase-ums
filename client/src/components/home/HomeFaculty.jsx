@@ -6,10 +6,10 @@ const HomeFaculty = ({ faculty = [] }) => {
     if (faculty.length === 0) return null;
 
     return (
-        <section className="bg-slate-50 py-20">
+        <section className="bg-slate-50 py-16">
             <div className="mx-auto max-w-7xl px-4">
                 <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
-                    <h2 className="text-3xl font-bold text-blue-950">Meet our faculty</h2>
+                    <h2 className="text-3xl font-semibold text-blue-950">Meet our faculty</h2>
                     <Link to="/faculty" className="text-sm font-semibold text-blue-900 hover:underline">Full directory</Link>
                 </div>
 

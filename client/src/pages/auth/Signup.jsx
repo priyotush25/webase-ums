@@ -89,10 +89,6 @@ const Signup = () => {
             return toast.warning("Please fill in all fields.");
         }
 
-        if (!image) {
-            return toast.warning("Please upload your profile image.");
-        }
-
         if (name.trim().length < 2) {
             return toast.warning("Name must contain at least 2 characters.");
         }

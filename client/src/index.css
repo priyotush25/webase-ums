@@ -33,20 +33,24 @@ html {
 body {
   margin: 0;
   font-family: var(--font-sans);
-  background-color: #f6f8fb;
+  background-color: #f6f7f9;
   color: #0f172a;
+  font-feature-settings: "tnum" 0;
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, .font-display {
+/* Serif headings belong to the public website only.
+   The dashboard (ERP) workspace stays in the sans face for density. */
+.public-site h1,
+.public-site h2,
+.font-display {
   font-family: var(--font-serif);
   letter-spacing: -0.01em;
 }
 
-/* Dashboard page titles stay in the sans face for UI density */
-header h1 {
-  font-family: var(--font-sans);
-  letter-spacing: 0;
+/* Tabular figures keep KPI numbers and table columns aligned */
+.tabular {
+  font-variant-numeric: tabular-nums;
 }
 
 :focus-visible {

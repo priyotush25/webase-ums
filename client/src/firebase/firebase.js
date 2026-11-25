@@ -10,12 +10,6 @@ const firebaseConfig = {
     appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
-if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
-    console.error(
-        "Firebase is not configured. Copy client/.env.example to client/.env and fill in the VITE_FIREBASE_* values."
-    );
-}
-
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);

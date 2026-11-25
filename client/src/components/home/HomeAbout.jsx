@@ -13,10 +13,10 @@ const HomeAbout = ({ stats }) => {
         : [];
 
     return (
-        <section className="bg-slate-50 py-20">
+        <section className="bg-slate-50 py-16">
             <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 lg:grid-cols-2">
                 <div>
-                    <h2 className="text-3xl font-bold text-blue-950">A university built around its students</h2>
+                    <h2 className="text-3xl font-semibold text-blue-950">A university built around its students</h2>
                     <p className="mt-4 leading-7 text-slate-600">
                         Since {siteConfig.established}, {siteConfig.name} has focused on practical, well-taught programs and a campus where students are known by name. From online admission to results and fees, everything runs through one secure portal.
                     </p>

@@ -1,69 +1,27 @@
 
-import { auth } from "../firebase/firebase";
-
-// ========================================
-// API BASE URL
-// ========================================
-
-const API_URL = (
-    import.meta.env.VITE_API_URL || "http://localhost:5000"
-).replace(/\/+$/, "");
-
-// ========================================
-// GET FIREBASE AUTH TOKEN
-// ========================================
-
-const getAuthHeaders = async (contentType = false) => {
-    const user = auth.currentUser;
-
-    if (!user) {
-        throw new Error("Authentication required. Please login first.");
-    }
-
-    const idToken = await user.getIdToken();
-
-    const headers = {
-        Authorization: `Bearer ${idToken}`,
-    };
-
-    if (contentType) {
-        headers["Content-Type"] = "application/json";
-    }
-
-    return headers;
-};
-
-// ========================================
-// COMMON RESPONSE HANDLER
-// ========================================
-
-const handleResponse = async (response) => {
-    const data = await response.json().catch(() => ({}));
-
-    if (!response.ok) {
-        throw new Error(
-            data.message || `API Error: ${response.status}`
-        );
-    }
-
-    return data;
-};
+const API_URL = import.meta.env.VITE_API_URL;
 
 // ========================================
 // STUDENT: APPLY FOR COURSE
 // ========================================
 
 export const createEnrollment = async (courseId) => {
-    const headers = await getAuthHeaders(true);
-
     const response = await fetch(`${API_URL}/api/enrollments`, {
         method: "POST",
         credentials: "include",
-        headers,
+        headers: {
+            "Content-Type": "application/json",
+        },
         body: JSON.stringify({ courseId }),
     });
 
-    return await handleResponse(response);
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.message || "Enrollment failed");
+    }
+
+    return data;
 };
 
 // ========================================
@@ -71,15 +29,18 @@ export const createEnrollment = async (courseId) => {
 // ========================================
 
 export const getMyEnrollments = async () => {
-    const headers = await getAuthHeaders();
-
     const response = await fetch(`${API_URL}/api/enrollments/my`, {
         method: "GET",
         credentials: "include",
-        headers,
     });
 
-    return await handleResponse(response);
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch enrollments");
+    }
+
+    return data;
 };
 
 // ========================================
@@ -91,8 +52,6 @@ export const getAllEnrollments = async ({
     status = "all",
     course = "all",
 } = {}) => {
-    const headers = await getAuthHeaders();
-
     const params = new URLSearchParams({
         search,
         status,
@@ -104,11 +63,16 @@ export const getAllEnrollments = async ({
         {
             method: "GET",
             credentials: "include",
-            headers,
         }
     );
 
-    return await handleResponse(response);
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch enrollments");
+    }
+
+    return data;
 };
 
 // ========================================
@@ -120,14 +84,14 @@ export const updateEnrollmentStatus = async (
     status,
     remarks = ""
 ) => {
-    const headers = await getAuthHeaders(true);
-
     const response = await fetch(
         `${API_URL}/api/enrollments/${enrollmentId}/status`,
         {
             method: "PATCH",
             credentials: "include",
-            headers,
+            headers: {
+                "Content-Type": "application/json",
+            },
             body: JSON.stringify({
                 status,
                 remarks,
@@ -135,7 +99,13 @@ export const updateEnrollmentStatus = async (
         }
     );
 
-    return await handleResponse(response);
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.message || "Failed to update enrollment");
+    }
+
+    return data;
 };
 
 // ========================================
@@ -143,16 +113,19 @@ export const updateEnrollmentStatus = async (
 // ========================================
 
 export const deleteEnrollment = async (enrollmentId) => {
-    const headers = await getAuthHeaders();
-
     const response = await fetch(
         `${API_URL}/api/enrollments/${enrollmentId}`,
         {
             method: "DELETE",
             credentials: "include",
-            headers,
         }
     );
 
-    return await handleResponse(response);
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.message || "Failed to delete enrollment");
+    }
+
+    return data;
 };

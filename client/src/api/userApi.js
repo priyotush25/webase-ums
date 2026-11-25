@@ -1,5 +1,5 @@
 
-const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:5000").replace(/\/$/, "");
+const API_URL = import.meta.env.VITE_API_URL;
 
 // 1. Get All Users
 export const getAllUsers = async ({
@@ -107,6 +107,22 @@ export const updateAcademicRecord = async (userId, data) => {
     const result = await response.json();
 
     if (!response.ok) throw new Error(result.message || "Failed to update academic record");
+
+    return result;
+};
+
+// Activate / deactivate an account (admin)
+export const updateUserStatus = async (userId, isActive) => {
+    const response = await fetch(`${API_URL}/api/users/${userId}/status`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ isActive }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) throw new Error(result.message || "Failed to update user status");
 
     return result;
 };

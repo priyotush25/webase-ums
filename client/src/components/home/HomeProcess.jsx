@@ -11,24 +11,28 @@ const steps = [
 ];
 
 const HomeProcess = () => (
-    <section className="bg-blue-900 py-20 text-white">
+    <section className="border-y border-slate-200 bg-slate-50 py-16">
         <div className="mx-auto max-w-7xl px-4">
-            <h2 className="text-3xl font-bold">How admission works</h2>
-            <p className="mt-3 max-w-xl text-blue-100">Admission {siteConfig.admission.session} closes on {siteConfig.admission.deadline}.</p>
+            <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+                <div>
+                    <h2 className="text-3xl font-semibold text-blue-950">How admission works</h2>
+                    <p className="mt-3 max-w-xl text-slate-600">Admission {siteConfig.admission.session} closes on {siteConfig.admission.deadline}.</p>
+                </div>
 
-            <ol className="mt-10 grid gap-6 md:grid-cols-5">
+                <Link to="/admissions/apply" className="inline-block self-start rounded-md bg-blue-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 sm:self-auto">
+                    Start your application
+                </Link>
+            </div>
+
+            <ol className="mt-10 grid gap-4 md:grid-cols-5">
                 {steps.map((step, index) => (
-                    <li key={step.title} className="border-t border-white/30 pt-4">
-                        <span className="text-sm font-semibold text-gold-400">Step {index + 1}</span>
-                        <h3 className="mt-1 font-semibold">{step.title}</h3>
-                        <p className="mt-1 text-sm leading-6 text-blue-100">{step.text}</p>
+                    <li key={step.title} className="rounded-lg border border-slate-200 bg-white p-4">
+                        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-900 text-xs font-semibold text-white">{index + 1}</span>
+                        <h3 className="mt-3 text-sm font-semibold text-slate-900">{step.title}</h3>
+                        <p className="mt-1 text-sm leading-6 text-slate-600">{step.text}</p>
                     </li>
                 ))}
             </ol>
-
-            <Link to="/admissions/apply" className="mt-10 inline-block rounded-lg bg-gold-500 px-6 py-3 font-semibold text-blue-950 hover:bg-gold-400">
-                Start your application
-            </Link>
         </div>
     </section>
 );

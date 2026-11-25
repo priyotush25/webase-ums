@@ -1,11 +1,11 @@
 import { Link } from "react-router";
 
 const HomeDepartments = ({ departments = [] }) => (
-    <section className="bg-white py-20">
+    <section className="bg-white py-16">
         <div className="mx-auto max-w-7xl px-4">
             <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
                 <div>
-                    <h2 className="text-3xl font-bold text-blue-950">Departments</h2>
+                    <h2 className="text-3xl font-semibold text-blue-950">Departments</h2>
                     <p className="mt-3 max-w-xl text-slate-600">Choose a department to see its courses, faculty and how to apply.</p>
                 </div>
                 <Link to="/departments" className="text-sm font-semibold text-blue-900 hover:underline">All departments</Link>

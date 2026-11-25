@@ -1,85 +1,37 @@
+import getFirebaseAuth, { FirebaseConfigError } from "../utils/firebaseAdmin.js";
 
-import { verifyFirebaseIdToken } from "../utils/verifyFirebaseIdToken.js";
-
+// Verifies the Firebase ID token sent as "Authorization: Bearer <token>"
+// and exposes the decoded claims as req.firebaseUser ({ uid, email, name, ... }).
 const verifyFirebaseToken = async (req, res, next) => {
     try {
-        // ========================================
-        // 1. Get Authorization Header
-        // ========================================
-
         const authHeader = req.headers.authorization;
 
-        if (!authHeader?.startsWith("Bearer ")) {
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
             return res.status(401).json({
                 success: false,
-                message: "Firebase authentication token is required."
+                message: "Firebase ID Token is required",
             });
         }
 
-        // ========================================
-        // 2. Extract Firebase ID Token
-        // ========================================
+        const idToken = authHeader.split(" ")[1];
 
-        const idToken = authHeader.slice(7).trim();
+        req.firebaseUser = await getFirebaseAuth().verifyIdToken(idToken);
 
-        if (!idToken) {
-            return res.status(401).json({
-                success: false,
-                message: "Firebase authentication token is missing."
-            });
-        }
-
-        // ========================================
-        // 3. Verify Firebase ID Token
-        // ========================================
-
-        const firebaseUser = await verifyFirebaseIdToken(idToken);
-
-        if (!firebaseUser?.uid) {
-            return res.status(401).json({
-                success: false,
-                message: "Invalid Firebase user information."
-            });
-        }
-
-        // ========================================
-        // 4. Attach Firebase User Information
-        // ========================================
-
-        req.firebaseUser = firebaseUser;
-
-        // ========================================
-        // 5. Continue to Next Middleware / Controller
-        // ========================================
-
-        return next();
-
+        next();
     } catch (error) {
-        console.error(
-            "Firebase Authentication Error:",
-            error.message
-        );
+        console.error("Firebase token error:", error.message);
 
-        // ========================================
-        // 6. Server Configuration Error
-        // ========================================
-
-        if (
-            error.message?.includes("FIREBASE_PROJECT_ID")
-        ) {
+        // A broken server configuration is not the client's fault
+        if (error instanceof FirebaseConfigError) {
             return res.status(500).json({
                 success: false,
-                message: "Server authentication configuration error."
+                message: "Server is not configured for authentication",
             });
         }
-
-        // ========================================
-        // 7. Invalid / Expired Token
-        // ========================================
 
         return res.status(401).json({
             success: false,
-            message: "Invalid or expired Firebase ID Token."
+            message: "Invalid or expired Firebase ID Token",
         });
     }
 };

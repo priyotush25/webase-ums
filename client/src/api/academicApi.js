@@ -1,66 +1,14 @@
 
-import { auth } from "../firebase/firebase";
-
-// ========================================
-// API BASE URL
-// ========================================
-
-const API_URL = (
-    import.meta.env.VITE_API_URL || "http://localhost:5000"
-).replace(/\/+$/, "");
-
-// ========================================
-// GET FIREBASE AUTH HEADERS
-// ========================================
-
-const getAuthHeaders = async (contentType = false) => {
-    const user = auth.currentUser;
-
-    if (!user) {
-        throw new Error("Authentication required. Please login first.");
-    }
-
-    const idToken = await user.getIdToken();
-
-    const headers = {
-        Authorization: `Bearer ${idToken}`,
-    };
-
-    if (contentType) {
-        headers["Content-Type"] = "application/json";
-    }
-
-    return headers;
-};
-
-// ========================================
-// COMMON RESPONSE HANDLER
-// ========================================
-
-const handleResponse = async (response) => {
-    const data = await response.json().catch(() => ({}));
-
-    if (!response.ok) {
-        throw new Error(
-            data.message || `API Error: ${response.status}`
-        );
-    }
-
-    return data;
-};
+const API_URL = import.meta.env.VITE_API_URL;
 
 // ========================================
 // DEPARTMENT APIs
 // ========================================
 
-// GET ALL DEPARTMENTS
-
 export const getAllDepartments = async ({
     search = "",
     status = "all",
 } = {}) => {
-    const headers = await getAuthHeaders();
-
     const params = new URLSearchParams({ search, status });
 
     const response = await fetch(
@@ -68,93 +16,104 @@ export const getAllDepartments = async ({
         {
             method: "GET",
             credentials: "include",
-            headers,
         }
     );
 
-    return await handleResponse(response);
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch departments");
+    }
+
+    return data;
 };
 
-// GET DEPARTMENT BY ID
-
 export const getDepartmentById = async (departmentId) => {
-    const headers = await getAuthHeaders();
-
     const response = await fetch(
         `${API_URL}/api/departments/${departmentId}`,
         {
-            method: "GET",
             credentials: "include",
-            headers,
         }
     );
 
-    return await handleResponse(response);
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch department");
+    }
+
+    return data;
 };
 
-// CREATE DEPARTMENT
-
 export const createDepartment = async (departmentData) => {
-    const headers = await getAuthHeaders(true);
-
     const response = await fetch(`${API_URL}/api/departments`, {
         method: "POST",
         credentials: "include",
-        headers,
+        headers: {
+            "Content-Type": "application/json",
+        },
         body: JSON.stringify(departmentData),
     });
 
-    return await handleResponse(response);
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.message || "Failed to create department");
+    }
+
+    return data;
 };
 
-// UPDATE DEPARTMENT
-
 export const updateDepartment = async (departmentId, departmentData) => {
-    const headers = await getAuthHeaders(true);
-
     const response = await fetch(
         `${API_URL}/api/departments/${departmentId}`,
         {
             method: "PATCH",
             credentials: "include",
-            headers,
+            headers: {
+                "Content-Type": "application/json",
+            },
             body: JSON.stringify(departmentData),
         }
     );
 
-    return await handleResponse(response);
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.message || "Failed to update department");
+    }
+
+    return data;
 };
 
-// DELETE DEPARTMENT
-
 export const deleteDepartment = async (departmentId) => {
-    const headers = await getAuthHeaders();
-
     const response = await fetch(
         `${API_URL}/api/departments/${departmentId}`,
         {
             method: "DELETE",
             credentials: "include",
-            headers,
         }
     );
 
-    return await handleResponse(response);
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.message || "Failed to delete department");
+    }
+
+    return data;
 };
+
 
 // ========================================
 // COURSE APIs
 // ========================================
-
-// GET ALL COURSES
 
 export const getAllCourses = async ({
     search = "",
     department = "all",
     status = "all",
 } = {}) => {
-    const headers = await getAuthHeaders();
-
     const params = new URLSearchParams({
         search,
         department,
@@ -164,78 +123,91 @@ export const getAllCourses = async ({
     const response = await fetch(
         `${API_URL}/api/courses?${params.toString()}`,
         {
-            method: "GET",
             credentials: "include",
-            headers,
         }
     );
 
-    return await handleResponse(response);
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch courses");
+    }
+
+    return data;
 };
 
-// GET COURSE BY ID
-
 export const getCourseById = async (courseId) => {
-    const headers = await getAuthHeaders();
-
     const response = await fetch(
         `${API_URL}/api/courses/${courseId}`,
         {
-            method: "GET",
             credentials: "include",
-            headers,
         }
     );
 
-    return await handleResponse(response);
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.message || "Failed to fetch course");
+    }
+
+    return data;
 };
 
-// CREATE COURSE
-
 export const createCourse = async (courseData) => {
-    const headers = await getAuthHeaders(true);
-
     const response = await fetch(`${API_URL}/api/courses`, {
         method: "POST",
         credentials: "include",
-        headers,
+        headers: {
+            "Content-Type": "application/json",
+        },
         body: JSON.stringify(courseData),
     });
 
-    return await handleResponse(response);
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.message || "Failed to create course");
+    }
+
+    return data;
 };
 
-// UPDATE COURSE
-
 export const updateCourse = async (courseId, courseData) => {
-    const headers = await getAuthHeaders(true);
-
     const response = await fetch(
         `${API_URL}/api/courses/${courseId}`,
         {
             method: "PATCH",
             credentials: "include",
-            headers,
+            headers: {
+                "Content-Type": "application/json",
+            },
             body: JSON.stringify(courseData),
         }
     );
 
-    return await handleResponse(response);
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.message || "Failed to update course");
+    }
+
+    return data;
 };
 
-// DELETE COURSE
-
 export const deleteCourse = async (courseId) => {
-    const headers = await getAuthHeaders();
-
     const response = await fetch(
         `${API_URL}/api/courses/${courseId}`,
         {
             method: "DELETE",
             credentials: "include",
-            headers,
         }
     );
 
-    return await handleResponse(response);
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(data.message || "Failed to delete course");
+    }
+
+    return data;
 };

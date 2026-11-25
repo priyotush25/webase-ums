@@ -10,9 +10,9 @@ const items = [
 ];
 
 const HomeCampusLife = () => (
-    <section className="bg-white py-20">
+    <section className="bg-white py-16">
         <div className="mx-auto max-w-7xl px-4">
-            <h2 className="text-3xl font-bold text-blue-950">Life on campus</h2>
+            <h2 className="text-3xl font-semibold text-blue-950">Life on campus</h2>
             <p className="mt-3 max-w-xl text-slate-600">Learning continues outside the classroom.</p>
 
             <ul className="mt-10 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">

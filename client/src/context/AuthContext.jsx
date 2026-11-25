@@ -9,16 +9,20 @@ import {
 
 import {
     createUserWithEmailAndPassword,
+    deleteUser,
     onAuthStateChanged,
     signInWithEmailAndPassword,
     signOut,
     updateProfile
 } from "firebase/auth";
 
+import { toast } from "react-toastify";
+
 import {
     createUserProfile,
     getCurrentUser,
     loginUser,
+    logoutAllDevices,
     logoutUser
 } from "../api/authApi";
 
@@ -71,13 +75,9 @@ export const AuthProvider = ({ children }) => {
 
         authActionRef.current = true;
 
-        let createdFirebaseUser = null;
+        let firebaseUser = null;
 
         try {
-
-            if (!image) {
-                throw new Error("Profile image is required.");
-            }
 
             // Step 1: Firebase Account Create
             const result = await createUserWithEmailAndPassword(
@@ -86,51 +86,46 @@ export const AuthProvider = ({ children }) => {
                 password
             );
 
-            createdFirebaseUser = result.user;
+            firebaseUser = result.user;
 
             // Step 2: Update Firebase Profile
-            await updateProfile(result.user, {
+            await updateProfile(firebaseUser, {
                 displayName: name
             });
 
-            // Step 3: Create MongoDB Profile
+            // Step 3: Create MongoDB Profile + JWT session
             const backendResponse = await createUserProfile(
-                result.user,
+                firebaseUser,
                 name,
                 image
             );
 
+            if (backendResponse.warning) {
+                toast.warning(backendResponse.warning);
+            }
+
             // Step 4: Set User and Role
-            const userData = setAuthenticatedUser(
-                result.user,
+            return setAuthenticatedUser(
+                firebaseUser,
                 backendResponse.user
             );
-
-            return userData;
 
         } catch (error) {
 
             console.error("Signup Error:", error);
 
-            // The backend profile was not created: remove the half-made Firebase
-            // account so the person can simply try signing up again
-            if (createdFirebaseUser) {
+            // Remove the half-created Firebase account so the person can retry
+            // with the same email instead of being locked out.
+            if (firebaseUser) {
                 try {
-                    await createdFirebaseUser.delete();
+                    await deleteUser(firebaseUser);
                 } catch (deleteError) {
-                    console.error("Could not remove incomplete Firebase account:", deleteError);
-                }
-            }
-
-            // Cleanup Firebase Account Session
-            if (auth.currentUser) {
-                try {
-                    await signOut(auth);
-                } catch (signOutError) {
-                    console.error(
-                        "Firebase Signout Error:",
-                        signOutError
-                    );
+                    console.error("Firebase Cleanup Error:", deleteError);
+                    try {
+                        await signOut(auth);
+                    } catch {
+                        // ignore
+                    }
                 }
             }
 
@@ -280,6 +275,48 @@ export const AuthProvider = ({ children }) => {
 
 
     // ========================================
+    // LOGOUT FROM ALL DEVICES
+    // ========================================
+
+    const logoutEverywhere = async () => {
+        await logoutAllDevices();
+        await logout();
+    };
+
+
+    // ========================================
+    // SESSION EXPIRED (any API call answered with 401)
+    // ========================================
+
+    useEffect(() => {
+
+        const API_URL = import.meta.env.VITE_API_URL || "";
+        const originalFetch = window.fetch;
+
+        window.fetch = async (...args) => {
+            const response = await originalFetch(...args);
+
+            const url = typeof args[0] === "string" ? args[0] : args[0]?.url || "";
+            const isAuthCall = /\/api\/auth\/(login|signup|logout|logout-all)/.test(url);
+            const isOwnApi = !API_URL || url.startsWith(API_URL);
+
+            if (response.status === 401 && isOwnApi && !isAuthCall && !authActionRef.current) {
+                setUser(null);
+                setRole(null);
+                signOut(auth).catch(() => {});
+            }
+
+            return response;
+        };
+
+        return () => {
+            window.fetch = originalFetch;
+        };
+
+    }, []);
+
+
+    // ========================================
     // AUTHENTICATION STATE RESTORE
     // ========================================
 
@@ -377,6 +414,7 @@ export const AuthProvider = ({ children }) => {
         signup,
         login,
         logout,
+        logoutEverywhere,
         updateUserData
     };
 

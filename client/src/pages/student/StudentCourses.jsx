@@ -5,7 +5,7 @@ import { toast } from "react-toastify";
 
 import { createEnrollment } from "../../api/enrollmentApi";
 
-const API_URL = (import.meta.env.VITE_API_URL || "http://localhost:5000").replace(/\/$/, "");
+const API_URL = import.meta.env.VITE_API_URL;
 
 const StudentCourses = () => {
     const [courses, setCourses] = useState([]);

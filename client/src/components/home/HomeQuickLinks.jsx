@@ -10,14 +10,14 @@ const links = [
 ];
 
 const HomeQuickLinks = () => (
-    <section className="relative z-10 -mt-8" aria-label="Quick links">
-        <ul className="mx-4 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-slate-200 bg-slate-200 shadow-lg md:grid-cols-5 xl:mx-auto xl:max-w-7xl">
+    <section className="border-b border-slate-200 bg-slate-50" aria-label="Quick links">
+        <ul className="mx-auto grid max-w-7xl grid-cols-2 divide-slate-200 md:grid-cols-5 md:divide-x">
             {links.map(({ icon: Icon, label, text, to }) => (
-                <li key={to} className="bg-white">
-                    <Link to={to} className="flex h-full items-center gap-3 px-5 py-5 hover:bg-blue-50">
-                        <Icon size={24} className="shrink-0 text-blue-900" />
+                <li key={to}>
+                    <Link to={to} className="flex h-full items-center gap-3 px-5 py-4 hover:bg-white">
+                        <Icon size={18} className="shrink-0 text-blue-900" aria-hidden="true" />
                         <span>
-                            <span className="block text-sm font-semibold text-slate-900">{label}</span>
+                            <span className="block text-sm font-medium text-slate-900">{label}</span>
                             <span className="block text-xs text-slate-500">{text}</span>
                         </span>
                     </Link>

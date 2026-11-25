@@ -1,124 +1,65 @@
-
-import jwt from "jsonwebtoken";
 import User from "../models/User.js";
-import { verifyFirebaseIdToken } from "../utils/verifyFirebaseIdToken.js";
+import {
+    ACCESS_COOKIE,
+    REFRESH_COOKIE,
+    clearAuthCookies,
+    findRefreshSession,
+    renewAccessToken,
+    verifyAccessToken,
+} from "../utils/authSession.js";
 
+const unauthorized = (res, message) =>
+    res.status(401).json({ success: false, message });
+
+/**
+ * Authenticates a request with the httpOnly JWT cookie.
+ * - Valid access token + live session  -> continue
+ * - Expired access token + valid refresh cookie (bcrypt-checked) -> silently issue a new access token
+ * - Otherwise -> 401
+ */
 export const verifyJWT = async (req, res, next) => {
     try {
-        let user = null;
-        let firebaseUser = null;
+        let userId = null;
+        const decoded = await verifyAccessToken(req.cookies?.[ACCESS_COOKIE]);
 
-        const authHeader = req.headers.authorization;
-        const cookieToken = req.cookies?.ums_token;
+        if (decoded) {
+            userId = decoded.id;
+        } else {
+            const session = await findRefreshSession(req.cookies?.[REFRESH_COOKIE]);
 
-        // ========================================
-        // 1. Firebase Bearer Token Authentication
-        // ========================================
-
-        if (authHeader?.startsWith("Bearer ")) {
-            const token = authHeader.slice(7).trim();
-
-            if (!token) {
-                return res.status(401).json({
-                    success: false,
-                    message: "Authentication token missing."
-                });
+            if (!session) {
+                clearAuthCookies(res);
+                return unauthorized(res, "Session expired. Please login again.");
             }
 
-            // Verify Firebase ID Token
-            firebaseUser = await verifyFirebaseIdToken(token);
-
-            // Find MongoDB user using Firebase UID
-            user = await User.findOne({
-                firebaseUid: firebaseUser.uid
-            });
+            userId = session.user.toString();
+            req.sessionId = session.sessionId;
         }
 
-        // ========================================
-        // 2. Legacy Custom JWT Cookie Authentication
-        // ========================================
-
-        else if (cookieToken) {
-
-            if (!process.env.JWT_SECRET) {
-                console.error("JWT_SECRET is not configured.");
-
-                return res.status(500).json({
-                    success: false,
-                    message: "Server authentication configuration error."
-                });
-            }
-
-            // Verify Custom JWT
-            const decoded = jwt.verify(
-                cookieToken,
-                process.env.JWT_SECRET
-            );
-
-            // Find MongoDB user using MongoDB ID
-            user = await User.findById(decoded.id);
-        }
-
-        // ========================================
-        // 3. No Token Found
-        // ========================================
-
-        else {
-            return res.status(401).json({
-                success: false,
-                message: "Authentication token missing."
-            });
-        }
-
-        // ========================================
-        // 4. Check User
-        // ========================================
+        const user = await User.findById(userId);
 
         if (!user) {
-            return res.status(401).json({
+            clearAuthCookies(res);
+            return unauthorized(res, "User not found. Please login again.");
+        }
+
+        if (user.isActive === false) {
+            clearAuthCookies(res);
+            return res.status(403).json({
                 success: false,
-                message: "User not found. Please login again."
+                message: "Your account has been deactivated. Contact the administrator.",
             });
         }
 
-        // ========================================
-        // 5. Attach User Information
-        // ========================================
+        // Access token was refreshed from the refresh cookie: issue a fresh one
+        if (!decoded) renewAccessToken(res, user, req.sessionId);
 
         req.user = user;
-
-        if (firebaseUser) {
-            req.firebaseUser = firebaseUser;
-        }
-
-        // ========================================
-        // 6. Continue
-        // ========================================
-
-        return next();
-
+        next();
     } catch (error) {
-
-        console.error(
-            "Authentication Verification Error:",
-            error.message
-        );
-
-        // Firebase configuration error
-        if (
-            error.message?.includes("FIREBASE_PROJECT_ID") ||
-            error.message?.includes("JWT_SECRET")
-        ) {
-            return res.status(500).json({
-                success: false,
-                message: "Server authentication configuration error."
-            });
-        }
-
-        // Invalid or expired token
-        return res.status(401).json({
-            success: false,
-            message: "Invalid or expired authentication token."
-        });
+        console.error("JWT Verification Error:", error.message);
+        return unauthorized(res, "Invalid or expired token. Please login again.");
     }
 };
+
+export default verifyJWT;

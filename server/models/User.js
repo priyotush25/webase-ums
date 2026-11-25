@@ -37,6 +37,12 @@ const userSchema = new mongoose.Schema(
             required: true,
         },
 
+        // Admin can deactivate an account (blocks login and API access)
+        isActive: {
+            type: Boolean,
+            default: true,
+        },
+
         // ImgBB Image URL
         photoURL: {
             type: String,

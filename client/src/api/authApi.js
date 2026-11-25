@@ -1,75 +1,33 @@
 
-import { auth } from "../firebase/firebase";
+const API_URL = import.meta.env.VITE_API_URL;
 
-// ========================================
-// API BASE URL
-// ========================================
-
-const API_URL = (
-    import.meta.env.VITE_API_URL || "http://localhost:5000"
-).replace(/\/+$/, "");
-
-// ========================================
-// GET FIREBASE AUTH TOKEN
-// ========================================
-
-const getAuthHeaders = async (user = auth.currentUser) => {
-    if (!user) {
-        throw new Error("Authentication required. Please login first.");
-    }
-
-    const idToken = await user.getIdToken();
-
-    return {
-        Authorization: `Bearer ${idToken}`,
-    };
-};
-
-// ========================================
-// COMMON API RESPONSE HANDLER
-// ========================================
-
-const handleResponse = async (response) => {
-    const data = await response.json().catch(() => ({}));
-
-    if (!response.ok) {
-        throw new Error(
-            data.message || `API Error: ${response.status}`
-        );
-    }
-
-    return data;
-};
-
-// ========================================
-// CREATE MONGODB USER PROFILE
-// ========================================
-
+/// CREATE MONGODB USER PROFILE
 export const createUserProfile = async (user, name, image) => {
     try {
-        if (!user) {
-            throw new Error("Firebase user not found.");
-        }
-
-        if (!image) {
-            throw new Error("Profile image is missing from frontend.");
-        }
-
-        const headers = await getAuthHeaders(user);
+        const idToken = await user.getIdToken();
 
         const formData = new FormData();
 
         formData.append("name", name);
-        formData.append("image", image);
+
+        if (image) formData.append("image", image);
 
         const response = await fetch(`${API_URL}/api/auth/signup`, {
             method: "POST",
             credentials: "include",
-            headers,
+            headers: {
+                Authorization: `Bearer ${idToken}`,
+            },
             body: formData,
         });
 
-        return await handleResponse(response);
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || "Profile creation failed");
+        }
+
+        return data;
 
     } catch (error) {
         console.error("Profile Creation Error:", error);
@@ -77,27 +35,37 @@ export const createUserProfile = async (user, name, image) => {
     }
 };
 
+
 // ========================================
 // BACKEND LOGIN
 // ========================================
 
 export const loginUser = async (user) => {
     try {
-        const headers = await getAuthHeaders(user);
+        const idToken = await user.getIdToken();
 
         const response = await fetch(`${API_URL}/api/auth/login`, {
             method: "POST",
             credentials: "include",
-            headers,
+            headers: {
+                Authorization: `Bearer ${idToken}`,
+            },
         });
 
-        return await handleResponse(response);
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || "Backend login failed");
+        }
+
+        return data;
 
     } catch (error) {
-        console.error("Backend Login Error:", error);
+        console.error("Backend Login Error:", error.message);
         throw error;
     }
 };
+
 
 // ========================================
 // GET CURRENT LOGGED-IN USER
@@ -105,21 +73,25 @@ export const loginUser = async (user) => {
 
 export const getCurrentUser = async () => {
     try {
-        const headers = await getAuthHeaders();
-
         const response = await fetch(`${API_URL}/api/auth/me`, {
             method: "GET",
             credentials: "include",
-            headers,
         });
 
-        return await handleResponse(response);
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || "Failed to fetch current user");
+        }
+
+        return data;
 
     } catch (error) {
-        console.error("Get Current User Error:", error);
+        console.error("Get Current User Error:", error.message);
         throw error;
     }
 };
+
 
 // ========================================
 // BACKEND LOGOUT
@@ -127,75 +99,75 @@ export const getCurrentUser = async () => {
 
 export const logoutUser = async () => {
     try {
-        const headers = await getAuthHeaders();
-
         const response = await fetch(`${API_URL}/api/auth/logout`, {
             method: "POST",
             credentials: "include",
-            headers,
         });
 
-        return await handleResponse(response);
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || "Logout failed");
+        }
+
+        return data;
 
     } catch (error) {
-        console.error("Backend Logout Error:", error);
+        console.error("Backend Logout Error:", error.message);
         throw error;
     }
 };
 
+
 // ========================================
-// GET OWN PROFILE
+// LOGOUT FROM ALL DEVICES
+// ========================================
+
+export const logoutAllDevices = async () => {
+    const response = await fetch(`${API_URL}/api/auth/logout-all`, {
+        method: "POST",
+        credentials: "include",
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) throw new Error(data.message || "Failed to log out from all devices");
+
+    return data;
+};
+
+
+// ========================================
+// OWN PROFILE (full details)
 // ========================================
 
 export const getMyProfile = async () => {
-    try {
-        const headers = await getAuthHeaders();
+    const response = await fetch(`${API_URL}/api/auth/profile`, { credentials: "include" });
+    const data = await response.json();
 
-        const response = await fetch(`${API_URL}/api/auth/profile`, {
-            method: "GET",
-            credentials: "include",
-            headers,
-        });
+    if (!response.ok) throw new Error(data.message || "Failed to load profile");
 
-        return await handleResponse(response);
-
-    } catch (error) {
-        console.error("Get Profile Error:", error);
-        throw error;
-    }
+    return data;
 };
 
-// ========================================
-// UPDATE OWN PROFILE
-// ========================================
-
 export const updateProfileRequest = async ({ image, ...fields }) => {
-    try {
-        const headers = await getAuthHeaders();
+    const formData = new FormData();
 
-        const formData = new FormData();
+    Object.entries(fields).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) formData.append(key, value);
+    });
 
-        Object.entries(fields).forEach(([key, value]) => {
-            if (value !== undefined && value !== null) {
-                formData.append(key, value);
-            }
-        });
+    if (image) formData.append("image", image);
 
-        if (image) {
-            formData.append("image", image);
-        }
+    const response = await fetch(`${API_URL}/api/auth/profile`, {
+        method: "PUT",
+        credentials: "include",
+        body: formData,
+    });
 
-        const response = await fetch(`${API_URL}/api/auth/profile`, {
-            method: "PUT",
-            credentials: "include",
-            headers,
-            body: formData,
-        });
+    const data = await response.json();
 
-        return await handleResponse(response);
+    if (!response.ok) throw new Error(data.message || "Profile update failed");
 
-    } catch (error) {
-        console.error("Update Profile Error:", error);
-        throw error;
-    }
+    return data;
 };

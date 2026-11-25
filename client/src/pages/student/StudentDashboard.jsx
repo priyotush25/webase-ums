@@ -1,450 +1,167 @@
-
+import { Award, BookOpen, CalendarCheck, ClipboardList, Clock, Wallet } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
-import {
-    ArrowRight,
-    Award,
-    Bell,
-    BookOpen,
-    CalendarCheck,
-    ClipboardList,
-    Clock,
-    GraduationCap,
-    RefreshCw
-} from "lucide-react";
-
-import { Link } from "react-router";
+import { getStudentAssignments } from "../../api/assignmentApi";
+import { getMyAttendance } from "../../api/attendanceApi";
 import { getMyEnrollments } from "../../api/enrollmentApi";
-import { useAuth } from "../../context/AuthContext";
+import { getMyFees } from "../../api/feeApi";
+import { getMyResults } from "../../api/resultApi";
 import DashboardInsights from "../../components/dashboard/DashboardInsights";
+import { EmptyLine, ErrorBanner, Kpi, KpiGrid, PanelLink, Shortcuts, WorkspaceHeader } from "../../components/dashboard/Workspace";
+import { Badge, Card, formatDate } from "../../components/ui";
+import { useAuth } from "../../context/AuthContext";
+import { taka } from "../../utils/format";
+
+const SHORTCUTS = [
+    { title: "Browse courses", description: "Enroll for this semester", icon: BookOpen, path: "/student/courses" },
+    { title: "Assignments", description: "Work and due dates", icon: ClipboardList, path: "/student/assignments" },
+    { title: "Results", description: "Grades and transcript", icon: Award, path: "/student/results" },
+    { title: "Pay fees", description: "Dues and receipts", icon: Wallet, path: "/student/fees" },
+];
+
+const STATUS_COLOR = { approved: "green", pending: "amber", rejected: "red", dropped: "slate" };
 
 const StudentDashboard = () => {
     const { user } = useAuth();
 
     const [enrollments, setEnrollments] = useState([]);
+    const [attendance, setAttendance] = useState(null);
+    const [results, setResults] = useState(null);
+    const [fees, setFees] = useState(null);
+    const [assignments, setAssignments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
-    // Enrollment data fetch
-    const fetchDashboardData = useCallback(async () => {
-        try {
-            setLoading(true);
-            setError("");
+    const load = useCallback(async () => {
+        setLoading(true);
+        setError("");
 
-            const response = await getMyEnrollments();
+        const [enrollRes, attRes, resultRes, feeRes, assignRes] = await Promise.allSettled([
+            getMyEnrollments(),
+            getMyAttendance(),
+            getMyResults(),
+            getMyFees(),
+            getStudentAssignments(),
+        ]);
 
-            // API response থেকে enrollment array বের করা
-            const enrollmentData =
-                response?.enrollments ??
-                response?.data?.enrollments ??
-                response?.data?.data ??
-                response?.data ??
-                [];
-
-            if (!Array.isArray(enrollmentData)) {
-                throw new Error("Invalid enrollment response from server.");
-            }
-
-            setEnrollments(enrollmentData);
-        } catch (err) {
-            console.error("Student Dashboard Error:", err);
-            setError(err.message || "Failed to load dashboard data.");
-        } finally {
-            setLoading(false);
+        if (enrollRes.status === "fulfilled") {
+            const data = enrollRes.value?.enrollments ?? enrollRes.value?.data ?? [];
+            setEnrollments(Array.isArray(data) ? data : []);
+        } else {
+            setError(enrollRes.reason?.message || "Failed to load dashboard data.");
         }
+
+        if (attRes.status === "fulfilled") setAttendance(attRes.value);
+        if (resultRes.status === "fulfilled") setResults(resultRes.value);
+        if (feeRes.status === "fulfilled") setFees(feeRes.value);
+        if (assignRes.status === "fulfilled") setAssignments(assignRes.value.assignments || []);
+
+        setLoading(false);
     }, []);
 
     useEffect(() => {
-        fetchDashboardData();
-    }, [fetchDashboardData]);
+        load();
+    }, [load]);
 
-    // Enrollment statistics
-    const approvedEnrollments = enrollments.filter(
-        (item) => item.status === "approved"
-    );
+    const approved = enrollments.filter((item) => item.status === "approved").length;
+    const pending = enrollments.filter((item) => item.status === "pending").length;
 
-    const pendingEnrollments = enrollments.filter(
-        (item) => item.status === "pending"
-    );
+    const recent = [...enrollments].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)).slice(0, 5);
 
-    const rejectedEnrollments = enrollments.filter(
-        (item) => item.status === "rejected"
-    );
+    const dueSoon = assignments
+        .filter((item) => new Date(item.dueDate).getTime() >= Date.now())
+        .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
+        .slice(0, 5);
 
-    const stats = [
-        {
-            title: "Enrolled Courses",
-            value: approvedEnrollments.length,
-            description: `${pendingEnrollments.length} pending approval`,
-            icon: BookOpen,
-            color: "bg-blue-100 text-blue-700",
-            path: "/student/enrollments"
-        },
-        {
-            title: "Attendance",
-            value: "—",
-            description: "Attendance module not available yet",
-            icon: CalendarCheck,
-            color: "bg-green-100 text-green-700",
-            path: "/student/attendance"
-        },
-        {
-            title: "Assignments",
-            value: "—",
-            description: "Assignment module not available yet",
-            icon: ClipboardList,
-            color: "bg-purple-100 text-purple-700",
-            path: "/student/assignments"
-        },
-        {
-            title: "Results",
-            value: "—",
-            description: "Result module not available yet",
-            icon: Award,
-            color: "bg-orange-100 text-orange-700",
-            path: "/student/results"
-        }
-    ];
-
-    const quickActions = [
-        {
-            title: "My Courses",
-            description: "View available courses",
-            icon: BookOpen,
-            path: "/student/courses"
-        },
-        {
-            title: "My Enrollments",
-            description: "Check enrollment status",
-            icon: CalendarCheck,
-            path: "/student/enrollments"
-        },
-        {
-            title: "Assignments",
-            description: "View pending assignments",
-            icon: ClipboardList,
-            path: "/student/assignments"
-        },
-        {
-            title: "My Results",
-            description: "Check examination results",
-            icon: Award,
-            path: "/student/results"
-        }
-    ];
-
-    const recentEnrollments = [...enrollments]
-        .sort(
-            (a, b) =>
-                new Date(b.createdAt || 0) -
-                new Date(a.createdAt || 0)
-        )
-        .slice(0, 4);
-
-    const getStatusStyle = (status) => {
-        const styles = {
-            approved: "bg-green-100 text-green-700",
-            pending: "bg-yellow-100 text-yellow-700",
-            rejected: "bg-red-100 text-red-700",
-            dropped: "bg-gray-100 text-gray-700"
-        };
-
-        return styles[status] || "bg-gray-100 text-gray-700";
-    };
+    const attendancePct = attendance?.countableClasses ? Math.round(attendance.percentage) : null;
+    const attendanceTone = attendancePct !== null && attendancePct < 75 ? "warn" : "default";
+    const hasDue = (fees?.totalDue || 0) > 0;
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-6">
+            <WorkspaceHeader
+                name={user?.name || user?.displayName || "Student"}
+                subtitle="Your courses, attendance, results and fees."
+            />
 
-            {/* Welcome */}
-            <section className="bg-gradient-to-r from-blue-900 to-blue-700 rounded-2xl p-6 md:p-8 text-white">
+            {error && <ErrorBanner message={error} onRetry={load} />}
 
-                <div className="flex items-center justify-between gap-5">
+            <KpiGrid>
+                <Kpi label="Enrolled courses" value={approved} hint={pending ? `${pending} awaiting approval` : "All approved"} icon={BookOpen} to="/student/enrollments" loading={loading} />
+                <Kpi
+                    label="Attendance"
+                    value={attendancePct !== null ? `${attendancePct}%` : "—"}
+                    hint={attendancePct === null ? "No classes recorded" : attendancePct < 75 ? "Below 75%" : `${attendance.present + attendance.late} of ${attendance.countableClasses} classes attended`}
+                    icon={CalendarCheck}
+                    to="/student/attendance"
+                    tone={attendanceTone}
+                    loading={loading}
+                />
+                <Kpi label="CGPA" value={results?.total ? Number(results.cgpa).toFixed(2) : "—"} hint={results?.total ? `${results.totalCredits} credits completed` : "No published results"} icon={Award} to="/student/results" loading={loading} />
+                <Kpi
+                    label="Fees due"
+                    value={fees ? taka(fees.totalDue) : "—"}
+                    hint={fees?.overdueCount ? `${fees.overdueCount} overdue` : hasDue ? "Payment pending" : "No dues"}
+                    icon={Wallet}
+                    to="/student/fees"
+                    tone={fees?.overdueCount ? "danger" : "default"}
+                    loading={loading}
+                />
+            </KpiGrid>
 
-                    <div>
-                        <p className="text-blue-200 text-sm mb-2">
-                            Student Portal
-                        </p>
-
-                        <h2 className="text-2xl md:text-3xl font-bold">
-                            Welcome, {user?.name || user?.displayName || "Student"}!
-                        </h2>
-
-                        <p className="text-blue-100 mt-2">
-                            Manage your courses, attendance and academic progress.
-                        </p>
-                    </div>
-
-                    <GraduationCap size={48} className="hidden sm:block" />
-
-                </div>
-
-            </section>
-
-            {/* Statistics */}
-            <section>
-
-                <div className="mb-5">
-                    <h2 className="text-xl font-bold text-gray-800">
-                        Academic Overview
-                    </h2>
-
-                    <p className="text-sm text-gray-500 mt-1">
-                        Your academic summary
-                    </p>
-                </div>
-
-                {error && (
-                    <div className="mb-5 p-4 rounded-xl bg-red-50 border border-red-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-
-                        <p className="text-sm text-red-700">
-                            {error}
-                        </p>
-
-                        <button
-                            onClick={fetchDashboardData}
-                            className="flex items-center gap-2 text-sm font-semibold text-red-700 hover:text-red-900"
-                        >
-                            <RefreshCw size={16} />
-                            Try Again
-                        </button>
-
-                    </div>
-                )}
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
-
-                    {stats.map((item) => {
-                        const Icon = item.icon;
-
-                        return (
-                            <div
-                                key={item.title}
-                                className="bg-white p-5 rounded-xl shadow-sm border border-gray-100"
-                            >
-
-                                <div className="flex items-center justify-between">
-
-                                    <div>
-                                        <p className="text-sm text-gray-500">
-                                            {item.title}
-                                        </p>
-
-                                        <h3 className="text-3xl font-bold text-gray-800 mt-3">
-                                            {loading && item.title === "Enrolled Courses"
-                                                ? "..."
-                                                : error && item.title === "Enrolled Courses"
-                                                    ? "!"
-                                                    : item.value}
-                                        </h3>
-                                    </div>
-
-                                    <div className={`p-3 rounded-xl ${item.color}`}>
-                                        <Icon size={25} />
-                                    </div>
-
-                                </div>
-
-                                <p className="text-xs text-gray-400 mt-4">
-                                    {loading && item.title === "Enrolled Courses"
-                                        ? "Loading enrollment data..."
-                                        : item.description}
-                                </p>
-
-                            </div>
-                        );
-                    })}
-
-                </div>
-
-                {!loading && !error && (
-                    <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-500">
-                        <span>
-                            Approved: <strong className="text-green-700">{approvedEnrollments.length}</strong>
-                        </span>
-
-                        <span>
-                            Pending: <strong className="text-yellow-700">{pendingEnrollments.length}</strong>
-                        </span>
-
-                        <span>
-                            Rejected: <strong className="text-red-700">{rejectedEnrollments.length}</strong>
-                        </span>
-                    </div>
-                )}
-
-            </section>
-
-            {/* Quick Actions */}
-            <section>
-
-                <h2 className="text-xl font-bold text-gray-800 mb-5">
-                    Quick Access
-                </h2>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-
-                    {quickActions.map((action) => {
-                        const Icon = action.icon;
-
-                        return (
-                            <Link
-                                key={action.title}
-                                to={action.path}
-                                className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition flex items-center gap-4"
-                            >
-
-                                <div className="bg-blue-100 text-blue-700 p-3 rounded-xl">
-                                    <Icon size={24} />
-                                </div>
-
-                                <div className="flex-1">
-                                    <h3 className="font-bold text-gray-800">
-                                        {action.title}
-                                    </h3>
-
-                                    <p className="text-sm text-gray-500 mt-1">
-                                        {action.description}
-                                    </p>
-                                </div>
-
-                                <ArrowRight size={18} className="text-gray-400" />
-
-                            </Link>
-                        );
-                    })}
-
-                </div>
-
-            </section>
-
-            {/* Bottom Information */}
-            <section className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-
-                {/* Recent Activities */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-
-                    <div className="flex items-center gap-3 mb-5">
-                        <Bell className="text-blue-700" />
-
-                        <h2 className="font-bold text-gray-800">
-                            Recent Activities
-                        </h2>
-                    </div>
-
+            <div className="grid gap-4 lg:grid-cols-3">
+                <Card title="My enrollments" action={<PanelLink to="/student/enrollments">View all</PanelLink>} className="lg:col-span-2" flush>
                     {loading ? (
-                        <div className="text-center py-8 text-gray-400">
-                            Loading activities...
-                        </div>
-                    ) : recentEnrollments.length > 0 ? (
-
-                        <div className="space-y-4">
-
-                            {recentEnrollments.map((item) => (
-                                <div
-                                    key={item._id}
-                                    className="flex items-center justify-between gap-3 border-b border-gray-100 pb-3 last:border-0"
-                                >
-
+                        <EmptyLine>Loading…</EmptyLine>
+                    ) : recent.length === 0 ? (
+                        <EmptyLine>You have not enrolled in any course yet.</EmptyLine>
+                    ) : (
+                        <ul className="divide-y divide-slate-100">
+                            {recent.map((item) => (
+                                <li key={item._id} className="flex items-center justify-between gap-3 px-4 py-3">
                                     <div className="min-w-0">
-                                        <p className="font-semibold text-sm text-gray-800 truncate">
-                                            {item.course?.title || "Course Enrollment"}
-                                        </p>
-
-                                        <p className="text-xs text-gray-400 mt-1">
-                                            {item.createdAt
-                                                ? new Date(item.createdAt).toLocaleDateString()
-                                                : "Date unavailable"}
+                                        <p className="truncate text-sm font-medium text-slate-900">{item.course?.title || "Course"}</p>
+                                        <p className="text-xs text-slate-500">
+                                            {item.course?.code}
+                                            {item.createdAt ? ` · Applied ${formatDate(item.createdAt)}` : ""}
                                         </p>
                                     </div>
-
-                                    <span
-                                        className={`text-xs px-3 py-1 rounded-full font-semibold capitalize whitespace-nowrap ${getStatusStyle(item.status)}`}
-                                    >
-                                        {item.status}
-                                    </span>
-
-                                </div>
+                                    <Badge color={STATUS_COLOR[item.status] || "slate"}>{item.status}</Badge>
+                                </li>
                             ))}
-
-                            <Link
-                                to="/student/enrollments"
-                                className="inline-flex items-center gap-2 text-sm text-blue-700 font-semibold hover:underline"
-                            >
-                                View All Enrollments
-                                <ArrowRight size={15} />
-                            </Link>
-
-                        </div>
-
-                    ) : (
-                        <div className="text-center py-8">
-
-                            <Clock size={32} className="mx-auto text-gray-300" />
-
-                            <p className="font-semibold text-gray-700 mt-3">
-                                No Recent Activities
-                            </p>
-
-                            <p className="text-sm text-gray-400 mt-1">
-                                Your enrollment activities will appear here.
-                            </p>
-
-                        </div>
+                        </ul>
                     )}
+                </Card>
 
-                </div>
-
-                {/* Student Information */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-
-                    <div className="flex items-center gap-3 mb-5">
-                        <GraduationCap className="text-green-700" />
-
-                        <h2 className="font-bold text-gray-800">
-                            Student Information
-                        </h2>
-                    </div>
-
-                    <div className="space-y-4">
-
-                        <div className="flex justify-between gap-3 border-b pb-3">
-                            <span className="text-sm text-gray-500">
-                                Name
-                            </span>
-
-                            <span className="text-sm font-semibold text-gray-800">
-                                {user?.name || user?.displayName || "Student"}
-                            </span>
+                <Card title="Due soon" action={<PanelLink to="/student/assignments">All</PanelLink>} flush>
+                    {loading ? (
+                        <EmptyLine>Loading…</EmptyLine>
+                    ) : dueSoon.length === 0 ? (
+                        <div className="px-4 py-6 text-center">
+                            <Clock size={18} className="mx-auto text-slate-300" aria-hidden="true" />
+                            <p className="mt-2 text-sm text-slate-500">Nothing due. You are all caught up.</p>
                         </div>
+                    ) : (
+                        <ul className="divide-y divide-slate-100">
+                            {dueSoon.map((item) => (
+                                <li key={item._id} className="px-4 py-3">
+                                    <p className="truncate text-sm font-medium text-slate-900">{item.title}</p>
+                                    <p className="text-xs text-slate-500">
+                                        {item.course?.code ? `${item.course.code} · ` : ""}Due {formatDate(item.dueDate)}
+                                    </p>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </Card>
+            </div>
 
-                        <div className="flex justify-between gap-3 border-b pb-3">
-                            <span className="text-sm text-gray-500">
-                                Email
-                            </span>
-
-                            <span className="text-sm font-semibold text-gray-800 break-all">
-                                {user?.email || "N/A"}
-                            </span>
-                        </div>
-
-                        <div className="flex justify-between">
-                            <span className="text-sm text-gray-500">
-                                Role
-                            </span>
-
-                            <span className="text-sm font-semibold text-blue-700">
-                                Student
-                            </span>
-                        </div>
-
-                    </div>
-
-                </div>
-
+            <section>
+                <h3 className="mb-2 text-sm font-semibold text-slate-900">Quick access</h3>
+                <Shortcuts items={SHORTCUTS} columns="sm:grid-cols-2 xl:grid-cols-4" />
             </section>
 
             <DashboardInsights />
-
         </div>
     );
 };

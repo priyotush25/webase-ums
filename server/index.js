@@ -3,8 +3,6 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
-import fs from "node:fs";
-import { fileURLToPath } from "node:url";
 
 import connectDB from "./config/db.js";
 import { backfillUniversityIds } from "./models/User.js";
@@ -28,38 +26,10 @@ import userRoutes from "./routes/userRoutes.js";
 
 dotenv.config();
 
-// Local convenience: take the project id from an old serviceAccountKey.json if present
-if (!process.env.FIREBASE_PROJECT_ID?.trim()) {
-    try {
-        const keyFile = fileURLToPath(new URL("./serviceAccountKey.json", import.meta.url));
-        process.env.FIREBASE_PROJECT_ID = JSON.parse(fs.readFileSync(keyFile, "utf8")).project_id || "";
-    } catch {
-        // no key file - the variable must be set in .env
-    }
-}
-
-// Fail early with a clear message instead of obscure 500 errors later
-const requiredEnv = ["MONGODB_URI", "JWT_SECRET", "FIREBASE_PROJECT_ID"];
-const missingEnv = requiredEnv.filter((key) => !process.env[key]?.trim());
-
-if (missingEnv.length) {
-    console.error(
-        `\n[config] Missing required environment variables: ${missingEnv.join(", ")}\n` +
-        `[config] Copy server/.env.example to server/.env and fill them in.\n`
-    );
-}
-
-if (!process.env.IMGBB_API_KEY?.trim()) {
-    console.warn("[config] IMGBB_API_KEY is not set - profile photos will not be uploaded.");
-}
-
 const app = express();
 
 app.disable("x-powered-by");
 app.set("trust proxy", 1);
-
-
-
 
 // ========================================
 // CORS CONFIGURATION
@@ -70,58 +40,45 @@ const allowedOrigins = [
     "http://localhost:5174",
     "http://127.0.0.1:5173",
     "http://127.0.0.1:5174",
+
+    // Production frontend
     ...(process.env.CLIENT_URL || "")
         .split(",")
-        .map((o) => o.trim().replace(/\/$/, ""))
+        .map((origin) => origin.trim().replace(/\/$/, ""))
         .filter(Boolean),
 ];
 
 app.use(
     cors({
         origin: (origin, callback) => {
-            // No origin → allow (Postman, server-to-server)
-            if (!origin) {
-                return callback(null, true);
-            }
-
-            // Exact match
-            if (allowedOrigins.includes(origin)) {
-                return callback(null, true);
-            }
-
-            // Vercel preview / branch deployments (সব ধরনের)
-            // webase-XXXX-priyotushs-projects.vercel.app
-            // webase-git-main-priyotushs-projects.vercel.app
-            if (
-                /^https:\/\/webase-[a-z0-9-]+-priyotushs-projects\.vercel\.app$/i.test(
-                    origin
-                )
-            ) {
-                return callback(null, true);
-            }
-
-            // অতিরিক্ত safety: যেকোনো webase*.vercel.app allow (চাইলে পরে সরিয়ে দিতে পারেন)
-            if (
-                /^https:\/\/webase[a-z0-9-]*\.vercel\.app$/i.test(origin)
-            ) {
+            if (!origin || allowedOrigins.includes(origin)) {
                 return callback(null, true);
             }
 
             console.error("Blocked CORS Origin:", origin);
-            return callback(null, false); // Error throw করবেন না
+
+            return callback(new Error("Origin not allowed by CORS"));
         },
-        methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-        allowedHeaders: ["Content-Type", "Authorization"],
+
+        methods: [
+            "GET",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE",
+            "OPTIONS",
+        ],
+
+        allowedHeaders: [
+            "Content-Type",
+            "Authorization",
+        ],
+
         credentials: true,
+
         optionsSuccessStatus: 204,
     })
 );
-
-
-
-
-
-
 
 // ========================================
 // BODY PARSER
@@ -164,10 +121,6 @@ const init = () => {
 
 app.use(async (req, res, next) => {
     try {
-        if (missingEnv.length) {
-            throw new Error(`Missing environment variables: ${missingEnv.join(", ")}`);
-        }
-
         await init();
         next();
     } catch (error) {
@@ -175,9 +128,7 @@ app.use(async (req, res, next) => {
 
         res.status(503).json({
             success: false,
-            message: missingEnv.length
-                ? `Server is not configured (missing: ${missingEnv.join(", ")}).`
-                : "Service unavailable. Database connection failed.",
+            message: "Service unavailable. Database connection failed.",
         });
     }
 });
@@ -231,12 +182,28 @@ app.use((req, res) => {
 app.use((error, req, res, next) => {
     console.error("Server Error:", error);
 
-    // Upload problems (wrong type, too large) are the client's fault
-    const status = error.name === "MulterError" ? 400 : error.status || 500;
+    // Upload problems (file too large, wrong type) are client errors
+    if (error.name === "MulterError") {
+        return res.status(400).json({
+            success: false,
+            message:
+                error.code === "LIMIT_FILE_SIZE"
+                    ? "Image size must be less than 5 MB."
+                    : error.message,
+        });
+    }
 
-    res.status(status).json({
+    if (error.message === "Only JPG, PNG and WEBP images are allowed.") {
+        return res.status(400).json({ success: false, message: error.message });
+    }
+
+    if (error.message === "Origin not allowed by CORS") {
+        return res.status(403).json({ success: false, message: error.message });
+    }
+
+    res.status(error.status || 500).json({
         success: false,
-        message: error.message || "Internal Server Error",
+        message: error.status ? error.message : "Internal Server Error",
     });
 });
 

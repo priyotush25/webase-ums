@@ -47,7 +47,7 @@ try {
             { title: "Library hours during exams", body: "The library will stay open until 10:00 PM during the examination period.", author: admin._id },
         ]);
     } else if (!admin) {
-        console.log("No admin found, skipped sample notices. Run make-admin first, then seed:demo again.");
+        console.log("No admin found, skipped sample notices. Set a user's role to admin in MongoDB first, then run seed:demo again.");
     }
 
     console.log("Demo data ready.");
