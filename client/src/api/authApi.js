@@ -1,38 +1,70 @@
 
+import { auth } from "../firebase/firebase";
+
 const API_URL = import.meta.env.VITE_API_URL;
 
-/// CREATE MONGODB USER PROFILE
-export const createUserProfile = async (user, name, image) => {
-    try {
-        const idToken = await user.getIdToken();
+// ========================================
+// REUSABLE AUTHENTICATED API REQUEST
+// ========================================
 
-        const formData = new FormData();
-
-        formData.append("name", name);
-
-        if (image) formData.append("image", image);
-
-        const response = await fetch(`${API_URL}/api/auth/signup`, {
-            method: "POST",
-            credentials: "include",
-            headers: {
-                Authorization: `Bearer ${idToken}`,
-            },
-            body: formData,
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || "Profile creation failed");
-        }
-
-        return data;
-
-    } catch (error) {
-        console.error("Profile Creation Error:", error);
-        throw error;
+const authRequest = async (endpoint, options = {}, currentUser = auth.currentUser) => {
+    if (!currentUser) {
+        throw new Error("User is not authenticated");
     }
+
+    const idToken = await currentUser.getIdToken();
+
+    const headers = {
+        ...options.headers,
+        Authorization: `Bearer ${idToken}`,
+    };
+
+    // FormData হলে Content-Type নিজে সেট করবেন না
+    if (!(options.body instanceof FormData)) {
+        headers["Content-Type"] = "application/json";
+    }
+
+    const response = await fetch(`${API_URL}/api/auth${endpoint}`, {
+        ...options,
+        credentials: "include",
+        headers,
+    });
+
+    let data = {};
+
+    try {
+        data = await response.json();
+    } catch {
+        // Non-JSON response
+    }
+
+    if (!response.ok) {
+        throw new Error(data.message || `API Error: ${response.status}`);
+    }
+
+    return data;
+};
+
+
+// ========================================
+// CREATE MONGODB USER PROFILE
+// ========================================
+
+export const createUserProfile = async (user, name, image) => {
+    const formData = new FormData();
+
+    formData.append("name", name);
+
+    if (image) formData.append("image", image);
+
+    return authRequest(
+        "/signup",
+        {
+            method: "POST",
+            body: formData,
+        },
+        user
+    );
 };
 
 
@@ -41,55 +73,18 @@ export const createUserProfile = async (user, name, image) => {
 // ========================================
 
 export const loginUser = async (user) => {
-    try {
-        const idToken = await user.getIdToken();
-
-        const response = await fetch(`${API_URL}/api/auth/login`, {
-            method: "POST",
-            credentials: "include",
-            headers: {
-                Authorization: `Bearer ${idToken}`,
-            },
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || "Backend login failed");
-        }
-
-        return data;
-
-    } catch (error) {
-        console.error("Backend Login Error:", error.message);
-        throw error;
-    }
+    return authRequest("/login", {
+        method: "POST",
+    }, user);
 };
 
 
 // ========================================
-// GET CURRENT LOGGED-IN USER
+// GET CURRENT USER
 // ========================================
 
 export const getCurrentUser = async () => {
-    try {
-        const response = await fetch(`${API_URL}/api/auth/me`, {
-            method: "GET",
-            credentials: "include",
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || "Failed to fetch current user");
-        }
-
-        return data;
-
-    } catch (error) {
-        console.error("Get Current User Error:", error.message);
-        throw error;
-    }
+    return authRequest("/me");
 };
 
 
@@ -98,24 +93,9 @@ export const getCurrentUser = async () => {
 // ========================================
 
 export const logoutUser = async () => {
-    try {
-        const response = await fetch(`${API_URL}/api/auth/logout`, {
-            method: "POST",
-            credentials: "include",
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || "Logout failed");
-        }
-
-        return data;
-
-    } catch (error) {
-        console.error("Backend Logout Error:", error.message);
-        throw error;
-    }
+    return authRequest("/logout", {
+        method: "POST",
+    });
 };
 
 
@@ -124,50 +104,40 @@ export const logoutUser = async () => {
 // ========================================
 
 export const logoutAllDevices = async () => {
-    const response = await fetch(`${API_URL}/api/auth/logout-all`, {
+    return authRequest("/logout-all", {
         method: "POST",
-        credentials: "include",
     });
-
-    const data = await response.json();
-
-    if (!response.ok) throw new Error(data.message || "Failed to log out from all devices");
-
-    return data;
 };
 
 
 // ========================================
-// OWN PROFILE (full details)
+// GET MY PROFILE
 // ========================================
 
 export const getMyProfile = async () => {
-    const response = await fetch(`${API_URL}/api/auth/profile`, { credentials: "include" });
-    const data = await response.json();
-
-    if (!response.ok) throw new Error(data.message || "Failed to load profile");
-
-    return data;
+    return authRequest("/profile");
 };
+
+
+// ========================================
+// UPDATE MY PROFILE
+// ========================================
 
 export const updateProfileRequest = async ({ image, ...fields }) => {
     const formData = new FormData();
 
     Object.entries(fields).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) formData.append(key, value);
+        if (value !== undefined && value !== null) {
+            formData.append(key, value);
+        }
     });
 
-    if (image) formData.append("image", image);
+    if (image) {
+        formData.append("image", image);
+    }
 
-    const response = await fetch(`${API_URL}/api/auth/profile`, {
+    return authRequest("/profile", {
         method: "PUT",
-        credentials: "include",
         body: formData,
     });
-
-    const data = await response.json();
-
-    if (!response.ok) throw new Error(data.message || "Profile update failed");
-
-    return data;
 };
