@@ -25,7 +25,7 @@ const Home = () => {
         <>
             <HomeHero />
             <HomeQuickLinks />
-            <HomeUpdates notices={overview?.notices} events={overview?.events} loading={loading} />
+            <HomeUpdates notices={overview?.notices} loading={loading} />
             <HomeAbout stats={overview?.stats} />
             <HomeDepartments departments={overview?.departments} />
             <HomeProcess />

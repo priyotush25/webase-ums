@@ -7,14 +7,13 @@ import {
     BookOpen,
     Building2,
     CalendarCheck,
-    CalendarClock,
-    CalendarDays,
     ChevronDown,
     ChevronRight,
     ClipboardCheck,
     Clock,
     FileText,
     GraduationCap,
+    ClipboardList,
     LayoutDashboard,
     LogOut,
     Menu,
@@ -23,7 +22,6 @@ import {
     UserCircle,
     UserRound,
     Users,
-    Wallet,
     X,
 } from "lucide-react";
 
@@ -53,14 +51,9 @@ const NAV = {
             ],
         },
         {
-            label: "Finance",
-            items: [{ name: "Fees", path: "/student/fees", icon: Wallet }],
-        },
-        {
             label: "Campus",
             items: [
                 { name: "Notices", path: "/student/notices", icon: Bell },
-                { name: "Calendar", path: "/student/calendar", icon: CalendarClock },
                 { name: "ID Card", path: "/student/id-card", icon: UserRound },
             ],
         },
@@ -90,7 +83,6 @@ const NAV = {
             label: "Campus",
             items: [
                 { name: "Notices", path: "/teacher/notices", icon: Bell },
-                { name: "Calendar", path: "/teacher/calendar", icon: CalendarClock },
             ],
         },
         {
@@ -129,14 +121,9 @@ const NAV = {
             ],
         },
         {
-            label: "Finance",
-            items: [{ name: "Fees", path: "/admin/fees", icon: Wallet }],
-        },
-        {
             label: "Campus",
             items: [
                 { name: "Notices", path: "/admin/notices", icon: Bell },
-                { name: "Calendar", path: "/admin/calendar", icon: CalendarDays },
             ],
         },
         {
@@ -145,6 +132,22 @@ const NAV = {
         },
     ],
 };
+
+// Before the admission is approved a student only gets the basics
+const STUDENT_PRE_ADMISSION = [
+    {
+        label: "Overview",
+        items: [{ name: "Dashboard", path: "/student/dashboard", icon: LayoutDashboard }],
+    },
+    {
+        label: "Admission",
+        items: [{ name: "Apply for Admission", path: "/student/admission", icon: ClipboardList }],
+    },
+    {
+        label: "Account",
+        items: [{ name: "Profile", path: "/student/profile", icon: UserCircle }],
+    },
+];
 
 // ========================================
 // HELPERS
@@ -382,7 +385,10 @@ const DashboardLayout = () => {
     const [loggingOut, setLoggingOut] = useState(false);
 
     const normalizedRole = role?.toString().trim().toLowerCase();
-    const groups = NAV[normalizedRole] || [];
+    const groups =
+        normalizedRole === "student" && user?.admissionApproved === false
+            ? STUDENT_PRE_ADMISSION
+            : NAV[normalizedRole] || [];
     const roleTitle = capitalize(normalizedRole) || "User";
     const displayName = user?.name || user?.displayName || "User";
 

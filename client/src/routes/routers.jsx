@@ -18,9 +18,8 @@ import Legal from "../pages/public/Legal";
 import Assignments from "../pages/shared/Assignments";
 import AdminAdmissions from "../pages/admin/AdminAdmissions";
 import AdminReports from "../pages/admin/AdminReports";
+import StudentAdmission from "../pages/student/StudentAdmission";
 import StudentIdCard from "../pages/student/StudentIdCard";
-import Events from "../pages/shared/Events";
-import Fees from "../pages/shared/Fees";
 import Routine from "../pages/shared/Routine";
 import Notices from "../pages/shared/Notices";
 import Profile from "../pages/shared/Profile";
@@ -71,6 +70,7 @@ import StudentDashboard from "../pages/student/StudentDashboard";
 import TeacherDashboard from "../pages/teacher/TeacherDashboard";
 
 // Route Guards
+import AdmissionRoute from "./AdmissionRoute";
 import GuestRoute from "./GuestRoute";
 import ProtectedRoute from "./ProtectedRoute";
 
@@ -143,27 +143,23 @@ const routers = createBrowserRouter([
                         path: "/student/dashboard",
                         element: <StudentDashboard />,
                     },
-                    { path: "/student/notices", element: <Notices /> },
-                    { path: "/student/calendar", element: <Events /> },
-                    { path: "/student/fees", element: <Fees /> },
-                    { path: "/student/id-card", element: <StudentIdCard /> },
-                    { path: "/student/routine", element: <Routine /> },
-                    { path: "/student/results", element: <Results /> },
-                    { path: "/student/assignments", element: <Assignments /> },
+                    { path: "/student/admission", element: <StudentAdmission /> },
                     { path: "/student/profile", element: <Profile /> },
 
+                    // Everything below needs an approved admission
                     {
-                        path: "/student/courses",
-                        element: <StudentCourses />
+                        element: <AdmissionRoute />,
+                        children: [
+                            { path: "/student/notices", element: <Notices /> },
+                            { path: "/student/id-card", element: <StudentIdCard /> },
+                            { path: "/student/routine", element: <Routine /> },
+                            { path: "/student/results", element: <Results /> },
+                            { path: "/student/assignments", element: <Assignments /> },
+                            { path: "/student/courses", element: <StudentCourses /> },
+                            { path: "/student/enrollments", element: <MyEnrollments /> },
+                            { path: "/student/attendance", element: <StudentAttendance /> },
+                        ],
                     },
-                    {
-                        path: "/student/enrollments",
-                        element: <MyEnrollments />
-                    },
-                    {
-                        path: "/student/attendance",
-                        element: <StudentAttendance />
-                    }
 
                     // Future Student Pages
                     // {
@@ -199,7 +195,6 @@ const routers = createBrowserRouter([
                     },
                     { path: "/teacher/students", element: <TeacherStudents /> },
                     { path: "/teacher/notices", element: <Notices /> },
-                    { path: "/teacher/calendar", element: <Events /> },
                     { path: "/teacher/routine", element: <Routine /> },
                     { path: "/teacher/results", element: <Results /> },
                     { path: "/teacher/assignments", element: <Assignments /> },
@@ -245,8 +240,6 @@ const routers = createBrowserRouter([
                         element: <AdminDashboard />,
                     },
                     { path: "/admin/notices", element: <Notices /> },
-                    { path: "/admin/calendar", element: <Events /> },
-                    { path: "/admin/fees", element: <Fees /> },
                     { path: "/admin/admissions", element: <AdminAdmissions /> },
                     { path: "/admin/reports", element: <AdminReports /> },
                     { path: "/admin/routine", element: <Routine /> },

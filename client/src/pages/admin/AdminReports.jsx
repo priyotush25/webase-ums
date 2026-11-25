@@ -5,7 +5,6 @@ import { toast } from "react-toastify";
 import { getSummary } from "../../api/reportApi";
 import { PageHeader, Spinner, StatCard, ghostBtn } from "../../components/ui";
 import { Users } from "lucide-react";
-import { taka } from "../../utils/format";
 
 const Bars = ({ rows, color = "bg-blue-900", suffix = "" }) => {
     const max = Math.max(1, ...rows.map((row) => row.value));
@@ -79,17 +78,6 @@ const AdminReports = () => {
             <div className="grid gap-6 lg:grid-cols-2">
                 <Panel title="Students per department">
                     <Bars rows={data.departments.map((d) => ({ label: `${d.code} · ${d.name}`, value: d.students }))} />
-                </Panel>
-
-                <Panel title="Fee collection">
-                    <Bars
-                        color="bg-emerald-600"
-                        rows={[
-                            { label: "Collected", value: data.fees.collected },
-                            { label: "Outstanding", value: data.fees.outstanding },
-                        ]}
-                    />
-                    <p className="mt-4 text-sm text-slate-500">Collected {taka(data.fees.collected)}, outstanding {taka(data.fees.outstanding)}.</p>
                 </Panel>
 
                 <Panel title="Busiest courses (seats used)">

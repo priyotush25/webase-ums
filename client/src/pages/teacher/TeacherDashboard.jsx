@@ -5,7 +5,7 @@ import { getMyAssignments } from "../../api/assignmentApi";
 import { getMyTeachingCourses } from "../../api/courseApi";
 import { getMyTeachingStudents } from "../../api/teacherApi";
 import DashboardInsights from "../../components/dashboard/DashboardInsights";
-import { EmptyLine, Kpi, KpiGrid, PanelLink, Shortcuts, WorkspaceHeader } from "../../components/dashboard/Workspace";
+import { EmptyLine, ErrorBanner, Kpi, KpiGrid, PanelLink, Shortcuts, WorkspaceHeader } from "../../components/dashboard/Workspace";
 import { Badge, Card, formatDate } from "../../components/ui";
 import { useAuth } from "../../context/AuthContext";
 
@@ -23,8 +23,12 @@ const TeacherDashboard = () => {
     const [students, setStudents] = useState(null);
     const [assignments, setAssignments] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
     const load = useCallback(async () => {
+        setLoading(true);
+        setError("");
+
         const [courseRes, studentRes, assignmentRes] = await Promise.allSettled([
             getMyTeachingCourses(),
             getMyTeachingStudents(),
@@ -37,6 +41,10 @@ const TeacherDashboard = () => {
             setStudents(new Set(rows.map((row) => row.student?._id)).size);
         }
         if (assignmentRes.status === "fulfilled") setAssignments(assignmentRes.value.assignments || []);
+
+        if ([courseRes, studentRes, assignmentRes].every((r) => r.status === "rejected")) {
+            setError(courseRes.reason?.message || "Failed to load dashboard data.");
+        }
 
         setLoading(false);
     }, []);
@@ -55,7 +63,11 @@ const TeacherDashboard = () => {
             <WorkspaceHeader
                 name={user?.name || user?.displayName || "Teacher"}
                 subtitle="Your classes, students and deadlines."
+                onRefresh={load}
+                refreshing={loading}
             />
+
+            {error && <ErrorBanner message={error} onRetry={load} />}
 
             <KpiGrid>
                 <Kpi label="My courses" value={courses.length} hint="Assigned this term" icon={BookOpen} to="/teacher/courses" loading={loading} />

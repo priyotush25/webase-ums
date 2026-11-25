@@ -1,14 +1,13 @@
 import { Link } from "react-router";
 
 import { formatDate } from "../ui";
-import { EVENT_TYPES } from "../../utils/format";
 
 const PRIORITY = { important: "text-gold-700", urgent: "text-red-600" };
 
-const HomeUpdates = ({ notices = [], events = [], loading }) => (
+const HomeUpdates = ({ notices = [], loading }) => (
     <section className="bg-white py-16">
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 lg:grid-cols-5">
-            <div className="lg:col-span-3">
+        <div className="mx-auto max-w-4xl px-4">
+            <div>
                 <div className="flex items-end justify-between border-b border-slate-200 pb-3">
                     <h2 className="text-xl font-semibold text-blue-950">Latest notices</h2>
                     <Link to="/notices" className="text-sm font-semibold text-blue-900 hover:underline">View all</Link>
@@ -33,37 +32,6 @@ const HomeUpdates = ({ notices = [], events = [], loading }) => (
                                 <p className="mt-1 line-clamp-2 text-sm leading-6 text-slate-600">{notice.body}</p>
                             </li>
                         ))}
-                    </ul>
-                )}
-            </div>
-
-            <div id="calendar" className="lg:col-span-2">
-                <div className="flex items-end justify-between border-b border-slate-200 pb-3">
-                    <h2 className="text-xl font-semibold text-blue-950">Academic calendar</h2>
-                </div>
-
-                {loading ? (
-                    <p className="py-8 text-sm text-slate-500">Loading dates…</p>
-                ) : events.length === 0 ? (
-                    <p className="py-8 text-sm text-slate-500">No upcoming dates yet.</p>
-                ) : (
-                    <ul className="divide-y divide-slate-100">
-                        {events.map((event) => {
-                            const date = new Date(event.startDate);
-
-                            return (
-                                <li key={event._id} className="flex items-center gap-4 py-4">
-                                    <div className="w-14 shrink-0 rounded-lg bg-blue-50 py-2 text-center">
-                                        <p className="text-xl font-bold leading-none text-blue-900">{date.toLocaleDateString("en-GB", { day: "2-digit" })}</p>
-                                        <p className="mt-1 text-xs text-blue-700">{date.toLocaleDateString("en-GB", { month: "short" })}</p>
-                                    </div>
-                                    <div className="min-w-0">
-                                        <p className="font-semibold text-slate-900">{event.title}</p>
-                                        <p className="text-xs text-slate-500">{EVENT_TYPES[event.type]?.label}{event.location ? ` at ${event.location}` : ""}</p>
-                                    </div>
-                                </li>
-                            );
-                        })}
                     </ul>
                 )}
             </div>

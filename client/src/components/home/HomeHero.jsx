@@ -18,7 +18,7 @@ const HomeHero = () => (
                 </h1>
 
                 <p className="mt-5 max-w-lg text-base leading-7 text-slate-600">
-                    {siteConfig.name} runs admission, enrollment, attendance, results and fees on a single secure platform, so students, teachers and staff spend less time on paperwork.
+                    {siteConfig.name} runs admission, enrollment, attendance and results on a single secure platform, so students, teachers and staff spend less time on paperwork.
                 </p>
 
                 <div className="mt-8 flex flex-wrap gap-3">

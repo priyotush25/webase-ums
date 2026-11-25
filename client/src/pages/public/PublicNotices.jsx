@@ -1,24 +1,18 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { getPublicEvents, getPublicNotices } from "../../api/publicApi";
+import { getPublicNotices } from "../../api/publicApi";
 import { Badge, EmptyState, Spinner, formatDate, ghostBtn, inputClass } from "../../components/ui";
-import { EVENT_TYPES } from "../../utils/format";
 import { PageBanner, Section } from "./PublicPage";
 
 const PRIORITY = { normal: null, important: ["amber", "Important"], urgent: ["red", "Urgent"] };
 
 const PublicNotices = () => {
     const [notices, setNotices] = useState([]);
-    const [events, setEvents] = useState([]);
     const [pagination, setPagination] = useState({ currentPage: 1, totalPages: 1 });
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState("");
     const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        getPublicEvents().then((r) => setEvents(r.events || [])).catch(() => {});
-    }, []);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -37,11 +31,11 @@ const PublicNotices = () => {
 
     return (
         <>
-            <PageBanner title="Notices and academic calendar" crumbs={[["Notices"]]} />
+            <PageBanner title="Notices" crumbs={[["Notices"]]} />
 
             <Section>
-                <div className="grid gap-12 lg:grid-cols-3">
-                    <div className="lg:col-span-2">
+                <div>
+                    <div>
                         <input
                             value={search}
                             onChange={(event) => { setSearch(event.target.value); setPage(1); }}
@@ -79,26 +73,6 @@ const PublicNotices = () => {
                         )}
                     </div>
 
-                    <aside id="calendar">
-                        <h2 className="border-b-2 border-gold-500 pb-3 text-2xl font-bold text-blue-950">Upcoming dates</h2>
-
-                        {events.length === 0 ? (
-                            <p className="py-6 text-slate-500">No upcoming dates.</p>
-                        ) : (
-                            <ul className="divide-y divide-slate-100">
-                                {events.map((event) => (
-                                    <li key={event._id} className="py-4">
-                                        <p className="text-sm font-semibold text-blue-900">
-                                            {formatDate(event.startDate)}
-                                            {event.endDate && ` to ${formatDate(event.endDate)}`}
-                                        </p>
-                                        <p className="mt-1 font-medium text-slate-900">{event.title}</p>
-                                        <div className="mt-1"><Badge color={EVENT_TYPES[event.type].color}>{EVENT_TYPES[event.type].label}</Badge></div>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                    </aside>
                 </div>
             </Section>
         </>

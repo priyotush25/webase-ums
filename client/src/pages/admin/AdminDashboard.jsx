@@ -6,7 +6,6 @@ import {
     GraduationCap,
     UserRound,
     Users,
-    Wallet,
 } from "lucide-react";
 
 import { useCallback, useEffect, useState } from "react";
@@ -18,14 +17,12 @@ import DashboardInsights from "../../components/dashboard/DashboardInsights";
 import { EmptyLine, ErrorBanner, Kpi, KpiGrid, PanelLink, Shortcuts, WorkspaceHeader } from "../../components/dashboard/Workspace";
 import { Card, ProgressBar } from "../../components/ui";
 import { useAuth } from "../../context/AuthContext";
-import { taka } from "../../utils/format";
 
 const MODULES = [
     { title: "Admissions", description: "Review applications", icon: ClipboardCheck, path: "/admin/admissions" },
     { title: "Students", description: "Records and academic status", icon: GraduationCap, path: "/admin/students" },
     { title: "Teachers", description: "Faculty and designations", icon: UserRound, path: "/admin/teachers" },
     { title: "Courses", description: "Catalogue, capacity, teachers", icon: BookOpen, path: "/admin/courses" },
-    { title: "Fees", description: "Invoices and payments", icon: Wallet, path: "/admin/fees" },
     { title: "Reports", description: "University-wide summary", icon: FileText, path: "/admin/reports" },
 ];
 
@@ -71,10 +68,6 @@ const AdminDashboard = () => {
     const admissions = summary?.admissions || {};
     const pendingAdmissions = (admissions.pending || 0) + (admissions.under_review || 0);
     const courseLoad = summary?.courseLoad || [];
-    const collected = summary?.fees?.collected ?? 0;
-    const outstanding = summary?.fees?.outstanding ?? 0;
-    const billed = collected + outstanding;
-    const collectionRate = billed ? Math.round((collected / billed) * 100) : null;
 
     const roleRows = people
         ? [
@@ -164,30 +157,8 @@ const AdminDashboard = () => {
                     )}
                 </Card>
 
-                {/* Finance + people */}
+                {/* People */}
                 <div className="space-y-4">
-                    <Card title="Fee collection" action={<PanelLink to="/admin/fees">Open</PanelLink>}>
-                        {loading ? (
-                            <p className="text-sm text-slate-500">Loading…</p>
-                        ) : (
-                            <>
-                                <div className="flex items-baseline justify-between">
-                                    <p className="tabular text-xl font-semibold text-slate-900">{taka(collected)}</p>
-                                    <p className="text-xs text-slate-500">{collectionRate === null ? "No invoices" : `${collectionRate}% of billed`}</p>
-                                </div>
-
-                                <div className="mt-3">
-                                    <ProgressBar value={collectionRate || 0} tone="green" />
-                                </div>
-
-                                <p className="mt-3 flex justify-between text-xs text-slate-500">
-                                    <span>Outstanding</span>
-                                    <span className="tabular font-medium text-slate-700">{taka(outstanding)}</span>
-                                </p>
-                            </>
-                        )}
-                    </Card>
-
                     <Card title="People">
                         {loading ? (
                             <p className="text-sm text-slate-500">Loading…</p>

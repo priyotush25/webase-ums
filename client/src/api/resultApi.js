@@ -8,3 +8,5 @@ export const saveCourseResults = (courseId, results) =>
     request(`/course/${courseId}`, jsonBody("POST", { results }));
 export const getAllResults = (courseId) =>
     request(courseId ? `?courseId=${courseId}` : "");
+export const publishCourseResults = (courseId) =>
+    request(`/course/${courseId}/publish`, { method: "POST" });

@@ -1,4 +1,4 @@
-import { Award, Printer, RefreshCw, Save } from "lucide-react";
+import { Award, Printer, RefreshCw, Save, Send, Wand2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 
@@ -7,6 +7,7 @@ import {
     getAllResults,
     getCourseResults,
     getMyResults,
+    publishCourseResults,
     saveCourseResults,
 } from "../../api/resultApi";
 import {
@@ -36,24 +37,6 @@ const gradeFor = (total) => {
 const gradeColor = (letter) =>
     letter === "F" ? "red" : letter?.startsWith("A") ? "green" : letter === "-" ? "slate" : "blue";
 
-// Group results by semester and compute each semester's GPA
-const groupBySemester = (results) => {
-    const map = new Map();
-
-    for (const item of results) {
-        const key = item.course?.semester || "Other";
-        if (!map.has(key)) map.set(key, []);
-        map.get(key).push(item);
-    }
-
-    return [...map.entries()].map(([semester, items]) => {
-        const credits = items.reduce((sum, i) => sum + Number(i.course?.credit || 0), 0);
-        const points = items.reduce((sum, i) => sum + Number(i.course?.credit || 0) * i.gradePoint, 0);
-
-        return { semester, items, credits, sgpa: credits ? points / credits : 0 };
-    });
-};
-
 // ========================================
 // STUDENT
 // ========================================
@@ -79,19 +62,19 @@ const StudentResults = () => {
 
     return (
         <div className="space-y-6">
-            <PageHeader title="My Results" subtitle="Course marks, grades and your CGPA.">
+            <PageHeader title="My Results" subtitle="Published results, semester-wise history and your CGPA.">
                 <button onClick={load} disabled={loading} className={`${ghostBtn} no-print`}>
                     <RefreshCw size={16} className={loading ? "animate-spin" : ""} /> Refresh
                 </button>
-                <button onClick={() => window.print()} disabled={loading || !data?.results?.length} className={`${ghostBtn} no-print`}>
+                <button onClick={() => window.print()} disabled={loading || !data?.total} className={`${ghostBtn} no-print`}>
                     <Printer size={16} /> Print transcript
                 </button>
             </PageHeader>
 
             {loading ? (
                 <Spinner />
-            ) : !data?.results?.length ? (
-                <EmptyState icon={Award} title="No results published" text="Results appear here after your teachers publish marks." />
+            ) : !data?.total ? (
+                <EmptyState icon={Award} title="No results published" text="Your grades and result appear here after your teacher publishes them." />
             ) : (
                 <>
                     <div className="grid gap-4 sm:grid-cols-3">
@@ -100,11 +83,13 @@ const StudentResults = () => {
                         <StatCard title="Credits earned" value={data.totalCredits} icon={Award} color="bg-purple-100 text-purple-700" />
                     </div>
 
-                    {groupBySemester(data.results).map(({ semester, items, sgpa, credits }) => (
+                    <p className="text-sm font-medium text-slate-500">Academic history · semester-wise</p>
+
+                    {data.history.map(({ semester, results: items, sgpa, credits, earnedCredits }) => (
                         <section key={semester} className="space-y-2">
                             <div className="flex items-baseline justify-between">
                                 <h3 className="font-display text-lg font-bold text-slate-900">{semester}</h3>
-                                <p className="text-sm text-slate-500">{credits} credits · SGPA <strong className="text-slate-900">{sgpa.toFixed(2)}</strong></p>
+                                <p className="text-sm text-slate-500">{earnedCredits}/{credits} credits · SGPA <strong className="text-slate-900">{sgpa.toFixed(2)}</strong></p>
                             </div>
 
                             <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -158,6 +143,7 @@ const TeacherResults = () => {
     const [rows, setRows] = useState([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [publishing, setPublishing] = useState(false);
 
     useEffect(() => {
         (async () => {
@@ -209,6 +195,30 @@ const TeacherResults = () => {
         [rows]
     );
 
+    // Fill the assignment column from the marks the teacher gave on checked assignments
+    const useAssignmentMarks = () => {
+        setRows((list) =>
+            list.map((row) => (row.suggestedAssignment === null ? row : { ...row, assignment: row.suggestedAssignment }))
+        );
+        toast.info("Assignment marks filled from checked assignments. Save to keep them.");
+    };
+
+    const handlePublish = async () => {
+        if (!window.confirm("Publish the saved results? Students will see their marks and grades.")) return;
+
+        try {
+            setPublishing(true);
+            const response = await publishCourseResults(courseId);
+            toast.success(response.message || "Results published");
+            if (response.withoutMarks) toast.info(`${response.withoutMarks} student(s) have no saved marks and stay hidden.`);
+            loadRows();
+        } catch (error) {
+            toast.error(error.message || "Failed to publish results");
+        } finally {
+            setPublishing(false);
+        }
+    };
+
     const handleSave = async () => {
         for (const row of rows) {
             for (const [field, max] of Object.entries(MAX)) {
@@ -245,7 +255,7 @@ const TeacherResults = () => {
 
     return (
         <div className="space-y-6">
-            <PageHeader title="Results" subtitle="Enter marks for students of your courses (Assignment 20 + Midterm 30 + Final 50).">
+            <PageHeader title="Results" subtitle="Enter marks (Assignment 20 + Midterm 30 + Final 50), save, then publish so students can see them.">
                 <select
                     value={courseId}
                     onChange={(event) => setCourseId(event.target.value)}
@@ -258,8 +268,14 @@ const TeacherResults = () => {
                         </option>
                     ))}
                 </select>
-                <button onClick={handleSave} disabled={saving || rows.length === 0} className={primaryBtn}>
-                    <Save size={16} /> {saving ? "Saving..." : "Save Results"}
+                <button onClick={useAssignmentMarks} disabled={rows.length === 0 || rows.every((row) => row.suggestedAssignment === null)} className={ghostBtn} title="Use the marks from checked assignments">
+                    <Wand2 size={16} /> Fill assignment marks
+                </button>
+                <button onClick={handleSave} disabled={saving || rows.length === 0} className={ghostBtn}>
+                    <Save size={16} /> {saving ? "Saving..." : "Save"}
+                </button>
+                <button onClick={handlePublish} disabled={publishing || !rows.some((row) => row.saved && !row.published)} className={primaryBtn}>
+                    <Send size={16} /> {publishing ? "Publishing..." : "Publish"}
                 </button>
             </PageHeader>
 
@@ -280,6 +296,7 @@ const TeacherResults = () => {
                                 <th className="px-4 py-3">Final /50</th>
                                 <th className="px-4 py-3">Total</th>
                                 <th className="px-4 py-3">Grade</th>
+                                <th className="px-4 py-3">Status</th>
                                 <th className="px-4 py-3">Remarks</th>
                             </tr>
                         </thead>
@@ -312,6 +329,11 @@ const TeacherResults = () => {
                                     <td className="px-4 py-3 font-semibold">{totals[index]}</td>
                                     <td className="px-4 py-3">
                                         <Badge color={gradeColor(gradeFor(totals[index]))}>{gradeFor(totals[index])}</Badge>
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <Badge color={row.published ? "green" : row.saved ? "amber" : "slate"}>
+                                            {row.published ? "Published" : row.saved ? "Saved" : "No marks"}
+                                        </Badge>
                                     </td>
                                     <td className="px-4 py-3">
                                         <input
@@ -369,7 +391,7 @@ const AdminResults = () => {
 
     return (
         <div className="space-y-6">
-            <PageHeader title="Results Overview" subtitle="All published results across courses.">
+            <PageHeader title="Results Overview" subtitle="Read-only. Only the course teacher can enter and publish marks.">
                 <input
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
@@ -397,6 +419,7 @@ const AdminResults = () => {
                                 <th className="px-4 py-3">Total</th>
                                 <th className="px-4 py-3">Grade</th>
                                 <th className="px-4 py-3">GP</th>
+                                <th className="px-4 py-3">Status</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
@@ -416,6 +439,7 @@ const AdminResults = () => {
                                     <td className="px-4 py-3 font-semibold">{item.total}</td>
                                     <td className="px-4 py-3"><Badge color={gradeColor(item.letterGrade)}>{item.letterGrade}</Badge></td>
                                     <td className="px-4 py-3">{item.gradePoint.toFixed(2)}</td>
+                                    <td className="px-4 py-3"><Badge color={item.published ? "green" : "amber"}>{item.published ? "Published" : "Draft"}</Badge></td>
                                 </tr>
                             ))}
                         </tbody>
@@ -426,7 +450,7 @@ const AdminResults = () => {
     );
 };
 
-const Results = () => {
+const Results =() => {
     const { role } = useAuth();
 
     if (role === "student") return <StudentResults />;

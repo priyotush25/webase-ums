@@ -10,10 +10,3 @@ export const DAYS = ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"];
 
 // Our week starts on Saturday; JS getDay(): Sun=0 … Sat=6
 export const todayCode = () => ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][new Date().getDay()];
-
-export const EVENT_TYPES = {
-    academic: { label: "Academic", color: "blue" },
-    exam: { label: "Exam", color: "red" },
-    holiday: { label: "Holiday", color: "green" },
-    event: { label: "Campus event", color: "amber" },
-};

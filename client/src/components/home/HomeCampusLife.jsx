@@ -1,7 +1,6 @@
-import { BookOpen, Briefcase, FlaskConical, Library, Trophy, Users } from "lucide-react";
+import { BookOpen, Briefcase, FlaskConical, Trophy, Users } from "lucide-react";
 
 const items = [
-    { icon: Library, title: "Library", text: "Reading rooms, reference books and digital journal access." },
     { icon: FlaskConical, title: "Labs", text: "Computer, electronics and language labs open through the week." },
     { icon: Users, title: "Clubs", text: "Debate, programming, cultural and volunteer clubs run by students." },
     { icon: Trophy, title: "Sports", text: "Cricket, football and indoor games with an annual sports day." },

@@ -1,17 +1,16 @@
-import { Bell, CalendarDays, ClipboardList, LogIn, Search } from "lucide-react";
+import { Bell, ClipboardList, LogIn, Search } from "lucide-react";
 import { Link } from "react-router";
 
 const links = [
     { icon: ClipboardList, label: "Apply online", text: "Start your application", to: "/admissions/apply" },
     { icon: Search, label: "Track application", text: "Check your status", to: "/admissions/track" },
     { icon: Bell, label: "Notice board", text: "Latest announcements", to: "/notices" },
-    { icon: CalendarDays, label: "Academic calendar", text: "Exams and holidays", to: "/notices#calendar" },
-    { icon: LogIn, label: "Student portal", text: "Results, routine, fees", to: "/login" },
+    { icon: LogIn, label: "Student portal", text: "Courses, results, routine", to: "/login" },
 ];
 
 const HomeQuickLinks = () => (
     <section className="border-b border-slate-200 bg-slate-50" aria-label="Quick links">
-        <ul className="mx-auto grid max-w-7xl grid-cols-2 divide-slate-200 md:grid-cols-5 md:divide-x">
+        <ul className="mx-auto grid max-w-7xl grid-cols-2 divide-slate-200 md:grid-cols-4 md:divide-x">
             {links.map(({ icon: Icon, label, text, to }) => (
                 <li key={to}>
                     <Link to={to} className="flex h-full items-center gap-3 px-5 py-4 hover:bg-white">

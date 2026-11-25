@@ -34,6 +34,7 @@ const initialForm = {
     semester: "",
     capacity: "60",
     status: "active",
+    isPublished: false,
 };
 
 const AdminCourses = () => {
@@ -130,6 +131,7 @@ const AdminCourses = () => {
             semester: course.semester || "",
             capacity: String(course.capacity ?? 60),
             status: course.status || "active",
+            isPublished: Boolean(course.isPublished),
         });
 
         setModalOpen(true);
@@ -344,6 +346,7 @@ const AdminCourses = () => {
                     <option value="all">All Status</option>
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
+                    <option value="completed">Completed</option>
                 </select>
             </div>
 
@@ -428,9 +431,18 @@ const AdminCourses = () => {
                                             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                                                 course.status === "active"
                                                     ? "bg-green-100 text-green-700"
-                                                    : "bg-gray-100 text-gray-600"
+                                                    : course.status === "completed"
+                                                        ? "bg-blue-100 text-blue-700"
+                                                        : "bg-gray-100 text-gray-600"
                                             }`}>
                                                 {course.status}
+                                            </span>
+                                            <span className={`ml-2 px-3 py-1 rounded-full text-xs font-semibold ${
+                                                course.isPublished
+                                                    ? "bg-emerald-100 text-emerald-700"
+                                                    : "bg-amber-100 text-amber-700"
+                                            }`}>
+                                                {course.isPublished ? "Published" : "Draft"}
                                             </span>
                                         </td>
 
@@ -643,6 +655,21 @@ const AdminCourses = () => {
                                 />
                             </div>
 
+                            <label className="flex items-start gap-3 rounded-lg border px-4 py-3 text-sm">
+                                <input
+                                    type="checkbox"
+                                    checked={form.isPublished}
+                                    onChange={(e) => setForm((prev) => ({ ...prev, isPublished: e.target.checked }))}
+                                    className="mt-1"
+                                />
+                                <span>
+                                    <span className="font-medium">Publish for students</span>
+                                    <span className="block text-xs text-gray-500">
+                                        Students of this department see it only when its semester is their current semester.
+                                    </span>
+                                </span>
+                            </label>
+
                             {editingId && (
                                 <div>
                                     <label className="block text-sm font-medium mb-2">
@@ -657,6 +684,7 @@ const AdminCourses = () => {
                                     >
                                         <option value="active">Active</option>
                                         <option value="inactive">Inactive</option>
+                                        <option value="completed">Completed (semester finished)</option>
                                     </select>
                                 </div>
                             )}

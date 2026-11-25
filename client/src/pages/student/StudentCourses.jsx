@@ -3,7 +3,7 @@ import { BookOpen, GraduationCap, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
-import { createEnrollment } from "../../api/enrollmentApi";
+import { createEnrollment, getMyEnrollments } from "../../api/enrollmentApi";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -12,6 +12,8 @@ const StudentCourses = () => {
     const [loading, setLoading] = useState(true);
     const [enrollingId, setEnrollingId] = useState(null);
     const [search, setSearch] = useState("");
+    const [applied, setApplied] = useState({});
+    const [department, setDepartment] = useState("");
 
     const fetchCourses = async () => {
         try {
@@ -30,7 +32,21 @@ const StudentCourses = () => {
                 throw new Error(result.message || "Failed to load courses");
             }
 
-            setCourses(result.data || []);
+            const list = result.data || [];
+            setCourses(list);
+            setDepartment(list[0]?.department?.name || "");
+
+            // Mark courses the student has already applied for
+            try {
+                const mine = await getMyEnrollments();
+                const map = {};
+                (mine.data || []).forEach((item) => {
+                    if (item.course?._id) map[item.course._id] = item.status;
+                });
+                setApplied(map);
+            } catch {
+                // the list still works without this
+            }
         } catch (error) {
             toast.error(error.message);
         } finally {
@@ -49,6 +65,7 @@ const StudentCourses = () => {
             const result = await createEnrollment(courseId);
 
             toast.success(result.message || "Enrollment request submitted");
+            setApplied((previous) => ({ ...previous, [courseId]: "pending" }));
 
         } catch (error) {
             toast.error(error.message);
@@ -63,7 +80,7 @@ const StudentCourses = () => {
         return (
             course.title?.toLowerCase().includes(keyword) ||
             course.code?.toLowerCase().includes(keyword) ||
-            course.department?.name?.toLowerCase().includes(keyword)
+            course.semester?.toLowerCase().includes(keyword)
         );
     });
 
@@ -84,7 +101,9 @@ const StudentCourses = () => {
                 </h2>
 
                 <p className="mt-1 text-sm text-slate-500">
-                    Explore available courses and submit your enrollment request.
+                    {department
+                        ? `Published ${department} subjects of your current semester. Send an enrollment request; the course becomes active after approval.`
+                        : "Published subjects of your department and current semester."}
                 </p>
             </div>
 
@@ -112,7 +131,7 @@ const StudentCourses = () => {
                     </h3>
 
                     <p className="mt-1 text-sm text-slate-500">
-                        No active courses are currently available.
+                        No subject is published for your department and semester yet. Check again later.
                     </p>
                 </div>
             ) : (
@@ -171,16 +190,22 @@ const StudentCourses = () => {
                                     </p>
                                 </div>
 
-                                <button
-                                    type="button"
-                                    onClick={() => handleEnroll(course._id)}
-                                    disabled={enrollingId === course._id}
-                                    className="w-full rounded-lg bg-blue-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
-                                >
-                                    {enrollingId === course._id
-                                        ? "Submitting..."
-                                        : "Apply for Enrollment"}
-                                </button>
+                                {["pending", "approved"].includes(applied[course._id]) ? (
+                                    <p className="w-full rounded-lg bg-slate-100 px-4 py-3 text-center text-sm font-semibold capitalize text-slate-600">
+                                        {applied[course._id] === "approved" ? "Enrolled" : "Application pending"}
+                                    </p>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() => handleEnroll(course._id)}
+                                        disabled={enrollingId === course._id}
+                                        className="w-full rounded-lg bg-blue-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-60"
+                                    >
+                                        {enrollingId === course._id
+                                            ? "Submitting..."
+                                            : "Apply for Enrollment"}
+                                    </button>
+                                )}
 
                             </div>
                         </div>

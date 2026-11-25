@@ -142,7 +142,7 @@ const Routine = () => {
                 <EmptyState
                     icon={CalendarDays}
                     title="No classes scheduled"
-                    text={isAdmin ? "Add the first class to build the weekly routine." : "Your classes appear here once the routine is published for your courses."}
+                    text={isAdmin ? "Add the first class to build the weekly routine." : "Your routine appears after your enrollment is approved and the course is active."}
                 />
             ) : (
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

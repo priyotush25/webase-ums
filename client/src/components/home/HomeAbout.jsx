@@ -18,10 +18,10 @@ const HomeAbout = ({ stats }) => {
                 <div>
                     <h2 className="text-3xl font-semibold text-blue-950">A university built around its students</h2>
                     <p className="mt-4 leading-7 text-slate-600">
-                        Since {siteConfig.established}, {siteConfig.name} has focused on practical, well-taught programs and a campus where students are known by name. From online admission to results and fees, everything runs through one secure portal.
+                        Since {siteConfig.established}, {siteConfig.name} has focused on practical, well-taught programs and a campus where students are known by name. From online admission to results, everything runs through one secure portal.
                     </p>
                     <p className="mt-3 leading-7 text-slate-600">
-                        Teachers publish assignments, take attendance and enter marks online. Students follow their routine, results and fees from any device.
+                        Teachers publish assignments, take attendance and enter marks online. Students follow their routine and results from any device.
                     </p>
                     <Link to="/about" className="mt-6 inline-block font-semibold text-blue-900 hover:underline">Read about the university</Link>
                 </div>

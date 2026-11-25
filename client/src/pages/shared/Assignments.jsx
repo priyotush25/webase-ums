@@ -1,4 +1,4 @@
-import { ClipboardList, Pencil, Plus, RefreshCw, Trash2 } from "lucide-react";
+import { ClipboardList, ExternalLink, Pencil, Plus, RefreshCw, Send, Trash2, Users } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 
@@ -8,6 +8,9 @@ import {
     getAllAssignments,
     getMyAssignments,
     getStudentAssignments,
+    getSubmissions,
+    markSubmission,
+    submitAssignment,
     updateAssignment,
 } from "../../api/assignmentApi";
 import { getMyTeachingCourses } from "../../api/courseApi";
@@ -35,6 +38,174 @@ const toLocalInput = (value) => {
     return new Date(date.getTime() - offset).toISOString().slice(0, 16);
 };
 
+// ========================================
+// TEACHER: check submissions and give marks
+// ========================================
+
+const SubmissionsModal = ({ assignment, onClose, onChanged }) => {
+    const [rows, setRows] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [drafts, setDrafts] = useState({});
+    const [savingId, setSavingId] = useState(null);
+
+    const load = useCallback(async () => {
+        try {
+            setLoading(true);
+            const response = await getSubmissions(assignment._id);
+            setRows(response.rows || []);
+            setDrafts(
+                Object.fromEntries(
+                    (response.rows || [])
+                        .filter((row) => row.submission)
+                        .map((row) => [row.submission._id, { marks: row.submission.marks ?? "", feedback: row.submission.feedback || "" }])
+                )
+            );
+        } catch (error) {
+            toast.error(error.message || "Failed to load submissions");
+        } finally {
+            setLoading(false);
+        }
+    }, [assignment._id]);
+
+    useEffect(() => {
+        load();
+    }, [load]);
+
+    const setDraft = (id, key, value) =>
+        setDrafts((previous) => ({ ...previous, [id]: { ...previous[id], [key]: value } }));
+
+    const save = async (submission) => {
+        const draft = drafts[submission._id] || {};
+
+        try {
+            setSavingId(submission._id);
+            await markSubmission(submission._id, { marks: draft.marks, feedback: draft.feedback });
+            toast.success("Marks saved");
+            await load();
+            onChanged();
+        } catch (error) {
+            toast.error(error.message || "Failed to save marks");
+        } finally {
+            setSavingId(null);
+        }
+    };
+
+    return (
+        <Modal open onClose={onClose} title={`Submissions · ${assignment.title}`} wide>
+            {loading ? (
+                <Spinner />
+            ) : rows.length === 0 ? (
+                <p className="py-6 text-center text-sm text-slate-500">No approved students in this course yet.</p>
+            ) : (
+                <ul className="divide-y divide-slate-100">
+                    {rows.map(({ student, submission }) => (
+                        <li key={student._id} className="space-y-3 py-4">
+                            <div className="flex items-center justify-between gap-3">
+                                <div className="min-w-0">
+                                    <p className="truncate text-sm font-semibold text-slate-900">{student.name}</p>
+                                    <p className="text-xs text-slate-400">{student.universityId || student.email}</p>
+                                </div>
+                                {!submission ? (
+                                    <Badge color="slate">Not submitted</Badge>
+                                ) : (
+                                    <Badge color={submission.status === "checked" ? "green" : "amber"}>
+                                        {submission.status === "checked" ? `Checked ${submission.marks}/${assignment.totalMarks}` : "To check"}
+                                    </Badge>
+                                )}
+                            </div>
+
+                            {submission && (
+                                <>
+                                    {submission.answer && <p className="whitespace-pre-line rounded-lg bg-slate-50 p-3 text-sm text-slate-700">{submission.answer}</p>}
+                                    {submission.link && (
+                                        <a href={submission.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-800 hover:underline">
+                                            <ExternalLink size={14} /> Open submitted link
+                                        </a>
+                                    )}
+                                    <p className="text-xs text-slate-400">Submitted {formatDate(submission.submittedAt, true)}</p>
+
+                                    <div className="grid gap-3 sm:grid-cols-[110px_1fr_auto] sm:items-end">
+                                        <Field label={`Marks /${assignment.totalMarks}`}>
+                                            <input
+                                                type="number"
+                                                min={0}
+                                                max={assignment.totalMarks}
+                                                step="0.5"
+                                                value={drafts[submission._id]?.marks ?? ""}
+                                                onChange={(event) => setDraft(submission._id, "marks", event.target.value)}
+                                                className={inputClass}
+                                            />
+                                        </Field>
+                                        <Field label="Feedback">
+                                            <input
+                                                maxLength={1000}
+                                                value={drafts[submission._id]?.feedback ?? ""}
+                                                onChange={(event) => setDraft(submission._id, "feedback", event.target.value)}
+                                                className={inputClass}
+                                            />
+                                        </Field>
+                                        <button
+                                            onClick={() => save(submission)}
+                                            disabled={savingId === submission._id || drafts[submission._id]?.marks === ""}
+                                            className={primaryBtn}
+                                        >
+                                            {savingId === submission._id ? "Saving..." : submission.status === "checked" ? "Update" : "Give marks"}
+                                        </button>
+                                    </div>
+                                </>
+                            )}
+                        </li>
+                    ))}
+                </ul>
+            )}
+        </Modal>
+    );
+};
+
+// ========================================
+// STUDENT: submit work
+// ========================================
+
+const SubmitModal = ({ assignment, onClose, onDone }) => {
+    const mine = assignment.mySubmission;
+    const [answer, setAnswer] = useState(mine?.answer || "");
+    const [link, setLink] = useState(mine?.link || "");
+    const [saving, setSaving] = useState(false);
+
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+
+        try {
+            setSaving(true);
+            const response = await submitAssignment(assignment._id, { answer, link });
+            toast.success(response.message || "Submitted");
+            onDone();
+        } catch (error) {
+            toast.error(error.message || "Failed to submit");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    return (
+        <Modal open onClose={onClose} title={`Submit · ${assignment.title}`}>
+            <form onSubmit={handleSubmit} className="space-y-4">
+                <Field label="Your answer">
+                    <textarea rows={6} maxLength={10000} value={answer} onChange={(event) => setAnswer(event.target.value)} className={inputClass} />
+                </Field>
+                <Field label="Link to your work (optional)" hint="Google Drive, GitHub or any public link.">
+                    <input type="url" placeholder="https://" value={link} onChange={(event) => setLink(event.target.value)} className={inputClass} />
+                </Field>
+
+                <div className="flex justify-end gap-2 pt-2">
+                    <button type="button" onClick={onClose} className={ghostBtn}>Cancel</button>
+                    <button type="submit" disabled={saving} className={primaryBtn}>{saving ? "Submitting..." : mine ? "Update submission" : "Submit"}</button>
+                </div>
+            </form>
+        </Modal>
+    );
+};
+
 const dueState = (dueDate) => {
     const diff = new Date(dueDate) - Date.now();
     if (diff < 0) return { label: "Closed", color: "slate" };
@@ -53,6 +224,8 @@ const Assignments = () => {
     const [editing, setEditing] = useState(null);
     const [form, setForm] = useState(EMPTY);
     const [saving, setSaving] = useState(false);
+    const [reviewing, setReviewing] = useState(null);
+    const [submitting, setSubmitting] = useState(null);
 
     const load = useCallback(async () => {
         try {
@@ -153,7 +326,7 @@ const Assignments = () => {
                     isTeacher
                         ? "Create and manage assignments for your courses."
                         : role === "student"
-                            ? "Assignments from your approved courses."
+                            ? "Assignments from your active courses. Submit before the due date; your teacher gives the marks."
                             : "All assignments across the university."
                 }
             >
@@ -237,8 +410,32 @@ const Assignments = () => {
                                     )}
                                 </dl>
 
+                                {role === "student" && (
+                                    <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
+                                        {!item.mySubmission ? (
+                                            <Badge color="slate">Not submitted</Badge>
+                                        ) : item.mySubmission.status === "checked" ? (
+                                            <div>
+                                                <Badge color="green">Marks {item.mySubmission.marks}/{item.totalMarks}</Badge>
+                                                {item.mySubmission.feedback && <p className="mt-1 text-xs text-slate-500">{item.mySubmission.feedback}</p>}
+                                            </div>
+                                        ) : (
+                                            <Badge color="blue">Submitted · waiting for marks</Badge>
+                                        )}
+
+                                        {item.canSubmit && (
+                                            <button onClick={() => setSubmitting(item)} className={primaryBtn}>
+                                                <Send size={15} /> {item.mySubmission ? "Edit submission" : "Submit"}
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+
                                 {isTeacher && (
-                                    <div className="mt-4 flex gap-2 border-t border-slate-100 pt-4">
+                                    <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-4">
+                                        <button onClick={() => setReviewing(item)} className={ghostBtn}>
+                                            <Users size={15} /> Submissions · {item.submittedCount ?? 0} in, {item.checkedCount ?? 0} checked
+                                        </button>
                                         <button onClick={() => openEdit(item)} className={ghostBtn}>
                                             <Pencil size={15} /> Edit
                                         </button>
@@ -254,6 +451,18 @@ const Assignments = () => {
                         );
                     })}
                 </div>
+            )}
+
+            {reviewing && <SubmissionsModal assignment={reviewing} onClose={() => setReviewing(null)} onChanged={load} />}
+            {submitting && (
+                <SubmitModal
+                    assignment={submitting}
+                    onClose={() => setSubmitting(null)}
+                    onDone={() => {
+                        setSubmitting(null);
+                        load();
+                    }}
+                />
             )}
 
             <Modal

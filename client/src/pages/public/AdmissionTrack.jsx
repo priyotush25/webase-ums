@@ -8,7 +8,7 @@ import { PageBanner, Section } from "./PublicPage";
 export const STATUS_INFO = {
     pending: { label: "Received", color: "slate", text: "Your application has been received and is waiting for review." },
     under_review: { label: "Under review", color: "blue", text: "The admission office is reviewing your application." },
-    approved: { label: "Approved", color: "green", text: "Congratulations. Sign up on the portal with the same email to activate your student account." },
+    approved: { label: "Approved", color: "green", text: "Congratulations. Your admission is approved. Sign in to your student dashboard to see your semester subjects and send enrollment requests." },
     waitlisted: { label: "Waitlisted", color: "amber", text: "You are on the waiting list. We will update this page if a seat opens." },
     rejected: { label: "Not selected", color: "red", text: "We could not offer you a seat this time. You may apply again next session." },
 };

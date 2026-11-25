@@ -1,6 +1,7 @@
 
 import {
     BookOpen,
+    Award,
     CheckCircle,
     Clock,
     RefreshCw,
@@ -26,7 +27,20 @@ const statusIcons = {
     dropped: RefreshCw
 };
 
+const TABS = [
+    { key: "active", label: "Active this semester" },
+    { key: "completed", label: "Completed" },
+    { key: "other", label: "Applications" },
+];
+
+// active = approved + course running, completed = approved + course finished
+const tabOf = (item) =>
+    item.status === "approved"
+        ? item.courseState === "completed" ? "completed" : "active"
+        : "other";
+
 const MyEnrollments = () => {
+    const [tab, setTab] = useState("active");
     const [enrollments, setEnrollments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -56,6 +70,8 @@ const MyEnrollments = () => {
         fetchEnrollments();
     }, []);
 
+    const visible = enrollments.filter((item) => tabOf(item) === tab);
+
     if (loading) {
         return (
             <div className="flex justify-center items-center min-h-60">
@@ -75,7 +91,7 @@ const MyEnrollments = () => {
                     </h1>
 
                     <p className="text-gray-500 mt-1">
-                        Track your course enrollment applications.
+                        Your active courses, completed courses with results, and applications.
                     </p>
                 </div>
 
@@ -93,8 +109,13 @@ const MyEnrollments = () => {
 
                 {[
                     {
-                        label: "Total",
-                        value: enrollments.length,
+                        label: "Active",
+                        value: enrollments.filter(item => tabOf(item) === "active").length,
+                        color: "text-green-600"
+                    },
+                    {
+                        label: "Completed",
+                        value: enrollments.filter(item => tabOf(item) === "completed").length,
                         color: "text-blue-600"
                     },
                     {
@@ -103,13 +124,6 @@ const MyEnrollments = () => {
                             item => item.status === "pending"
                         ).length,
                         color: "text-yellow-600"
-                    },
-                    {
-                        label: "Approved",
-                        value: enrollments.filter(
-                            item => item.status === "approved"
-                        ).length,
-                        color: "text-green-600"
                     },
                     {
                         label: "Rejected",
@@ -139,9 +153,22 @@ const MyEnrollments = () => {
             <div className="bg-white rounded-xl shadow-sm border border-gray-100">
 
                 <div className="p-5 border-b border-gray-100">
-                    <h2 className="font-semibold text-gray-800">
-                        Enrollment History
-                    </h2>
+                    <div className="flex flex-wrap gap-2">
+                        {TABS.map((item) => (
+                            <button
+                                key={item.key}
+                                type="button"
+                                onClick={() => setTab(item.key)}
+                                className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
+                                    tab === item.key
+                                        ? "bg-blue-900 text-white"
+                                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                }`}
+                            >
+                                {item.label} ({enrollments.filter((row) => tabOf(row) === item.key).length})
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
                 {error && (
@@ -157,7 +184,7 @@ const MyEnrollments = () => {
                     </div>
                 )}
 
-                {!error && enrollments.length === 0 && (
+                {!error && visible.length === 0 && (
                     <div className="p-10 text-center">
                         <BookOpen
                             size={42}
@@ -165,11 +192,13 @@ const MyEnrollments = () => {
                         />
 
                         <h3 className="font-semibold text-gray-700 mt-4">
-                            No Enrollments Yet
+                            Nothing here
                         </h3>
 
                         <p className="text-gray-500 text-sm mt-2">
-                            You have not applied for any course.
+                            {tab === "active" && "No active course this semester."}
+                            {tab === "completed" && "No completed course yet."}
+                            {tab === "other" && "No pending or rejected application."}
                         </p>
 
                         <Link
@@ -181,10 +210,10 @@ const MyEnrollments = () => {
                     </div>
                 )}
 
-                {!error && enrollments.length > 0 && (
+                {!error && visible.length > 0 && (
                     <div className="divide-y divide-gray-100">
 
-                        {enrollments.map((item) => {
+                        {visible.map((item) => {
                             const course = item.course || {};
                             const StatusIcon =
                                 statusIcons[item.status] || Clock;
@@ -206,7 +235,7 @@ const MyEnrollments = () => {
                                             </h3>
 
                                             <p className="text-sm text-gray-500 mt-1">
-                                                Course Code: {course.code || "N/A"}
+                                                Course Code: {course.code || "N/A"} · {course.credit} credit · {course.semester}
                                             </p>
 
                                             <p className="text-sm text-gray-500 mt-1">
@@ -238,8 +267,29 @@ const MyEnrollments = () => {
                                             }`}
                                         >
                                             <StatusIcon size={16} />
-                                            {item.status}
+                                            {item.status === "approved"
+                                                ? item.courseState === "completed" ? "completed" : "active"
+                                                : item.status}
                                         </span>
+
+                                        {item.courseState === "completed" && (
+                                            <div className="mt-3 rounded-lg border border-blue-100 bg-blue-50 px-4 py-2 text-left text-sm md:text-right">
+                                                {item.result ? (
+                                                    <>
+                                                        <p className="flex items-center gap-1.5 font-semibold text-blue-900 md:justify-end">
+                                                            <Award size={16} />
+                                                            Grade {item.result.letterGrade} · GPA {Number(item.result.gradePoint).toFixed(2)}
+                                                        </p>
+                                                        <p className="text-xs text-slate-600">
+                                                            Total {item.result.total}/100
+                                                            {" "}(Assignment {item.result.assignment}, Mid {item.result.midterm}, Final {item.result.final})
+                                                        </p>
+                                                    </>
+                                                ) : (
+                                                    <p className="text-xs text-slate-600">Result not published yet</p>
+                                                )}
+                                            </div>
+                                        )}
 
                                         {item.enrolledAt && (
                                             <p className="text-xs text-gray-500 mt-2">

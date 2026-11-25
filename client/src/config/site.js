@@ -31,7 +31,7 @@ const siteConfig = {
         { year: "2005", text: "The university opens with three departments and its first 240 students." },
         { year: "2011", text: "A new academic building and central library are inaugurated." },
         { year: "2016", text: "Masters programs are introduced across all departments." },
-        { year: "2021", text: "Fully digital campus: online admission, enrollment, results and fees." },
+        { year: "2021", text: "Fully digital campus: online admission, enrollment and results." },
     ],
 
     values: [

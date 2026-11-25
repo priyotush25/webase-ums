@@ -1,154 +1,188 @@
-import { Award, BookOpen, CalendarCheck, ClipboardList, Clock, Wallet } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { Award, BookOpen, CheckCircle2, ClipboardList, Clock, GraduationCap, Hourglass, UserCircle } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Link } from "react-router";
 
 import { getStudentAssignments } from "../../api/assignmentApi";
-import { getMyAttendance } from "../../api/attendanceApi";
-import { getMyEnrollments } from "../../api/enrollmentApi";
-import { getMyFees } from "../../api/feeApi";
-import { getMyResults } from "../../api/resultApi";
+import { getMyOverview } from "../../api/studentApi";
 import DashboardInsights from "../../components/dashboard/DashboardInsights";
 import { EmptyLine, ErrorBanner, Kpi, KpiGrid, PanelLink, Shortcuts, WorkspaceHeader } from "../../components/dashboard/Workspace";
-import { Badge, Card, formatDate } from "../../components/ui";
+import { Badge, Card, ProgressBar, formatDate, primaryBtn } from "../../components/ui";
 import { useAuth } from "../../context/AuthContext";
-import { taka } from "../../utils/format";
+import { STATUS_INFO } from "../public/AdmissionTrack";
 
 const SHORTCUTS = [
-    { title: "Browse courses", description: "Enroll for this semester", icon: BookOpen, path: "/student/courses" },
-    { title: "Assignments", description: "Work and due dates", icon: ClipboardList, path: "/student/assignments" },
-    { title: "Results", description: "Grades and transcript", icon: Award, path: "/student/results" },
-    { title: "Pay fees", description: "Dues and receipts", icon: Wallet, path: "/student/fees" },
+    { title: "Semester subjects", description: "Enroll in your subjects", icon: BookOpen, path: "/student/courses" },
+    { title: "Assignments", description: "Submit work, see marks", icon: ClipboardList, path: "/student/assignments" },
+    { title: "Results", description: "Grades and academic history", icon: Award, path: "/student/results" },
+    { title: "Class routine", description: "Active courses only", icon: Clock, path: "/student/routine" },
 ];
 
-const STATUS_COLOR = { approved: "green", pending: "amber", rejected: "red", dropped: "slate" };
+// Course status shown for each subject of the current semester
+const COURSE_STATUS = {
+    not_enrolled: { label: "Not enrolled", color: "slate" },
+    pending: { label: "Awaiting approval", color: "amber" },
+    active: { label: "Active", color: "blue" },
+    completed: { label: "Completed", color: "green" },
+    failed: { label: "Failed", color: "red" },
+    rejected: { label: "Rejected", color: "red" },
+    dropped: { label: "Dropped", color: "slate" },
+};
 
-const StudentDashboard = () => {
-    const { user } = useAuth();
+const Info = ({ label, value }) => (
+    <div className="min-w-0">
+        <dt className="text-xs text-slate-400">{label}</dt>
+        <dd className="truncate text-sm font-medium text-slate-900">{value || "—"}</dd>
+    </div>
+);
 
-    const [enrollments, setEnrollments] = useState([]);
-    const [attendance, setAttendance] = useState(null);
-    const [results, setResults] = useState(null);
-    const [fees, setFees] = useState(null);
-    const [assignments, setAssignments] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
+// ========================================
+// BEFORE ADMISSION: basic information, profile, admission apply
+// ========================================
 
-    const load = useCallback(async () => {
-        setLoading(true);
-        setError("");
+const BasicDashboard = ({ data, name }) => {
+    const { profile, admission } = data;
+    const info = admission && STATUS_INFO[admission.status];
 
-        const [enrollRes, attRes, resultRes, feeRes, assignRes] = await Promise.allSettled([
-            getMyEnrollments(),
-            getMyAttendance(),
-            getMyResults(),
-            getMyFees(),
-            getStudentAssignments(),
-        ]);
+    return (
+        <div className="space-y-6">
+            <WorkspaceHeader name={name} subtitle="Complete your admission to unlock subjects and enrollment." />
 
-        if (enrollRes.status === "fulfilled") {
-            const data = enrollRes.value?.enrollments ?? enrollRes.value?.data ?? [];
-            setEnrollments(Array.isArray(data) ? data : []);
-        } else {
-            setError(enrollRes.reason?.message || "Failed to load dashboard data.");
-        }
+            <KpiGrid>
+                <Kpi label="Student ID" value={profile.universityId} hint="Your university ID" icon={UserCircle} to="/student/profile" />
+                <Kpi label="Admission" value={info?.label || "Not applied"} hint={admission?.applicationNo || "Apply to start"} icon={GraduationCap} to="/student/admission" tone={admission?.status === "rejected" ? "danger" : "default"} />
+                <Kpi label="Department" value={admission?.department?.code || "—"} hint={admission?.department?.name || "Chosen at admission"} icon={BookOpen} />
+                <Kpi label="Courses" value="Locked" hint="Opens after admission approval" icon={Hourglass} />
+            </KpiGrid>
 
-        if (attRes.status === "fulfilled") setAttendance(attRes.value);
-        if (resultRes.status === "fulfilled") setResults(resultRes.value);
-        if (feeRes.status === "fulfilled") setFees(feeRes.value);
-        if (assignRes.status === "fulfilled") setAssignments(assignRes.value.assignments || []);
+            <div className="grid gap-4 lg:grid-cols-3">
+                <Card title="Basic information" className="lg:col-span-2" action={<PanelLink to="/student/profile">Profile</PanelLink>}>
+                    <dl className="grid gap-4 sm:grid-cols-2">
+                        <Info label="Name" value={profile.name} />
+                        <Info label="Email" value={profile.email} />
+                        <Info label="Student ID" value={profile.universityId} />
+                        <Info label="Phone" value={profile.phone} />
+                    </dl>
+                </Card>
 
-        setLoading(false);
-    }, []);
+                <Card title="Admission">
+                    {admission ? (
+                        <div className="space-y-2">
+                            <p className="text-xs text-slate-500">{admission.applicationNo}</p>
+                            <Badge color={info?.color}>{info?.label || admission.status}</Badge>
+                            <p className="text-sm text-slate-600">{info?.text}</p>
+                            {admission.department?.name && <p className="text-xs text-slate-500">{admission.department.name} · {admission.program}</p>}
+                        </div>
+                    ) : (
+                        <p className="text-sm text-slate-600">You have not applied yet. Choose your department and apply.</p>
+                    )}
 
-    useEffect(() => {
-        load();
-    }, [load]);
+                    {(!admission || admission.status === "rejected") && (
+                        <Link to="/student/admission" className={`${primaryBtn} mt-4 w-full`}>Apply for Admission</Link>
+                    )}
+                    {admission && admission.status !== "rejected" && (
+                        <Link to="/student/admission" className="mt-4 inline-block text-sm font-medium text-blue-800 hover:underline">View application</Link>
+                    )}
+                </Card>
+            </div>
 
-    const approved = enrollments.filter((item) => item.status === "approved").length;
-    const pending = enrollments.filter((item) => item.status === "pending").length;
+            <h3 className="-mb-3 text-sm font-semibold text-slate-900">Quick actions</h3>
+            <Shortcuts
+                columns="sm:grid-cols-2 xl:grid-cols-4"
+                items={[
+                    { title: "Apply for Admission", description: "Choose your department", icon: GraduationCap, path: "/student/admission" },
+                    { title: "My profile", description: "Contact details and photo", icon: UserCircle, path: "/student/profile" },
+                ]}
+            />
+        </div>
+    );
+};
 
-    const recent = [...enrollments].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)).slice(0, 5);
+// ========================================
+// AFTER ADMISSION: semester progress, credits, CGPA
+// ========================================
+
+const AdmittedDashboard = ({ data, name, assignments, loading, onRefresh }) => {
+    const { semester, cgpa, profile } = data;
+    const pct = semester.totalCredit ? Math.round((semester.completedCredit / semester.totalCredit) * 100) : 0;
 
     const dueSoon = assignments
-        .filter((item) => new Date(item.dueDate).getTime() >= Date.now())
+        .filter((item) => new Date(item.dueDate).getTime() >= Date.now() && !item.mySubmission)
         .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))
         .slice(0, 5);
-
-    const attendancePct = attendance?.countableClasses ? Math.round(attendance.percentage) : null;
-    const attendanceTone = attendancePct !== null && attendancePct < 75 ? "warn" : "default";
-    const hasDue = (fees?.totalDue || 0) > 0;
 
     return (
         <div className="space-y-6">
             <WorkspaceHeader
-                name={user?.name || user?.displayName || "Student"}
-                subtitle="Your courses, attendance, results and fees."
+                name={name}
+                subtitle={`${profile.department?.name || ""} · ${semester.name}`}
+                onRefresh={onRefresh}
+                refreshing={loading}
             />
 
-            {error && <ErrorBanner message={error} onRetry={load} />}
-
             <KpiGrid>
-                <Kpi label="Enrolled courses" value={approved} hint={pending ? `${pending} awaiting approval` : "All approved"} icon={BookOpen} to="/student/enrollments" loading={loading} />
-                <Kpi
-                    label="Attendance"
-                    value={attendancePct !== null ? `${attendancePct}%` : "—"}
-                    hint={attendancePct === null ? "No classes recorded" : attendancePct < 75 ? "Below 75%" : `${attendance.present + attendance.late} of ${attendance.countableClasses} classes attended`}
-                    icon={CalendarCheck}
-                    to="/student/attendance"
-                    tone={attendanceTone}
-                    loading={loading}
-                />
-                <Kpi label="CGPA" value={results?.total ? Number(results.cgpa).toFixed(2) : "—"} hint={results?.total ? `${results.totalCredits} credits completed` : "No published results"} icon={Award} to="/student/results" loading={loading} />
-                <Kpi
-                    label="Fees due"
-                    value={fees ? taka(fees.totalDue) : "—"}
-                    hint={fees?.overdueCount ? `${fees.overdueCount} overdue` : hasDue ? "Payment pending" : "No dues"}
-                    icon={Wallet}
-                    to="/student/fees"
-                    tone={fees?.overdueCount ? "danger" : "default"}
-                    loading={loading}
-                />
+                <Kpi label="Total credit" value={semester.totalCredit} hint={`${semester.subjects.length} subjects in ${semester.name}`} icon={BookOpen} />
+                <Kpi label="Completed credit" value={`${semester.completedCredit}/${semester.totalCredit}`} hint={`${pct}% of the semester`} icon={CheckCircle2} tone={pct === 100 ? "good" : "default"} />
+                <Kpi label="Pending credit" value={semester.pendingCredit} hint={semester.pendingCredit ? "Not completed yet" : "All subjects completed"} icon={Hourglass} />
+                <Kpi label="CGPA" value={data.gradedCourses ? Number(cgpa).toFixed(2) : "—"} hint={data.gradedCourses ? `${data.earnedCredits} credits earned` : "No published results"} icon={Award} to="/student/results" />
             </KpiGrid>
 
             <div className="grid gap-4 lg:grid-cols-3">
-                <Card title="My enrollments" action={<PanelLink to="/student/enrollments">View all</PanelLink>} className="lg:col-span-2" flush>
-                    {loading ? (
-                        <EmptyLine>Loading…</EmptyLine>
-                    ) : recent.length === 0 ? (
-                        <EmptyLine>You have not enrolled in any course yet.</EmptyLine>
+                <Card title={`${semester.name} subjects`} action={<PanelLink to="/student/courses">Enroll</PanelLink>} className="lg:col-span-2" flush>
+                    <div className="border-b border-slate-100 px-4 py-3">
+                        <div className="mb-1.5 flex justify-between text-xs text-slate-500">
+                            <span>Semester progress</span>
+                            <span className="tabular">{semester.completedCredit}/{semester.totalCredit} credits</span>
+                        </div>
+                        <ProgressBar value={pct} tone={pct === 100 ? "green" : "blue"} />
+                    </div>
+
+                    {semester.subjects.length === 0 ? (
+                        <EmptyLine>No subjects are published for your semester yet.</EmptyLine>
                     ) : (
-                        <ul className="divide-y divide-slate-100">
-                            {recent.map((item) => (
-                                <li key={item._id} className="flex items-center justify-between gap-3 px-4 py-3">
-                                    <div className="min-w-0">
-                                        <p className="truncate text-sm font-medium text-slate-900">{item.course?.title || "Course"}</p>
-                                        <p className="text-xs text-slate-500">
-                                            {item.course?.code}
-                                            {item.createdAt ? ` · Applied ${formatDate(item.createdAt)}` : ""}
-                                        </p>
-                                    </div>
-                                    <Badge color={STATUS_COLOR[item.status] || "slate"}>{item.status}</Badge>
-                                </li>
-                            ))}
-                        </ul>
+                        <div className="overflow-x-auto">
+                            <table className="w-full min-w-[520px] text-left text-sm">
+                                <thead className="bg-slate-50 text-xs text-slate-500">
+                                    <tr>
+                                        <th className="px-4 py-2.5 font-medium">Subject</th>
+                                        <th className="px-4 py-2.5 font-medium">Credit</th>
+                                        <th className="px-4 py-2.5 font-medium">Status</th>
+                                        <th className="px-4 py-2.5 font-medium">Grade</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {semester.subjects.map((subject) => {
+                                        const status = COURSE_STATUS[subject.status] || COURSE_STATUS.not_enrolled;
+
+                                        return (
+                                            <tr key={subject._id}>
+                                                <td className="px-4 py-3">
+                                                    <p className="font-medium text-slate-900">{subject.title}</p>
+                                                    <p className="text-xs text-slate-400">{subject.code}{subject.teacher ? ` · ${subject.teacher}` : ""}</p>
+                                                </td>
+                                                <td className="px-4 py-3">{subject.credit}</td>
+                                                <td className="px-4 py-3"><Badge color={status.color}>{status.label}</Badge></td>
+                                                <td className="px-4 py-3">{subject.result ? `${subject.result.letterGrade} (${subject.result.gradePoint.toFixed(2)})` : "—"}</td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
                     )}
                 </Card>
 
-                <Card title="Due soon" action={<PanelLink to="/student/assignments">All</PanelLink>} flush>
-                    {loading ? (
-                        <EmptyLine>Loading…</EmptyLine>
-                    ) : dueSoon.length === 0 ? (
+                <Card title="To submit" action={<PanelLink to="/student/assignments">All</PanelLink>} flush>
+                    {dueSoon.length === 0 ? (
                         <div className="px-4 py-6 text-center">
                             <Clock size={18} className="mx-auto text-slate-300" aria-hidden="true" />
-                            <p className="mt-2 text-sm text-slate-500">Nothing due. You are all caught up.</p>
+                            <p className="mt-2 text-sm text-slate-500">No pending assignments.</p>
                         </div>
                     ) : (
                         <ul className="divide-y divide-slate-100">
                             {dueSoon.map((item) => (
                                 <li key={item._id} className="px-4 py-3">
                                     <p className="truncate text-sm font-medium text-slate-900">{item.title}</p>
-                                    <p className="text-xs text-slate-500">
-                                        {item.course?.code ? `${item.course.code} · ` : ""}Due {formatDate(item.dueDate)}
-                                    </p>
+                                    <p className="text-xs text-slate-500">{item.course?.code ? `${item.course.code} · ` : ""}Due {formatDate(item.dueDate)}</p>
                                 </li>
                             ))}
                         </ul>
@@ -157,12 +191,79 @@ const StudentDashboard = () => {
             </div>
 
             <section>
-                <h3 className="mb-2 text-sm font-semibold text-slate-900">Quick access</h3>
+                <h3 className="mb-2 text-sm font-semibold text-slate-900">Quick actions</h3>
                 <Shortcuts items={SHORTCUTS} columns="sm:grid-cols-2 xl:grid-cols-4" />
             </section>
 
             <DashboardInsights />
         </div>
+    );
+};
+
+const StudentDashboard = () => {
+    const { user, updateUserData } = useAuth();
+
+    // updateUserData is recreated on every render: read it through a ref so load stays stable
+    const authRef = useRef({ user, updateUserData });
+    authRef.current = { user, updateUserData };
+
+    const [data, setData] = useState(null);
+    const [assignments, setAssignments] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    const load = useCallback(async () => {
+        setLoading(true);
+        setError("");
+
+        try {
+            const overview = await getMyOverview();
+            setData(overview);
+
+            // Keep the menu in step with the admin's decision
+            if (authRef.current.user?.admissionApproved !== overview.admitted) {
+                authRef.current.updateUserData({ admissionApproved: overview.admitted });
+            }
+
+            if (overview.admitted) {
+                const assignRes = await getStudentAssignments().catch(() => null);
+                setAssignments(assignRes?.assignments || []);
+            }
+        } catch (err) {
+            setError(err.message || "Failed to load dashboard data.");
+        } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        load();
+    }, [load]);
+
+    const name = user?.name || user?.displayName || "Student";
+
+    if (error) {
+        return (
+            <div className="space-y-6">
+                <WorkspaceHeader name={name} />
+                <ErrorBanner message={error} onRetry={load} />
+            </div>
+        );
+    }
+
+    if (!data) {
+        return (
+            <div className="space-y-6">
+                <WorkspaceHeader name={name} />
+                <EmptyLine>Loading…</EmptyLine>
+            </div>
+        );
+    }
+
+    return data.admitted ? (
+        <AdmittedDashboard data={data} name={name} assignments={assignments} loading={loading} onRefresh={load} />
+    ) : (
+        <BasicDashboard data={data} name={name} />
     );
 };
 

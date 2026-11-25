@@ -15,6 +15,16 @@ const Row = ({ label, value }) => (
     </div>
 );
 
+// Fields each role may change (must match the server). Everything else is
+// recorded at admission and can only be changed by the admin.
+const EDITABLE = {
+    student: ["phone", "address", "guardianPhone"],
+    teacher: ["phone", "address", "bio"],
+    admin: ["name", "phone", "dob", "gender", "address", "bio", "guardianName", "guardianPhone"],
+};
+
+const lockedClass = " bg-slate-50 text-slate-500 cursor-not-allowed";
+
 const toForm = (profile) => ({
     name: profile.name || "",
     phone: profile.phone || "",
@@ -28,6 +38,7 @@ const toForm = (profile) => ({
 
 const Profile = ({ title = "My Profile" }) => {
     const { role, updateUserData } = useAuth();
+    const canEdit = (field) => (EDITABLE[role] || []).includes(field);
 
     const [profile, setProfile] = useState(null);
     const [form, setForm] = useState(null);
@@ -90,7 +101,10 @@ const Profile = ({ title = "My Profile" }) => {
         try {
             setSaving(true);
 
-            const response = await updateProfileRequest({ ...form, image });
+            const payload = Object.fromEntries(
+                Object.entries(form).filter(([key]) => canEdit(key))
+            );
+            const response = await updateProfileRequest({ ...payload, image });
 
             setProfile(response.user);
             setForm(toForm(response.user));
@@ -110,9 +124,14 @@ const Profile = ({ title = "My Profile" }) => {
     const isStudent = role === "student";
     const isTeacher = role === "teacher";
 
+    const fieldProps = (field) => ({
+        disabled: !canEdit(field),
+        className: inputClass + (canEdit(field) ? "" : lockedClass),
+    });
+
     return (
         <div className="space-y-6">
-            <PageHeader title={title} subtitle="Your personal details. Academic information is managed by the university office." />
+            <PageHeader title={title} subtitle={role === "admin" ? "Your personal details." : "You can update your contact details and photo. Other information is managed by the university office."} />
 
             <div className="grid gap-6 lg:grid-cols-3">
                 <div className="space-y-6">
@@ -151,11 +170,11 @@ const Profile = ({ title = "My Profile" }) => {
                     <h3 className="font-semibold text-slate-900">Personal details</h3>
 
                     <div className="grid gap-4 sm:grid-cols-2">
-                        <Field label="Full name"><input value={form.name} onChange={set("name")} required minLength={2} className={inputClass} /></Field>
-                        <Field label="Phone"><input value={form.phone} onChange={set("phone")} placeholder="01XXXXXXXXX" className={inputClass} /></Field>
-                        <Field label="Date of birth"><input type="date" max={new Date().toISOString().slice(0, 10)} value={form.dob} onChange={set("dob")} className={inputClass} /></Field>
+                        <Field label="Full name"><input value={form.name} onChange={set("name")} required minLength={2} {...fieldProps("name")} /></Field>
+                        <Field label="Phone"><input value={form.phone} onChange={set("phone")} placeholder="01XXXXXXXXX" {...fieldProps("phone")} /></Field>
+                        <Field label="Date of birth"><input type="date" max={new Date().toISOString().slice(0, 10)} value={form.dob} onChange={set("dob")} {...fieldProps("dob")} /></Field>
                         <Field label="Gender">
-                            <select value={form.gender} onChange={set("gender")} className={inputClass}>
+                            <select value={form.gender} onChange={set("gender")} {...fieldProps("gender")}>
                                 <option value="">Prefer not to say</option>
                                 <option value="male">Male</option>
                                 <option value="female">Female</option>
@@ -164,18 +183,18 @@ const Profile = ({ title = "My Profile" }) => {
                         </Field>
                     </div>
 
-                    <Field label="Address"><input value={form.address} onChange={set("address")} className={inputClass} /></Field>
+                    <Field label="Address"><input value={form.address} onChange={set("address")} {...fieldProps("address")} /></Field>
 
                     {isStudent && (
                         <div className="grid gap-4 sm:grid-cols-2">
-                            <Field label="Guardian's name"><input value={form.guardianName} onChange={set("guardianName")} className={inputClass} /></Field>
-                            <Field label="Guardian's phone"><input value={form.guardianPhone} onChange={set("guardianPhone")} className={inputClass} /></Field>
+                            <Field label="Guardian's name"><input value={form.guardianName} onChange={set("guardianName")} {...fieldProps("guardianName")} /></Field>
+                            <Field label="Guardian's phone"><input value={form.guardianPhone} onChange={set("guardianPhone")} {...fieldProps("guardianPhone")} /></Field>
                         </div>
                     )}
 
                     {isTeacher && (
                         <Field label="Short bio" hint="Shown on the public faculty page.">
-                            <textarea rows={4} maxLength={600} value={form.bio} onChange={set("bio")} className={inputClass} />
+                            <textarea rows={4} maxLength={600} value={form.bio} onChange={set("bio")} {...fieldProps("bio")} />
                         </Field>
                     )}
 

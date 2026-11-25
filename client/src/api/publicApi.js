@@ -10,4 +10,3 @@ export const getFaculty = (search = "") =>
     request(search ? `/faculty?search=${encodeURIComponent(search)}` : "/faculty");
 export const getPublicNotices = ({ page = 1, search = "" } = {}) =>
     request(`/notices?page=${page}&search=${encodeURIComponent(search)}`);
-export const getPublicEvents = () => request("/events");
