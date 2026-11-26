@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+/*
+  Brand: deep academic navy with a restrained gold accent.
+  Overriding the blue ramp re-themes every existing page at once.
+*/
+@theme {
+  --font-sans: "Public Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+
+  --color-blue-50: #eff4fb;
+  --color-blue-100: #dde8f6;
+  --color-blue-200: #bcd0ea;
+  --color-blue-300: #8fadd6;
+  --color-blue-400: #5f86bd;
+  --color-blue-500: #3d68a3;
+  --color-blue-600: #2d5388;
+  --color-blue-700: #234571;
+  --color-blue-800: #183560;
+  --color-blue-900: #102a50;
+  --color-blue-950: #0a1c37;
+
+  --color-gold-100: #f7edd3;
+  --color-gold-400: #d9ab45;
+  --color-gold-500: #c8962e;
+  --color-gold-700: #8a6417;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  background-color: #f6f7f9;
+  color: #0f172a;
+  font-feature-settings: "tnum" 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Serif headings belong to the public website only.
+   The dashboard (ERP) workspace stays in the sans face for density. */
+.public-site h1,
+.public-site h2,
+.font-display {
+  font-family: var(--font-serif);
+  letter-spacing: -0.01em;
+}
+
+/* Tabular figures keep KPI numbers and table columns aligned */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+:focus-visible {
+  outline: 2px solid #c8962e;
+  outline-offset: 2px;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Printable pages (transcript, fee receipts) */
+@media print {
+  aside,
+  header,
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+}
+
+.print-only {
+  display: none;
+}
