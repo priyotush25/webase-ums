@@ -60,7 +60,7 @@ const NotificationBell = () => {
             <button onClick={toggle} aria-label={`Notices${unread ? `, ${unread} new` : ""}`} aria-expanded={open} className="relative rounded-lg p-2 text-slate-600 hover:bg-slate-100">
                 <Bell size={20} />
                 {unread > 0 && (
-                    <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white">{unread}</span>
+                    <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-xs font-bold text-white">{unread}</span>
                 )}
             </button>
 
@@ -75,7 +75,7 @@ const NotificationBell = () => {
                             {notices.map((notice) => (
                                 <li key={notice._id} className="px-4 py-3">
                                     <p className="text-sm font-medium text-slate-900">{notice.title}</p>
-                                    <p className="text-xs text-slate-400">{formatDate(notice.createdAt)}</p>
+                                    <p className="text-xs text-slate-600">{formatDate(notice.createdAt)}</p>
                                 </li>
                             ))}
                         </ul>

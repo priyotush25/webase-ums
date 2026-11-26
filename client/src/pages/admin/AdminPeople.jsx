@@ -119,16 +119,16 @@ const AdminPeople = ({ role }) => {
 
                 <div>
                     <div className="flex items-center gap-3">
-                        <div className="p-3 bg-blue-100 text-blue-600 rounded-xl">
+                        <div className="p-3 bg-blue-100 text-blue-900 rounded-xl">
                             <Icon size={26} />
                         </div>
 
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-800">
+                            <h1 className="text-2xl font-bold text-slate-800">
                                 {title}
                             </h1>
 
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-slate-500">
                                 Manage and monitor your {role} accounts
                             </p>
                         </div>
@@ -138,7 +138,7 @@ const AdminPeople = ({ role }) => {
                 <button
                     onClick={handleRefresh}
                     disabled={refreshing}
-                    className="flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60"
+                    className="flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-900 text-white rounded-lg hover:bg-blue-800 disabled:opacity-60"
                 >
                     <RefreshCw
                         size={17}
@@ -151,32 +151,32 @@ const AdminPeople = ({ role }) => {
             {/* Statistics */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
-                <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
                     <div className="flex justify-between items-center">
                         <div>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-slate-500">
                                 Total {isStudent ? "Students" : "Teachers"}
                             </p>
 
-                            <h2 className="text-3xl font-bold mt-2 text-gray-800">
+                            <h2 className="text-3xl font-bold mt-2 text-slate-800">
                                 {pagination.totalUsers}
                             </h2>
                         </div>
 
-                        <div className="p-3 bg-blue-100 text-blue-600 rounded-xl">
+                        <div className="p-3 bg-blue-100 text-blue-900 rounded-xl">
                             <Users size={25} />
                         </div>
                     </div>
                 </div>
 
-                <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
                     <div className="flex justify-between items-center">
                         <div>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-slate-500">
                                 Current Page
                             </p>
 
-                            <h2 className="text-3xl font-bold mt-2 text-gray-800">
+                            <h2 className="text-3xl font-bold mt-2 text-slate-800">
                                 {pagination.currentPage} / {pagination.totalPages || 1}
                             </h2>
                         </div>
@@ -189,11 +189,11 @@ const AdminPeople = ({ role }) => {
             </div>
 
             {/* Search */}
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100">
                 <div className="relative">
                     <Search
                         size={19}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
                     />
 
                     <input
@@ -201,16 +201,16 @@ const AdminPeople = ({ role }) => {
                         value={search}
                         onChange={(e) => handleSearch(e.target.value)}
                         placeholder={`Search ${role} by name or email...`}
-                        className="w-full border border-gray-200 rounded-lg pl-10 pr-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full border border-slate-200 rounded-lg pl-10 pr-4 py-3 outline-none focus:ring-2 focus:ring-blue-500"
                     />
                 </div>
             </div>
 
             {/* User Table */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
 
                 <div className="px-5 py-4 border-b">
-                    <h2 className="font-semibold text-gray-800">
+                    <h2 className="font-semibold text-slate-800">
                         {isStudent ? "Student List" : "Teacher List"}
                     </h2>
                 </div>
@@ -218,7 +218,7 @@ const AdminPeople = ({ role }) => {
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
 
-                        <thead className="bg-gray-50 text-gray-600">
+                        <thead className="bg-slate-50 text-slate-600">
                             <tr>
                                 <th className="px-5 py-4">User</th>
                                 <th className="px-5 py-4">Email</th>
@@ -228,23 +228,23 @@ const AdminPeople = ({ role }) => {
                             </tr>
                         </thead>
 
-                        <tbody className="divide-y divide-gray-100">
+                        <tbody className="divide-y divide-slate-100">
 
                             {loading ? (
                                 <tr>
-                                    <td colSpan="5" className="text-center py-10 text-gray-500">
+                                    <td colSpan="5" className="text-center py-10 text-slate-500">
                                         Loading users...
                                     </td>
                                 </tr>
                             ) : users.length === 0 ? (
                                 <tr>
-                                    <td colSpan="5" className="text-center py-10 text-gray-500">
+                                    <td colSpan="5" className="text-center py-10 text-slate-500">
                                         No {role} found.
                                     </td>
                                 </tr>
                             ) : (
                                 users.map((user) => (
-                                    <tr key={user._id} className="hover:bg-gray-50">
+                                    <tr key={user._id} className="hover:bg-slate-50">
 
                                         <td className="px-5 py-4">
                                             <div className="flex items-center gap-3">
@@ -255,16 +255,16 @@ const AdminPeople = ({ role }) => {
                                                         className="w-10 h-10 rounded-full object-cover"
                                                     />
                                                 ) : (
-                                                    <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-semibold">
+                                                    <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-900 flex items-center justify-center font-semibold">
                                                         {user.name?.charAt(0)?.toUpperCase() || "U"}
                                                     </div>
                                                 )}
 
                                                 <span>
-                                                    <span className="block font-medium text-gray-800">
+                                                    <span className="block font-medium text-slate-800">
                                                         {user.name}
                                                     </span>
-                                                    <span className="block text-xs text-gray-500">
+                                                    <span className="block text-xs text-slate-500">
                                                         {user.universityId || "No ID"}
                                                         {user.department?.code ? ` · ${user.department.code}` : ""}
                                                     </span>
@@ -272,7 +272,7 @@ const AdminPeople = ({ role }) => {
                                             </div>
                                         </td>
 
-                                        <td className="px-5 py-4 text-gray-600">
+                                        <td className="px-5 py-4 text-slate-600">
                                             {user.email}
                                         </td>
 
@@ -286,7 +286,7 @@ const AdminPeople = ({ role }) => {
                                             </span>
                                         </td>
 
-                                        <td className="px-5 py-4 text-gray-600">
+                                        <td className="px-5 py-4 text-slate-600">
                                             {formatDate(user.createdAt)}
                                         </td>
 
@@ -299,7 +299,7 @@ const AdminPeople = ({ role }) => {
                                             </button>
                                             <button
                                                 onClick={() => setSelectedUser(user)}
-                                                className="px-3 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                                className="px-3 py-2 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200"
                                             >
                                                 Change Role
                                             </button>
@@ -316,7 +316,7 @@ const AdminPeople = ({ role }) => {
                 {/* Pagination */}
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-3 px-5 py-4 border-t">
 
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-slate-500">
                         Total {pagination.totalUsers} users
                     </p>
 
@@ -358,7 +358,7 @@ const AdminPeople = ({ role }) => {
                             Change User Role
                         </h2>
 
-                        <p className="text-sm text-gray-500 text-center mt-2">
+                        <p className="text-sm text-slate-500 text-center mt-2">
                             Change the role of {selectedUser.name}.
                         </p>
 
@@ -382,7 +382,7 @@ const AdminPeople = ({ role }) => {
                         <button
                             onClick={() => setSelectedUser(null)}
                             disabled={updating}
-                            className="w-full mt-4 py-3 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50"
+                            className="w-full mt-4 py-3 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 disabled:opacity-50"
                         >
                             Cancel
                         </button>

@@ -50,7 +50,7 @@ const DashboardInsights = () => {
     }, [role]);
 
     return (
-        <div className={`grid gap-4 ${role === "admin" ? "lg:grid-cols-1" : "lg:grid-cols-2"}`}>
+        <div className={`grid gap-5 ${role === "admin" ? "lg:grid-cols-1" : "lg:grid-cols-2"}`}>
             {role !== "admin" && (
                 <Card title="Today's classes" subtitle={todayCode()} action={<PanelLink to={`${base}/routine`}>Full routine</PanelLink>} flush>
                     {!loaded ? (
@@ -60,11 +60,11 @@ const DashboardInsights = () => {
                     ) : (
                         <ul className="divide-y divide-slate-100">
                             {classes.map((item) => (
-                                <li key={item._id} className="flex items-start gap-3 px-4 py-3">
-                                    <span className="tabular w-[4.5rem] shrink-0 pt-0.5 text-xs font-medium text-slate-500">{to12h(item.startTime)}</span>
+                                <li key={item._id} className="flex items-start gap-3 px-5 py-3.5">
+                                    <span className="tabular w-[4.5rem] shrink-0 pt-0.5 text-sm font-medium text-slate-600">{to12h(item.startTime)}</span>
                                     <div className="min-w-0">
-                                        <p className="truncate text-sm font-medium text-slate-900">{item.course?.title}</p>
-                                        <p className="text-xs text-slate-500">
+                                        <p className="truncate text-[15px] font-semibold text-slate-900">{item.course?.title}</p>
+                                        <p className="text-sm text-slate-600">
                                             {item.course?.code} · Room {item.room} · until {to12h(item.endTime)}
                                         </p>
                                     </div>
@@ -83,14 +83,14 @@ const DashboardInsights = () => {
                 ) : (
                     <ul className="divide-y divide-slate-100">
                         {notices.map((notice) => (
-                            <li key={notice._id} className="px-4 py-3">
+                            <li key={notice._id} className="px-5 py-3.5">
                                 <div className="flex items-start justify-between gap-2">
-                                    <p className="text-sm font-medium text-slate-900">{notice.title}</p>
+                                    <p className="text-[15px] font-semibold text-slate-900">{notice.title}</p>
                                     {notice.priority !== "normal" && (
                                         <Badge color={notice.priority === "urgent" ? "red" : "amber"}>{notice.priority}</Badge>
                                     )}
                                 </div>
-                                <p className="mt-0.5 text-xs text-slate-500">{formatDate(notice.createdAt)}</p>
+                                <p className="mt-0.5 text-sm text-slate-600">{formatDate(notice.createdAt)}</p>
                             </li>
                         ))}
                     </ul>

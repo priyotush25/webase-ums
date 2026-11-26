@@ -71,16 +71,16 @@ const AdminDashboard = () => {
 
     const roleRows = people
         ? [
-              { label: "Students", value: people.student },
-              { label: "Teachers", value: people.teacher },
-              { label: "Admins", value: people.admin },
+              { label: "Students", value: people.student, tone: "blue" },
+              { label: "Teachers", value: people.teacher, tone: "green" },
+              { label: "Admins", value: people.admin, tone: "amber" },
           ]
         : [];
 
     const pct = (value) => (people?.total ? Math.round((value / people.total) * 100) : 0);
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-7">
             <WorkspaceHeader
                 name={user?.name || user?.displayName || "Admin"}
                 subtitle="University operations at a glance."
@@ -105,7 +105,7 @@ const AdminDashboard = () => {
                 />
             </KpiGrid>
 
-            <div className="grid gap-4 lg:grid-cols-3">
+            <div className="grid gap-5 lg:grid-cols-3">
                 {/* Course seat usage */}
                 <Card
                     title="Course seat usage"
@@ -120,12 +120,12 @@ const AdminDashboard = () => {
                         <EmptyLine>No courses have been created yet.</EmptyLine>
                     ) : (
                         <div className="overflow-x-auto">
-                            <table className="w-full text-left text-sm">
+                            <table className="w-full text-left text-[15px]">
                                 <thead>
-                                    <tr className="border-b border-slate-100 text-xs font-medium text-slate-500">
-                                        <th className="px-4 py-2 font-medium">Course</th>
-                                        <th className="px-4 py-2 text-right font-medium">Enrolled</th>
-                                        <th className="w-40 px-4 py-2 font-medium">Seats filled</th>
+                                    <tr className="border-b border-slate-200 bg-slate-50 text-sm text-slate-700">
+                                        <th className="px-5 py-3 font-semibold">Course</th>
+                                        <th className="px-5 py-3 text-right font-semibold">Enrolled</th>
+                                        <th className="w-52 px-5 py-3 font-semibold">Seats filled</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-100">
@@ -134,18 +134,18 @@ const AdminDashboard = () => {
 
                                         return (
                                             <tr key={course._id}>
-                                                <td className="px-4 py-2.5">
-                                                    <p className="font-medium text-slate-900">{course.title}</p>
-                                                    <p className="text-xs text-slate-500">{course.code}</p>
+                                                <td className="px-5 py-3.5">
+                                                    <p className="font-semibold text-slate-900">{course.title}</p>
+                                                    <p className="text-sm text-slate-600">{course.code}</p>
                                                 </td>
-                                                <td className="tabular px-4 py-2.5 text-right text-slate-700">
+                                                <td className="tabular px-5 py-3.5 text-right text-slate-800">
                                                     {course.enrolled}
                                                     <span className="text-slate-400"> / {course.capacity}</span>
                                                 </td>
-                                                <td className="px-4 py-2.5">
+                                                <td className="px-5 py-3.5">
                                                     <div className="flex items-center gap-2">
                                                         <ProgressBar value={used} tone={used >= 90 ? "red" : used >= 70 ? "amber" : "blue"} />
-                                                        <span className="tabular w-9 shrink-0 text-right text-xs text-slate-500">{used}%</span>
+                                                        <span className="tabular w-10 shrink-0 text-right text-sm font-medium text-slate-700">{used}%</span>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -161,18 +161,18 @@ const AdminDashboard = () => {
                 <div className="space-y-4">
                     <Card title="People">
                         {loading ? (
-                            <p className="text-sm text-slate-500">Loading…</p>
+                            <p className="text-sm text-slate-600">Loading…</p>
                         ) : (
                             <ul className="space-y-3">
                                 {roleRows.map((row) => (
                                     <li key={row.label}>
-                                        <div className="mb-1 flex justify-between text-sm">
-                                            <span className="text-slate-600">{row.label}</span>
-                                            <span className="tabular font-medium text-slate-900">
-                                                {row.value} <span className="font-normal text-slate-400">· {pct(row.value)}%</span>
+                                        <div className="mb-1.5 flex justify-between text-[15px]">
+                                            <span className="font-medium text-slate-700">{row.label}</span>
+                                            <span className="tabular font-semibold text-slate-900">
+                                                {row.value} <span className="font-normal text-slate-600">· {pct(row.value)}%</span>
                                             </span>
                                         </div>
-                                        <ProgressBar value={pct(row.value)} />
+                                        <ProgressBar value={pct(row.value)} tone={row.tone} />
                                     </li>
                                 ))}
                             </ul>
@@ -182,24 +182,32 @@ const AdminDashboard = () => {
             </div>
 
             {/* Attendance snapshot + modules */}
-            <div className="grid gap-4 lg:grid-cols-3">
+            <div className="grid gap-5 lg:grid-cols-3">
                 <Card title="Attendance rate" subtitle="Across all recorded classes" action={<PanelLink to="/admin/attendance">Details</PanelLink>}>
                     <div className="flex items-center gap-3">
-                        <CalendarCheck size={18} className="text-slate-400" aria-hidden="true" />
-                        <p className="tabular text-2xl font-semibold text-slate-900">
+                        <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
+                            <CalendarCheck size={22} aria-hidden="true" />
+                        </span>
+                        <p className="tabular text-3xl font-bold text-slate-900">
                             {loading ? "…" : summary?.attendanceRate != null ? `${summary.attendanceRate}%` : "—"}
                         </p>
                     </div>
 
-                    <p className="mt-2 text-xs text-slate-500">
+                    {summary?.attendanceRate != null && (
+                        <div className="mt-4">
+                            <ProgressBar value={summary.attendanceRate} tone={summary.attendanceRate >= 75 ? "green" : summary.attendanceRate >= 60 ? "amber" : "red"} />
+                        </div>
+                    )}
+
+                    <p className="mt-3 text-sm text-slate-600">
                         {summary?.attendanceRate == null && !loading ? "No attendance has been recorded yet." : "Present and late count as attended."}
                     </p>
                 </Card>
 
                 <div className="lg:col-span-2">
-                    <div className="mb-2 flex items-center justify-between">
-                        <h3 className="text-sm font-semibold text-slate-900">Modules</h3>
-                        <Link to="/admin/reports" className="text-xs font-medium text-blue-900 hover:underline">
+                    <div className="mb-3 flex items-center justify-between">
+                        <h3 className="text-base font-semibold text-slate-900">Modules</h3>
+                        <Link to="/admin/reports" className="text-sm font-medium text-blue-900 hover:underline">
                             View reports
                         </Link>
                     </div>

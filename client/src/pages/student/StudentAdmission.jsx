@@ -108,7 +108,7 @@ const StudentAdmission = () => {
                         {application.status === "rejected" ? (
                             <XCircle className="mt-0.5 shrink-0 text-red-500" size={20} />
                         ) : (
-                            <Clock className="mt-0.5 shrink-0 text-blue-600" size={20} />
+                            <Clock className="mt-0.5 shrink-0 text-blue-900" size={20} />
                         )}
                         <div>
                             <Badge color={info?.color}>{info?.label || application.status}</Badge>

@@ -19,7 +19,7 @@ const statusStyles = {
     pending: "bg-yellow-100 text-yellow-700",
     approved: "bg-green-100 text-green-700",
     rejected: "bg-red-100 text-red-700",
-    dropped: "bg-gray-100 text-gray-700"
+    dropped: "bg-slate-100 text-slate-700"
 };
 
 const AdminEnrollments = () => {
@@ -103,11 +103,11 @@ const AdminEnrollments = () => {
 
             {/* Header */}
             <div>
-                <h1 className="text-2xl font-bold text-gray-800">
+                <h1 className="text-2xl font-bold text-slate-800">
                     Enrollment Management
                 </h1>
 
-                <p className="text-gray-500 mt-1">
+                <p className="text-slate-500 mt-1">
                     Review and manage student course applications.
                 </p>
             </div>
@@ -115,22 +115,22 @@ const AdminEnrollments = () => {
             {/* Summary */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
 
-                <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
-                    <p className="text-sm text-gray-500">Total Enrollments</p>
-                    <h2 className="text-3xl font-bold mt-2 text-blue-600">
+                <div className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm">
+                    <p className="text-sm text-slate-500">Total Enrollments</p>
+                    <h2 className="text-3xl font-bold mt-2 text-blue-900">
                         {enrollments.length}
                     </h2>
                 </div>
 
-                <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
-                    <p className="text-sm text-gray-500">Pending Requests</p>
+                <div className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm">
+                    <p className="text-sm text-slate-500">Pending Requests</p>
                     <h2 className="text-3xl font-bold mt-2 text-yellow-600">
                         {pendingCount}
                     </h2>
                 </div>
 
-                <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm">
-                    <p className="text-sm text-gray-500">Approved</p>
+                <div className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm">
+                    <p className="text-sm text-slate-500">Approved</p>
                     <h2 className="text-3xl font-bold mt-2 text-green-600">
                         {approvedCount}
                     </h2>
@@ -139,14 +139,14 @@ const AdminEnrollments = () => {
             </div>
 
             {/* Filters */}
-            <div className="bg-white rounded-xl p-5 border border-gray-100 shadow-sm">
+            <div className="bg-white rounded-xl p-5 border border-slate-100 shadow-sm">
 
                 <div className="flex flex-col md:flex-row gap-4">
 
                     <div className="relative flex-1">
                         <Search
                             size={18}
-                            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
                         />
 
                         <input
@@ -154,14 +154,14 @@ const AdminEnrollments = () => {
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             placeholder="Search student, email or course..."
-                            className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
                         />
                     </div>
 
                     <select
                         value={status}
                         onChange={(e) => setStatus(e.target.value)}
-                        className="px-4 py-2.5 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+                        className="px-4 py-2.5 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
                     >
                         <option value="all">All Status</option>
                         <option value="pending">Pending</option>
@@ -172,7 +172,7 @@ const AdminEnrollments = () => {
 
                     <button
                         onClick={fetchEnrollments}
-                        className="flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        className="flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-900 text-white rounded-lg hover:bg-blue-800"
                     >
                         <RefreshCw size={17} />
                         Refresh
@@ -182,10 +182,10 @@ const AdminEnrollments = () => {
             </div>
 
             {/* Table */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
 
-                <div className="p-5 border-b border-gray-100">
-                    <h2 className="font-semibold text-gray-800">
+                <div className="p-5 border-b border-slate-100">
+                    <h2 className="font-semibold text-slate-800">
                         Student Enrollment Requests
                     </h2>
                 </div>
@@ -198,10 +198,10 @@ const AdminEnrollments = () => {
                     <div className="p-12 text-center">
                         <BookOpen
                             size={40}
-                            className="mx-auto text-gray-300"
+                            className="mx-auto text-slate-300"
                         />
 
-                        <p className="text-gray-500 mt-3">
+                        <p className="text-slate-500 mt-3">
                             No enrollment requests found.
                         </p>
                     </div>
@@ -210,7 +210,7 @@ const AdminEnrollments = () => {
 
                         <table className="w-full text-sm text-left">
 
-                            <thead className="bg-gray-50 text-gray-600">
+                            <thead className="bg-slate-50 text-slate-600">
                                 <tr>
                                     <th className="px-5 py-4">Student</th>
                                     <th className="px-5 py-4">Course</th>
@@ -221,32 +221,32 @@ const AdminEnrollments = () => {
                                 </tr>
                             </thead>
 
-                            <tbody className="divide-y divide-gray-100">
+                            <tbody className="divide-y divide-slate-100">
 
                                 {enrollments.map((item) => (
-                                    <tr key={item._id} className="hover:bg-gray-50">
+                                    <tr key={item._id} className="hover:bg-slate-50">
 
                                         <td className="px-5 py-4">
-                                            <p className="font-medium text-gray-800">
+                                            <p className="font-medium text-slate-800">
                                                 {item.student?.name || "Unknown"}
                                             </p>
 
-                                            <p className="text-gray-500 text-xs mt-1">
+                                            <p className="text-slate-500 text-xs mt-1">
                                                 {item.student?.email || "N/A"}
                                             </p>
                                         </td>
 
                                         <td className="px-5 py-4">
-                                            <p className="font-medium text-gray-800">
+                                            <p className="font-medium text-slate-800">
                                                 {item.course?.title || "Unknown"}
                                             </p>
 
-                                            <p className="text-gray-500 text-xs mt-1">
+                                            <p className="text-slate-500 text-xs mt-1">
                                                 {item.course?.code || "N/A"}
                                             </p>
                                         </td>
 
-                                        <td className="px-5 py-4 text-gray-600">
+                                        <td className="px-5 py-4 text-slate-600">
                                             {item.createdAt
                                                 ? new Date(item.createdAt).toLocaleDateString()
                                                 : "N/A"}
@@ -256,7 +256,7 @@ const AdminEnrollments = () => {
                                             <span
                                                 className={`inline-flex px-3 py-1 rounded-full text-xs font-semibold capitalize ${
                                                     statusStyles[item.status] ||
-                                                    "bg-gray-100 text-gray-700"
+                                                    "bg-slate-100 text-slate-700"
                                                 }`}
                                             >
                                                 {item.status}
@@ -274,7 +274,7 @@ const AdminEnrollments = () => {
                                                     }))
                                                 }
                                                 placeholder="Optional remarks"
-                                                className="w-full min-w-48 px-3 py-2 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
+                                                className="w-full min-w-48 px-3 py-2 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500"
                                             />
                                         </td>
 
@@ -314,7 +314,7 @@ const AdminEnrollments = () => {
                                                             handleStatusUpdate(item._id, "dropped")
                                                         }
                                                         title="Mark as dropped"
-                                                        className="p-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50"
+                                                        className="p-2 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 disabled:opacity-50"
                                                     >
                                                         <RefreshCw size={18} />
                                                     </button>

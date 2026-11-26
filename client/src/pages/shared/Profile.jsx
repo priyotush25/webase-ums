@@ -1,17 +1,17 @@
-import { Camera, Save } from "lucide-react";
+import { Camera, Pencil, Save } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 
 import { getMyProfile, updateProfileRequest } from "../../api/authApi";
-import { Avatar, Badge, Field, PageHeader, Spinner, formatDate, inputClass, primaryBtn } from "../../components/ui";
+import { Avatar, Badge, Card, Field, Modal, PageHeader, Spinner, formatDate, ghostBtn, inputClass, primaryBtn } from "../../components/ui";
 import { useAuth } from "../../context/AuthContext";
 
 const MAX_SIZE = 5 * 1024 * 1024;
 
 const Row = ({ label, value }) => (
-    <div className="flex justify-between gap-4 border-b border-slate-100 py-2.5 text-sm last:border-0">
-        <dt className="text-slate-500">{label}</dt>
-        <dd className="text-right font-medium text-slate-900">{value || "-"}</dd>
+    <div className="flex justify-between gap-4 border-b border-slate-100 py-3 text-[15px] last:border-0">
+        <dt className="text-slate-600">{label}</dt>
+        <dd className="text-right font-medium text-slate-900">{value || "—"}</dd>
     </div>
 );
 
@@ -23,7 +23,9 @@ const EDITABLE = {
     admin: ["name", "phone", "dob", "gender", "address", "bio", "guardianName", "guardianPhone"],
 };
 
-const lockedClass = " bg-slate-50 text-slate-500 cursor-not-allowed";
+const lockedClass = " bg-slate-100 text-slate-500 cursor-not-allowed";
+
+const GENDER_LABEL = { male: "Male", female: "Female", other: "Other" };
 
 const toForm = (profile) => ({
     name: profile.name || "",
@@ -42,6 +44,7 @@ const Profile = ({ title = "My Profile" }) => {
 
     const [profile, setProfile] = useState(null);
     const [form, setForm] = useState(null);
+    const [editing, setEditing] = useState(false);
     const [image, setImage] = useState(null);
     const [preview, setPreview] = useState("");
     const [saving, setSaving] = useState(false);
@@ -73,8 +76,22 @@ const Profile = ({ title = "My Profile" }) => {
         return () => URL.revokeObjectURL(url);
     }, [image]);
 
+    const openEdit = () => {
+        setForm(toForm(profile));
+        setImage(null);
+        setEditing(true);
+    };
+
+    const closeEdit = () => {
+        if (saving) return;
+        setEditing(false);
+        setImage(null);
+        setForm(toForm(profile));
+    };
+
     const handleFile = (event) => {
         const file = event.target.files?.[0];
+        event.target.value = "";
         if (!file) return;
 
         if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
@@ -92,8 +109,7 @@ const Profile = ({ title = "My Profile" }) => {
 
     const set = (key) => (event) => setForm((previous) => ({ ...previous, [key]: event.target.value }));
 
-    const changed =
-        Boolean(image) || (profile && form && JSON.stringify(form) !== JSON.stringify(toForm(profile)));
+    const changed = Boolean(image) || (profile && form && JSON.stringify(form) !== JSON.stringify(toForm(profile)));
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -101,14 +117,13 @@ const Profile = ({ title = "My Profile" }) => {
         try {
             setSaving(true);
 
-            const payload = Object.fromEntries(
-                Object.entries(form).filter(([key]) => canEdit(key))
-            );
+            const payload = Object.fromEntries(Object.entries(form).filter(([key]) => canEdit(key)));
             const response = await updateProfileRequest({ ...payload, image });
 
             setProfile(response.user);
             setForm(toForm(response.user));
             setImage(null);
+            setEditing(false);
 
             updateUserData({ name: response.user.name, photoURL: response.user.photoURL });
             toast.success("Profile updated");
@@ -131,27 +146,36 @@ const Profile = ({ title = "My Profile" }) => {
 
     return (
         <div className="space-y-6">
-            <PageHeader title={title} subtitle={role === "admin" ? "Your personal details." : "You can update your contact details and photo. Other information is managed by the university office."} />
+            <PageHeader
+                title={title}
+                subtitle={role === "admin" ? "Your personal details." : "Use Edit profile to update your contact details and photo. Other information is managed by the university office."}
+            >
+                <button type="button" onClick={openEdit} className={primaryBtn}>
+                    <Pencil size={16} aria-hidden="true" /> Edit profile
+                </button>
+            </PageHeader>
 
             <div className="grid gap-6 lg:grid-cols-3">
+                {/* Identity */}
                 <div className="space-y-6">
                     <div className="rounded-xl border border-slate-200 bg-white p-6 text-center shadow-sm">
-                        <div className="relative mx-auto h-28 w-28">
-                            <Avatar user={{ name: profile.name, photoURL: preview || profile.photoURL }} size="h-28 w-28 text-2xl" />
-                            <button type="button" onClick={() => fileRef.current?.click()} aria-label="Change profile photo" className="absolute bottom-0 right-0 rounded-full bg-blue-900 p-2 text-white shadow hover:bg-blue-800">
-                                <Camera size={16} />
-                            </button>
-                            <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleFile} className="hidden" />
+                        <div className="mx-auto h-28 w-28">
+                            <Avatar user={{ name: profile.name, photoURL: profile.photoURL }} size="h-28 w-28 text-3xl" />
                         </div>
 
-                        <h3 className="mt-4 text-lg font-semibold text-slate-900">{profile.name}</h3>
-                        <p className="text-sm text-slate-500">{profile.email}</p>
-                        <div className="mt-2"><Badge color="blue">{role}</Badge></div>
+                        <h3 className="mt-4 text-xl font-semibold text-slate-900">{profile.name}</h3>
+                        <p className="text-[15px] text-slate-600">{profile.email}</p>
+                        <div className="mt-3">
+                            <Badge color="blue">{role}</Badge>
+                        </div>
                         {profile.universityId && <p className="mt-3 font-display text-lg font-bold text-blue-900">{profile.universityId}</p>}
+
+                        <button type="button" onClick={openEdit} className={`${ghostBtn} mt-5 w-full`}>
+                            <Camera size={16} aria-hidden="true" /> Update photo
+                        </button>
                     </div>
 
-                    <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                        <h3 className="mb-2 font-semibold text-slate-900">Academic information</h3>
+                    <Card title="Academic information">
                         <dl>
                             <Row label="Department" value={profile.department?.name} />
                             {isStudent && <Row label="Program" value={profile.program} />}
@@ -161,18 +185,60 @@ const Profile = ({ title = "My Profile" }) => {
                             <Row label="Member since" value={formatDate(profile.createdAt)} />
                         </dl>
                         {!profile.department && role !== "admin" && (
-                            <p className="mt-3 text-xs text-slate-400">Your department will show here after the office assigns it.</p>
+                            <p className="mt-3 text-sm text-slate-600">Your department will show here after the office assigns it.</p>
                         )}
-                    </div>
+                    </Card>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-5 rounded-xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
-                    <h3 className="font-semibold text-slate-900">Personal details</h3>
+                {/* Personal details (read only) */}
+                <Card title="Personal details" className="lg:col-span-2">
+                    <dl>
+                        <Row label="Full name" value={profile.name} />
+                        <Row label="Email" value={profile.email} />
+                        <Row label="Phone" value={profile.phone} />
+                        <Row label="Date of birth" value={profile.dob ? formatDate(profile.dob) : ""} />
+                        <Row label="Gender" value={GENDER_LABEL[profile.gender]} />
+                        <Row label="Address" value={profile.address} />
+                        {isStudent && <Row label="Guardian's name" value={profile.guardianName} />}
+                        {isStudent && <Row label="Guardian's phone" value={profile.guardianPhone} />}
+                    </dl>
+
+                    {(isTeacher || (role === "admin" && profile.bio)) && (
+                        <div className="mt-4 border-t border-slate-100 pt-4">
+                            <p className="text-sm font-medium text-slate-600">Short bio</p>
+                            <p className="mt-1 whitespace-pre-line text-[15px] text-slate-900">{profile.bio || "—"}</p>
+                        </div>
+                    )}
+                </Card>
+            </div>
+
+            {/* Edit modal */}
+            <Modal open={editing} title="Edit profile" onClose={closeEdit} wide>
+                <form onSubmit={handleSubmit} className="space-y-5">
+                    <div className="flex items-center gap-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
+                        <Avatar user={{ name: profile.name, photoURL: preview || profile.photoURL }} size="h-16 w-16 text-xl" />
+
+                        <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium text-slate-900">Profile photo</p>
+                            <p className="truncate text-sm text-slate-600">{image ? image.name : "JPG, PNG or WEBP, up to 5 MB"}</p>
+                        </div>
+
+                        <button type="button" onClick={() => fileRef.current?.click()} className={ghostBtn}>
+                            <Camera size={16} aria-hidden="true" /> Choose
+                        </button>
+                        <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" onChange={handleFile} className="hidden" />
+                    </div>
 
                     <div className="grid gap-4 sm:grid-cols-2">
-                        <Field label="Full name"><input value={form.name} onChange={set("name")} required minLength={2} {...fieldProps("name")} /></Field>
-                        <Field label="Phone"><input value={form.phone} onChange={set("phone")} placeholder="01XXXXXXXXX" {...fieldProps("phone")} /></Field>
-                        <Field label="Date of birth"><input type="date" max={new Date().toISOString().slice(0, 10)} value={form.dob} onChange={set("dob")} {...fieldProps("dob")} /></Field>
+                        <Field label="Full name">
+                            <input value={form.name} onChange={set("name")} required minLength={2} {...fieldProps("name")} />
+                        </Field>
+                        <Field label="Phone">
+                            <input value={form.phone} onChange={set("phone")} placeholder="01XXXXXXXXX" {...fieldProps("phone")} />
+                        </Field>
+                        <Field label="Date of birth">
+                            <input type="date" max={new Date().toISOString().slice(0, 10)} value={form.dob} onChange={set("dob")} {...fieldProps("dob")} />
+                        </Field>
                         <Field label="Gender">
                             <select value={form.gender} onChange={set("gender")} {...fieldProps("gender")}>
                                 <option value="">Prefer not to say</option>
@@ -183,12 +249,18 @@ const Profile = ({ title = "My Profile" }) => {
                         </Field>
                     </div>
 
-                    <Field label="Address"><input value={form.address} onChange={set("address")} {...fieldProps("address")} /></Field>
+                    <Field label="Address">
+                        <input value={form.address} onChange={set("address")} {...fieldProps("address")} />
+                    </Field>
 
                     {isStudent && (
                         <div className="grid gap-4 sm:grid-cols-2">
-                            <Field label="Guardian's name"><input value={form.guardianName} onChange={set("guardianName")} {...fieldProps("guardianName")} /></Field>
-                            <Field label="Guardian's phone"><input value={form.guardianPhone} onChange={set("guardianPhone")} {...fieldProps("guardianPhone")} /></Field>
+                            <Field label="Guardian's name">
+                                <input value={form.guardianName} onChange={set("guardianName")} {...fieldProps("guardianName")} />
+                            </Field>
+                            <Field label="Guardian's phone">
+                                <input value={form.guardianPhone} onChange={set("guardianPhone")} {...fieldProps("guardianPhone")} />
+                            </Field>
                         </div>
                     )}
 
@@ -199,18 +271,23 @@ const Profile = ({ title = "My Profile" }) => {
                     )}
 
                     <Field label="Email" hint="Your email is your login and cannot be changed here.">
-                        <input value={profile.email} disabled className={`${inputClass} bg-slate-50 text-slate-500`} />
+                        <input value={profile.email} disabled className={`${inputClass}${lockedClass}`} />
                     </Field>
 
-                    {image && <p className="text-sm text-slate-500">New photo selected: {image.name}</p>}
+                    {!isStudent && !isTeacher ? null : (
+                        <p className="text-xs text-slate-600">Greyed-out fields are managed by the university office.</p>
+                    )}
 
-                    <div className="flex justify-end pt-1">
+                    <div className="flex justify-end gap-3 border-t border-slate-200 pt-4">
+                        <button type="button" onClick={closeEdit} disabled={saving} className={ghostBtn}>
+                            Cancel
+                        </button>
                         <button type="submit" disabled={!changed || saving} className={primaryBtn}>
-                            <Save size={16} /> {saving ? "Saving..." : "Save changes"}
+                            <Save size={16} aria-hidden="true" /> {saving ? "Saving..." : "Update profile"}
                         </button>
                     </div>
                 </form>
-            </div>
+            </Modal>
         </div>
     );
 };

@@ -17,7 +17,7 @@ const statusStyles = {
     pending: "bg-yellow-100 text-yellow-700",
     approved: "bg-green-100 text-green-700",
     rejected: "bg-red-100 text-red-700",
-    dropped: "bg-gray-100 text-gray-700"
+    dropped: "bg-slate-100 text-slate-700"
 };
 
 const statusIcons = {
@@ -86,18 +86,18 @@ const MyEnrollments = () => {
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">
+                    <h1 className="text-2xl font-bold text-slate-800">
                         My Enrollments
                     </h1>
 
-                    <p className="text-gray-500 mt-1">
+                    <p className="text-slate-500 mt-1">
                         Your active courses, completed courses with results, and applications.
                     </p>
                 </div>
 
                 <Link
                     to="/student/courses"
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                    className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-900 text-white rounded-lg hover:bg-blue-800 transition"
                 >
                     <BookOpen size={18} />
                     Browse Courses
@@ -116,7 +116,7 @@ const MyEnrollments = () => {
                     {
                         label: "Completed",
                         value: enrollments.filter(item => tabOf(item) === "completed").length,
-                        color: "text-blue-600"
+                        color: "text-blue-900"
                     },
                     {
                         label: "Pending",
@@ -135,9 +135,9 @@ const MyEnrollments = () => {
                 ].map((item) => (
                     <div
                         key={item.label}
-                        className="bg-white rounded-xl p-5 shadow-sm border border-gray-100"
+                        className="bg-white rounded-xl p-5 shadow-sm border border-slate-100"
                     >
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-slate-500">
                             {item.label}
                         </p>
 
@@ -150,9 +150,9 @@ const MyEnrollments = () => {
             </div>
 
             {/* Enrollment List */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-100">
 
-                <div className="p-5 border-b border-gray-100">
+                <div className="p-5 border-b border-slate-100">
                     <div className="flex flex-wrap gap-2">
                         {TABS.map((item) => (
                             <button
@@ -162,7 +162,7 @@ const MyEnrollments = () => {
                                 className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
                                     tab === item.key
                                         ? "bg-blue-900 text-white"
-                                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                                        : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                                 }`}
                             >
                                 {item.label} ({enrollments.filter((row) => tabOf(row) === item.key).length})
@@ -177,7 +177,7 @@ const MyEnrollments = () => {
 
                         <button
                             onClick={fetchEnrollments}
-                            className="ml-3 text-blue-600 underline"
+                            className="ml-3 text-blue-900 underline"
                         >
                             Try again
                         </button>
@@ -188,14 +188,14 @@ const MyEnrollments = () => {
                     <div className="p-10 text-center">
                         <BookOpen
                             size={42}
-                            className="mx-auto text-gray-300"
+                            className="mx-auto text-slate-300"
                         />
 
-                        <h3 className="font-semibold text-gray-700 mt-4">
+                        <h3 className="font-semibold text-slate-700 mt-4">
                             Nothing here
                         </h3>
 
-                        <p className="text-gray-500 text-sm mt-2">
+                        <p className="text-slate-500 text-sm mt-2">
                             {tab === "active" && "No active course this semester."}
                             {tab === "completed" && "No completed course yet."}
                             {tab === "other" && "No pending or rejected application."}
@@ -203,7 +203,7 @@ const MyEnrollments = () => {
 
                         <Link
                             to="/student/courses"
-                            className="inline-block mt-5 px-5 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                            className="inline-block mt-5 px-5 py-2 bg-blue-900 text-white rounded-lg hover:bg-blue-800"
                         >
                             Explore Courses
                         </Link>
@@ -211,7 +211,7 @@ const MyEnrollments = () => {
                 )}
 
                 {!error && visible.length > 0 && (
-                    <div className="divide-y divide-gray-100">
+                    <div className="divide-y divide-slate-100">
 
                         {visible.map((item) => {
                             const course = item.course || {};
@@ -225,24 +225,24 @@ const MyEnrollments = () => {
                                 >
                                     <div className="flex items-start gap-4">
 
-                                        <div className="p-3 bg-blue-50 text-blue-600 rounded-lg">
+                                        <div className="p-3 bg-blue-50 text-blue-900 rounded-lg">
                                             <BookOpen size={24} />
                                         </div>
 
                                         <div>
-                                            <h3 className="font-semibold text-gray-800">
+                                            <h3 className="font-semibold text-slate-800">
                                                 {course.title || "Course unavailable"}
                                             </h3>
 
-                                            <p className="text-sm text-gray-500 mt-1">
+                                            <p className="text-sm text-slate-500 mt-1">
                                                 Course Code: {course.code || "N/A"} · {course.credit} credit · {course.semester}
                                             </p>
 
-                                            <p className="text-sm text-gray-500 mt-1">
+                                            <p className="text-sm text-slate-500 mt-1">
                                                 Department: {course.department?.name || "N/A"}
                                             </p>
 
-                                            <p className="text-sm text-gray-500 mt-1">
+                                            <p className="text-sm text-slate-500 mt-1">
                                                 Applied: {
                                                     item.createdAt
                                                         ? new Date(item.createdAt).toLocaleDateString()
@@ -251,7 +251,7 @@ const MyEnrollments = () => {
                                             </p>
 
                                             {item.remarks && (
-                                                <p className="text-sm text-gray-600 mt-2">
+                                                <p className="text-sm text-slate-600 mt-2">
                                                     <strong>Admin Remarks:</strong>{" "}
                                                     {item.remarks}
                                                 </p>
@@ -263,7 +263,7 @@ const MyEnrollments = () => {
                                         <span
                                             className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium capitalize ${
                                                 statusStyles[item.status] ||
-                                                "bg-gray-100 text-gray-700"
+                                                "bg-slate-100 text-slate-700"
                                             }`}
                                         >
                                             <StatusIcon size={16} />
@@ -292,7 +292,7 @@ const MyEnrollments = () => {
                                         )}
 
                                         {item.enrolledAt && (
-                                            <p className="text-xs text-gray-500 mt-2">
+                                            <p className="text-xs text-slate-500 mt-2">
                                                 Approved: {
                                                     new Date(item.enrolledAt).toLocaleDateString()
                                                 }

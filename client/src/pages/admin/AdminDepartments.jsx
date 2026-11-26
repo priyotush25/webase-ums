@@ -147,16 +147,16 @@ const AdminDepartments = () => {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 
                 <div className="flex items-center gap-3">
-                    <div className="p-3 bg-blue-100 text-blue-600 rounded-xl">
+                    <div className="p-3 bg-blue-100 text-blue-900 rounded-xl">
                         <Building2 size={26} />
                     </div>
 
                     <div>
-                        <h1 className="text-2xl font-bold text-gray-800">
+                        <h1 className="text-2xl font-bold text-slate-800">
                             Department Management
                         </h1>
 
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-slate-500">
                             Create and manage university departments
                         </p>
                     </div>
@@ -165,7 +165,7 @@ const AdminDepartments = () => {
                 <div className="flex gap-2">
                     <button
                         onClick={fetchDepartments}
-                        className="flex items-center gap-2 px-4 py-2.5 border rounded-lg hover:bg-gray-50"
+                        className="flex items-center gap-2 px-4 py-2.5 border rounded-lg hover:bg-slate-50"
                     >
                         <RefreshCw size={17} />
                         Refresh
@@ -173,7 +173,7 @@ const AdminDepartments = () => {
 
                     <button
                         onClick={openCreateModal}
-                        className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                        className="flex items-center gap-2 px-4 py-2.5 bg-blue-900 text-white rounded-lg hover:bg-blue-800"
                     >
                         <Plus size={18} />
                         Add Department
@@ -185,7 +185,7 @@ const AdminDepartments = () => {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
 
                 <div className="bg-white border rounded-xl p-5">
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-slate-500">
                         Total Departments
                     </p>
 
@@ -195,7 +195,7 @@ const AdminDepartments = () => {
                 </div>
 
                 <div className="bg-white border rounded-xl p-5">
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-slate-500">
                         Active Departments
                     </p>
 
@@ -207,11 +207,11 @@ const AdminDepartments = () => {
                 </div>
 
                 <div className="bg-white border rounded-xl p-5">
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-slate-500">
                         Total Courses
                     </p>
 
-                    <h2 className="text-3xl font-bold mt-2 text-blue-600">
+                    <h2 className="text-3xl font-bold mt-2 text-blue-900">
                         {departments.reduce(
                             (total, item) => total + (item.courseCount || 0),
                             0
@@ -226,7 +226,7 @@ const AdminDepartments = () => {
                 <div className="relative flex-1">
                     <Search
                         size={18}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
                     />
 
                     <input
@@ -252,7 +252,7 @@ const AdminDepartments = () => {
             <div className="bg-white border rounded-xl overflow-hidden">
 
                 <div className="p-5 border-b">
-                    <h2 className="font-semibold text-gray-800">
+                    <h2 className="font-semibold text-slate-800">
                         Department List
                     </h2>
                 </div>
@@ -260,7 +260,7 @@ const AdminDepartments = () => {
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left">
 
-                        <thead className="bg-gray-50 text-gray-600">
+                        <thead className="bg-slate-50 text-slate-600">
                             <tr>
                                 <th className="px-5 py-4">Department</th>
                                 <th className="px-5 py-4">Code</th>
@@ -280,7 +280,7 @@ const AdminDepartments = () => {
                                 </tr>
                             ) : departments.length === 0 ? (
                                 <tr>
-                                    <td colSpan="5" className="text-center py-10 text-gray-500">
+                                    <td colSpan="5" className="text-center py-10 text-slate-500">
                                         No departments found
                                     </td>
                                 </tr>
@@ -288,14 +288,14 @@ const AdminDepartments = () => {
                                 departments.map((department) => (
                                     <tr
                                         key={department._id}
-                                        className="hover:bg-gray-50"
+                                        className="hover:bg-slate-50"
                                     >
                                         <td className="px-5 py-4">
-                                            <div className="font-semibold text-gray-800">
+                                            <div className="font-semibold text-slate-800">
                                                 {department.name}
                                             </div>
 
-                                            <p className="text-xs text-gray-500 mt-1">
+                                            <p className="text-xs text-slate-500 mt-1">
                                                 {department.description || "No description"}
                                             </p>
                                         </td>
@@ -317,7 +317,7 @@ const AdminDepartments = () => {
                                             <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                                                 department.status === "active"
                                                     ? "bg-green-100 text-green-700"
-                                                    : "bg-gray-100 text-gray-600"
+                                                    : "bg-slate-100 text-slate-600"
                                             }`}>
                                                 {department.status}
                                             </span>
@@ -327,7 +327,7 @@ const AdminDepartments = () => {
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={() => openEditModal(department)}
-                                                    className="p-2 text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100"
+                                                    className="p-2 text-blue-900 bg-blue-50 rounded-lg hover:bg-blue-100"
                                                     title="Edit"
                                                 >
                                                     <Pencil size={17} />
@@ -365,7 +365,7 @@ const AdminDepartments = () => {
                             <button
                                 onClick={() => setModalOpen(false)}
                                 disabled={saving}
-                                className="p-2 rounded-lg hover:bg-gray-100"
+                                className="p-2 rounded-lg hover:bg-slate-100"
                             >
                                 <X size={20} />
                             </button>
@@ -439,7 +439,7 @@ const AdminDepartments = () => {
                             <button
                                 type="submit"
                                 disabled={saving}
-                                className="w-full py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-60"
+                                className="w-full py-3 bg-blue-900 text-white rounded-lg hover:bg-blue-800 disabled:opacity-60"
                             >
                                 {saving
                                     ? "Saving..."

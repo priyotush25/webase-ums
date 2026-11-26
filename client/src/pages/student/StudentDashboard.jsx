@@ -30,7 +30,7 @@ const COURSE_STATUS = {
 
 const Info = ({ label, value }) => (
     <div className="min-w-0">
-        <dt className="text-xs text-slate-400">{label}</dt>
+        <dt className="text-xs text-slate-600">{label}</dt>
         <dd className="truncate text-sm font-medium text-slate-900">{value || "—"}</dd>
     </div>
 );
@@ -67,10 +67,10 @@ const BasicDashboard = ({ data, name }) => {
                 <Card title="Admission">
                     {admission ? (
                         <div className="space-y-2">
-                            <p className="text-xs text-slate-500">{admission.applicationNo}</p>
+                            <p className="text-sm text-slate-600">{admission.applicationNo}</p>
                             <Badge color={info?.color}>{info?.label || admission.status}</Badge>
                             <p className="text-sm text-slate-600">{info?.text}</p>
-                            {admission.department?.name && <p className="text-xs text-slate-500">{admission.department.name} · {admission.program}</p>}
+                            {admission.department?.name && <p className="text-sm text-slate-600">{admission.department.name} · {admission.program}</p>}
                         </div>
                     ) : (
                         <p className="text-sm text-slate-600">You have not applied yet. Choose your department and apply.</p>
@@ -129,7 +129,7 @@ const AdmittedDashboard = ({ data, name, assignments, loading, onRefresh }) => {
             <div className="grid gap-4 lg:grid-cols-3">
                 <Card title={`${semester.name} subjects`} action={<PanelLink to="/student/courses">Enroll</PanelLink>} className="lg:col-span-2" flush>
                     <div className="border-b border-slate-100 px-4 py-3">
-                        <div className="mb-1.5 flex justify-between text-xs text-slate-500">
+                        <div className="mb-1.5 flex justify-between text-sm text-slate-600">
                             <span>Semester progress</span>
                             <span className="tabular">{semester.completedCredit}/{semester.totalCredit} credits</span>
                         </div>
@@ -141,7 +141,7 @@ const AdmittedDashboard = ({ data, name, assignments, loading, onRefresh }) => {
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="w-full min-w-[520px] text-left text-sm">
-                                <thead className="bg-slate-50 text-xs text-slate-500">
+                                <thead className="bg-slate-50 text-sm text-slate-600">
                                     <tr>
                                         <th className="px-4 py-2.5 font-medium">Subject</th>
                                         <th className="px-4 py-2.5 font-medium">Credit</th>
@@ -157,7 +157,7 @@ const AdmittedDashboard = ({ data, name, assignments, loading, onRefresh }) => {
                                             <tr key={subject._id}>
                                                 <td className="px-4 py-3">
                                                     <p className="font-medium text-slate-900">{subject.title}</p>
-                                                    <p className="text-xs text-slate-400">{subject.code}{subject.teacher ? ` · ${subject.teacher}` : ""}</p>
+                                                    <p className="text-xs text-slate-600">{subject.code}{subject.teacher ? ` · ${subject.teacher}` : ""}</p>
                                                 </td>
                                                 <td className="px-4 py-3">{subject.credit}</td>
                                                 <td className="px-4 py-3"><Badge color={status.color}>{status.label}</Badge></td>
@@ -182,7 +182,7 @@ const AdmittedDashboard = ({ data, name, assignments, loading, onRefresh }) => {
                             {dueSoon.map((item) => (
                                 <li key={item._id} className="px-4 py-3">
                                     <p className="truncate text-sm font-medium text-slate-900">{item.title}</p>
-                                    <p className="text-xs text-slate-500">{item.course?.code ? `${item.course.code} · ` : ""}Due {formatDate(item.dueDate)}</p>
+                                    <p className="text-sm text-slate-600">{item.course?.code ? `${item.course.code} · ` : ""}Due {formatDate(item.dueDate)}</p>
                                 </li>
                             ))}
                         </ul>

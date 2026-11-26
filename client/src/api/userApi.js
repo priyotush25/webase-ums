@@ -126,3 +126,23 @@ export const updateUserStatus = async (userId, isActive) => {
 
     return result;
 };
+
+// Permanently delete a user (admin)
+export const deleteUser = async (userId) => {
+    const response = await fetch(`${API_URL}/api/users/${userId}`, {
+        method: "DELETE",
+        credentials: "include",
+    });
+
+    let result = {};
+
+    try {
+        result = await response.json();
+    } catch {
+        // empty body
+    }
+
+    if (!response.ok) throw new Error(result.message || "Failed to delete user");
+
+    return result;
+};

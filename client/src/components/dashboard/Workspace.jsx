@@ -17,11 +17,11 @@ const today = () =>
 export const WorkspaceHeader = ({ name, subtitle, onRefresh, refreshing, children }) => (
     <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-end">
         <div className="min-w-0">
-            <p className="text-xs font-medium text-slate-500">{today()}</p>
-            <h2 className="mt-1 truncate text-xl font-semibold tracking-tight text-slate-900">
+            <p className="text-sm font-medium text-slate-600">{today()}</p>
+            <h2 className="mt-1 truncate text-2xl font-semibold tracking-tight text-slate-900">
                 {greeting()}, {name}
             </h2>
-            {subtitle && <p className="mt-1 text-sm text-slate-500">{subtitle}</p>}
+            {subtitle && <p className="mt-1 text-[15px] text-slate-600">{subtitle}</p>}
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -31,9 +31,9 @@ export const WorkspaceHeader = ({ name, subtitle, onRefresh, refreshing, childre
                     type="button"
                     onClick={onRefresh}
                     disabled={refreshing}
-                    className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+                    className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-sm font-medium text-slate-800 hover:bg-slate-50 disabled:opacity-60"
                 >
-                    <RefreshCw size={14} className={refreshing ? "animate-spin" : ""} aria-hidden="true" />
+                    <RefreshCw size={15} className={refreshing ? "animate-spin" : ""} aria-hidden="true" />
                     {refreshing ? "Refreshing" : "Refresh"}
                 </button>
             )}
@@ -44,28 +44,39 @@ export const WorkspaceHeader = ({ name, subtitle, onRefresh, refreshing, childre
 // One KPI tile. Shows a skeleton while loading and an em dash when no data.
 export const Kpi = ({ label, value, hint, icon: Icon, to, loading = false, tone = "default" }) => {
     const toneClass = { default: "text-slate-900", warn: "text-amber-700", danger: "text-red-700", good: "text-emerald-700" }[tone];
+    const tileClass = {
+        default: "bg-blue-50 text-blue-900",
+        warn: "bg-amber-100 text-amber-800",
+        danger: "bg-red-100 text-red-700",
+        good: "bg-emerald-100 text-emerald-700",
+    }[tone];
 
     const body = (
-        <>
-            <div className="flex items-center justify-between gap-3">
-                <p className="text-[13px] font-medium text-slate-500">{label}</p>
-                {Icon && <Icon size={16} className="shrink-0 text-slate-400" aria-hidden="true" />}
+        <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+                <p className="text-sm font-medium text-slate-700">{label}</p>
+
+                {loading ? (
+                    <Skeleton className="mt-3 h-9 w-24" />
+                ) : (
+                    <p className={`tabular mt-1.5 text-3xl font-bold tracking-tight ${toneClass}`}>{value ?? "—"}</p>
+                )}
+
+                {loading ? <Skeleton className="mt-2 h-4 w-32" /> : hint && <p className="mt-1.5 text-sm text-slate-600">{hint}</p>}
             </div>
 
-            {loading ? (
-                <Skeleton className="mt-3 h-7 w-20" />
-            ) : (
-                <p className={`tabular mt-2 text-2xl font-semibold tracking-tight ${toneClass}`}>{value ?? "—"}</p>
+            {Icon && (
+                <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${tileClass}`}>
+                    <Icon size={22} aria-hidden="true" />
+                </span>
             )}
-
-            {loading ? <Skeleton className="mt-2 h-3 w-28" /> : hint && <p className="mt-1 truncate text-xs text-slate-500">{hint}</p>}
-        </>
+        </div>
     );
 
-    const base = "block rounded-lg border border-slate-200 bg-white p-4";
+    const base = "block rounded-xl border border-slate-200 bg-white p-5 shadow-sm";
 
     return to ? (
-        <Link to={to} className={`${base} transition-colors hover:border-slate-300 hover:bg-slate-50/60`}>
+        <Link to={to} className={`${base} transition hover:border-blue-300 hover:shadow-md`}>
             {body}
         </Link>
     ) : (
@@ -73,24 +84,24 @@ export const Kpi = ({ label, value, hint, icon: Icon, to, loading = false, tone 
     );
 };
 
-export const KpiGrid = ({ children }) => <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">{children}</div>;
+export const KpiGrid = ({ children }) => <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">{children}</div>;
 
 // Compact module shortcuts
 export const Shortcuts = ({ items, columns = "sm:grid-cols-2" }) => (
-    <ul className={`grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-slate-200 bg-slate-200 ${columns}`}>
+    <ul className={`grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-slate-200 bg-slate-200 shadow-sm ${columns}`}>
         {items.map(({ title, description, icon: Icon, path }) => (
             <li key={path} className="bg-white">
-                <Link to={path} className="group flex items-center gap-3 px-4 py-3 hover:bg-slate-50">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-slate-100 text-slate-600 group-hover:bg-blue-50 group-hover:text-blue-900">
-                        <Icon size={16} aria-hidden="true" />
+                <Link to={path} className="group flex items-center gap-3.5 px-4 py-3.5 hover:bg-blue-50/60">
+                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-900 group-hover:bg-blue-900 group-hover:text-white">
+                        <Icon size={19} aria-hidden="true" />
                     </span>
 
                     <span className="min-w-0 flex-1">
-                        <span className="block truncate text-sm font-medium text-slate-900">{title}</span>
-                        {description && <span className="block truncate text-xs text-slate-500">{description}</span>}
+                        <span className="block truncate text-[15px] font-semibold text-slate-900">{title}</span>
+                        {description && <span className="block truncate text-sm text-slate-600">{description}</span>}
                     </span>
 
-                    <ArrowRight size={14} className="shrink-0 text-slate-300 group-hover:text-slate-500" aria-hidden="true" />
+                    <ArrowRight size={16} className="shrink-0 text-slate-400 group-hover:text-blue-900" aria-hidden="true" />
                 </Link>
             </li>
         ))}
@@ -98,15 +109,15 @@ export const Shortcuts = ({ items, columns = "sm:grid-cols-2" }) => (
 );
 
 export const PanelLink = ({ to, children }) => (
-    <Link to={to} className="shrink-0 text-xs font-medium text-blue-900 hover:underline">
+    <Link to={to} className="shrink-0 text-sm font-medium text-blue-900 hover:underline">
         {children}
     </Link>
 );
 
-export const EmptyLine = ({ children }) => <p className="px-4 py-6 text-center text-sm text-slate-500">{children}</p>;
+export const EmptyLine = ({ children }) => <p className="px-4 py-8 text-center text-sm text-slate-600">{children}</p>;
 
 export const ErrorBanner = ({ message, onRetry }) => (
-    <div role="alert" className="flex flex-col justify-between gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-3 sm:flex-row sm:items-center">
+    <div role="alert" className="flex flex-col justify-between gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 sm:flex-row sm:items-center">
         <p className="text-sm text-red-700">{message}</p>
         {onRetry && (
             <button type="button" onClick={onRetry} className="inline-flex items-center gap-1.5 text-sm font-medium text-red-700 hover:text-red-900">

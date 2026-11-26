@@ -59,11 +59,11 @@ const AdminAttendance = () => {
 
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">
+                    <h1 className="text-2xl font-bold text-slate-800">
                         Attendance Records
                     </h1>
 
-                    <p className="text-sm text-gray-500 mt-1">
+                    <p className="text-sm text-slate-500 mt-1">
                         Monitor attendance across all courses.
                     </p>
                 </div>
@@ -90,13 +90,13 @@ const AdminAttendance = () => {
                 {Object.entries(counts).map(([key, value]) => (
                     <div
                         key={key}
-                        className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm"
+                        className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm"
                     >
-                        <p className="text-sm text-gray-500 capitalize">
+                        <p className="text-sm text-slate-500 capitalize">
                             {key}
                         </p>
 
-                        <h2 className="text-2xl font-bold text-gray-800 mt-2">
+                        <h2 className="text-2xl font-bold text-slate-800 mt-2">
                             {loading ? "..." : value}
                         </h2>
                     </div>
@@ -105,10 +105,10 @@ const AdminAttendance = () => {
             </div>
 
             {/* Filters */}
-            <div className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm grid grid-cols-1 sm:grid-cols-3 gap-4">
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
                         Status
                     </label>
 
@@ -126,7 +126,7 @@ const AdminAttendance = () => {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
                         From Date
                     </label>
 
@@ -139,7 +139,7 @@ const AdminAttendance = () => {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
                         To Date
                     </label>
 
@@ -154,22 +154,22 @@ const AdminAttendance = () => {
             </div>
 
             {/* Table */}
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
 
                 <div className="p-5 border-b flex items-center gap-3">
                     <CalendarCheck className="text-blue-700" />
 
-                    <h2 className="font-bold text-gray-800">
+                    <h2 className="font-bold text-slate-800">
                         All Attendance ({attendance.length})
                     </h2>
                 </div>
 
                 {loading ? (
-                    <div className="p-10 text-center text-gray-500">
+                    <div className="p-10 text-center text-slate-500">
                         Loading records...
                     </div>
                 ) : attendance.length === 0 ? (
-                    <div className="p-10 text-center text-gray-500">
+                    <div className="p-10 text-center text-slate-500">
                         No attendance records found.
                     </div>
                 ) : (
@@ -177,7 +177,7 @@ const AdminAttendance = () => {
 
                         <table className="w-full text-sm text-left">
 
-                            <thead className="bg-gray-50 text-gray-600">
+                            <thead className="bg-slate-50 text-slate-600">
                                 <tr>
                                     <th className="p-4">Student</th>
                                     <th className="p-4">Course</th>
@@ -193,32 +193,32 @@ const AdminAttendance = () => {
                                     <tr key={item._id}>
 
                                         <td className="p-4">
-                                            <p className="font-semibold text-gray-800">
+                                            <p className="font-semibold text-slate-800">
                                                 {item.student?.name || "N/A"}
                                             </p>
 
-                                            <p className="text-xs text-gray-400">
+                                            <p className="text-xs text-slate-400">
                                                 {item.student?.email || ""}
                                             </p>
                                         </td>
 
                                         <td className="p-4">
                                             {item.course?.title || "N/A"}
-                                            <p className="text-xs text-gray-400">
+                                            <p className="text-xs text-slate-400">
                                                 {item.course?.code || ""}
                                             </p>
                                         </td>
 
-                                        <td className="p-4 text-gray-600">
+                                        <td className="p-4 text-slate-600">
                                             {item.teacher?.name || "N/A"}
                                         </td>
 
-                                        <td className="p-4 whitespace-nowrap text-gray-600">
+                                        <td className="p-4 whitespace-nowrap text-slate-600">
                                             {new Date(item.date).toLocaleDateString()}
                                         </td>
 
                                         <td className="p-4">
-                                            <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${statusStyle[item.status] || "bg-gray-100 text-gray-600"}`}>
+                                            <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${statusStyle[item.status] || "bg-slate-100 text-slate-600"}`}>
                                                 {item.status}
                                             </span>
                                         </td>

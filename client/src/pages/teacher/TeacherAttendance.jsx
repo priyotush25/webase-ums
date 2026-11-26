@@ -189,20 +189,20 @@ const TeacherAttendance = () => {
         <div className="space-y-6">
 
             <div>
-                <h1 className="text-2xl font-bold text-gray-800">
+                <h1 className="text-2xl font-bold text-slate-800">
                     Attendance Management
                 </h1>
 
-                <p className="text-gray-500 text-sm mt-1">
+                <p className="text-slate-500 text-sm mt-1">
                     Manage attendance for your assigned courses.
                 </p>
             </div>
 
             {/* Filters */}
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-5 grid grid-cols-1 md:grid-cols-2 gap-5">
 
                 <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
                         Select Course
                     </label>
 
@@ -220,7 +220,7 @@ const TeacherAttendance = () => {
                 </div>
 
                 <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
                         Attendance Date
                     </label>
 
@@ -253,13 +253,13 @@ const TeacherAttendance = () => {
                 {Object.entries(counts).map(([status, count]) => (
                     <div
                         key={status}
-                        className="bg-white p-4 rounded-xl border border-gray-100"
+                        className="bg-white p-4 rounded-xl border border-slate-100"
                     >
-                        <p className="text-sm text-gray-500 capitalize">
+                        <p className="text-sm text-slate-500 capitalize">
                             {status}
                         </p>
 
-                        <h3 className="text-2xl font-bold mt-2 text-gray-800">
+                        <h3 className="text-2xl font-bold mt-2 text-slate-800">
                             {count}
                         </h3>
                     </div>
@@ -268,26 +268,26 @@ const TeacherAttendance = () => {
             </div>
 
             {/* Student List */}
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
 
                 <div className="p-5 border-b flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
                         <Users className="text-blue-700" />
 
-                        <h2 className="font-bold text-gray-800">
+                        <h2 className="font-bold text-slate-800">
                             Student List ({students.length})
                         </h2>
                     </div>
 
-                    <CalendarCheck className="text-gray-400" />
+                    <CalendarCheck className="text-slate-400" />
                 </div>
 
                 {loading ? (
-                    <div className="p-10 text-center text-gray-500">
+                    <div className="p-10 text-center text-slate-500">
                         Loading students...
                     </div>
                 ) : students.length === 0 ? (
-                    <div className="p-10 text-center text-gray-500">
+                    <div className="p-10 text-center text-slate-500">
                         No approved students found for this course.
                     </div>
                 ) : (
@@ -295,7 +295,7 @@ const TeacherAttendance = () => {
 
                         <table className="w-full text-sm text-left">
 
-                            <thead className="bg-gray-50 text-gray-600">
+                            <thead className="bg-slate-50 text-slate-600">
                                 <tr>
                                     <th className="p-4">Student</th>
                                     <th className="p-4">Email</th>
@@ -309,11 +309,11 @@ const TeacherAttendance = () => {
                                 {students.map((student) => (
                                     <tr key={student._id}>
 
-                                        <td className="p-4 font-semibold text-gray-800 whitespace-nowrap">
+                                        <td className="p-4 font-semibold text-slate-800 whitespace-nowrap">
                                             {student.name}
                                         </td>
 
-                                        <td className="p-4 text-gray-500">
+                                        <td className="p-4 text-slate-500">
                                             {student.email}
                                         </td>
 

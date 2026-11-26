@@ -91,11 +91,11 @@ const StudentAttendance = () => {
         <div className="space-y-6">
 
             <div>
-                <h1 className="text-2xl font-bold text-gray-800">
+                <h1 className="text-2xl font-bold text-slate-800">
                     My Attendance
                 </h1>
 
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-slate-500 mt-1">
                     Track your attendance and academic participation.
                 </p>
             </div>
@@ -115,15 +115,15 @@ const StudentAttendance = () => {
                     return (
                         <div
                             key={item.title}
-                            className="bg-white p-5 rounded-xl border border-gray-100 shadow-sm"
+                            className="bg-white p-5 rounded-xl border border-slate-100 shadow-sm"
                         >
                             <div className="flex justify-between items-center">
                                 <div>
-                                    <p className="text-sm text-gray-500">
+                                    <p className="text-sm text-slate-500">
                                         {item.title}
                                     </p>
 
-                                    <h2 className="text-3xl font-bold text-gray-800 mt-3">
+                                    <h2 className="text-3xl font-bold text-slate-800 mt-3">
                                         {loading ? "..." : item.value}
                                     </h2>
                                 </div>
@@ -139,15 +139,15 @@ const StudentAttendance = () => {
             </div>
 
             {/* Attendance Percentage */}
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+            <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-6">
 
                 <div className="flex items-center justify-between gap-4 mb-4">
                     <div>
-                        <h2 className="font-bold text-gray-800">
+                        <h2 className="font-bold text-slate-800">
                             Attendance Percentage
                         </h2>
 
-                        <p className="text-sm text-gray-500 mt-1">
+                        <p className="text-sm text-slate-500 mt-1">
                             Present and late classes divided by total records
                         </p>
                     </div>
@@ -157,16 +157,16 @@ const StudentAttendance = () => {
                     </span>
                 </div>
 
-                <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+                <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
                     <div
-                        className="h-full bg-blue-600 rounded-full transition-all"
+                        className="h-full bg-blue-900 rounded-full transition-all"
                         style={{
                             width: `${Math.min(data.percentage, 100)}%`
                         }}
                     />
                 </div>
 
-                <div className="flex justify-between text-xs text-gray-400 mt-2">
+                <div className="flex justify-between text-xs text-slate-400 mt-2">
                     <span>0%</span>
                     <span>100%</span>
                 </div>
@@ -174,27 +174,27 @@ const StudentAttendance = () => {
             </div>
 
             {/* Attendance History */}
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
 
                 <div className="p-5 border-b">
-                    <h2 className="font-bold text-gray-800">
+                    <h2 className="font-bold text-slate-800">
                         Attendance History
                     </h2>
                 </div>
 
                 {loading ? (
-                    <div className="p-10 text-center text-gray-500">
+                    <div className="p-10 text-center text-slate-500">
                         Loading attendance...
                     </div>
                 ) : data.attendance.length === 0 ? (
                     <div className="p-10 text-center">
-                        <AlertCircle className="mx-auto text-gray-300" size={36} />
+                        <AlertCircle className="mx-auto text-slate-300" size={36} />
 
-                        <p className="font-semibold text-gray-700 mt-3">
+                        <p className="font-semibold text-slate-700 mt-3">
                             No Attendance Records
                         </p>
 
-                        <p className="text-sm text-gray-400 mt-1">
+                        <p className="text-sm text-slate-400 mt-1">
                             Your teacher has not submitted attendance yet.
                         </p>
                     </div>
@@ -203,7 +203,7 @@ const StudentAttendance = () => {
 
                         <table className="w-full text-sm text-left">
 
-                            <thead className="bg-gray-50 text-gray-600">
+                            <thead className="bg-slate-50 text-slate-600">
                                 <tr>
                                     <th className="p-4">Course</th>
                                     <th className="p-4">Date</th>
@@ -219,30 +219,30 @@ const StudentAttendance = () => {
                                     <tr key={item._id}>
 
                                         <td className="p-4">
-                                            <p className="font-semibold text-gray-800">
+                                            <p className="font-semibold text-slate-800">
                                                 {item.course?.title || "Course"}
                                             </p>
 
-                                            <p className="text-xs text-gray-400 mt-1">
+                                            <p className="text-xs text-slate-400 mt-1">
                                                 {item.course?.code || ""}
                                             </p>
                                         </td>
 
-                                        <td className="p-4 whitespace-nowrap text-gray-600">
+                                        <td className="p-4 whitespace-nowrap text-slate-600">
                                             {new Date(item.date).toLocaleDateString()}
                                         </td>
 
-                                        <td className="p-4 text-gray-600">
+                                        <td className="p-4 text-slate-600">
                                             {item.teacher?.name || "N/A"}
                                         </td>
 
                                         <td className="p-4">
-                                            <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${statusStyle[item.status] || "bg-gray-100 text-gray-600"}`}>
+                                            <span className={`px-3 py-1 rounded-full text-xs font-semibold capitalize ${statusStyle[item.status] || "bg-slate-100 text-slate-600"}`}>
                                                 {item.status}
                                             </span>
                                         </td>
 
-                                        <td className="p-4 text-gray-500">
+                                        <td className="p-4 text-slate-500">
                                             {item.remarks || "—"}
                                         </td>
 

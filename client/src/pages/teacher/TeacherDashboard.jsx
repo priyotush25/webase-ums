@@ -95,7 +95,7 @@ const TeacherDashboard = () => {
                                 <li key={course._id} className="flex items-center justify-between gap-3 px-4 py-3">
                                     <div className="min-w-0">
                                         <p className="truncate text-sm font-medium text-slate-900">{course.title}</p>
-                                        <p className="text-xs text-slate-500">
+                                        <p className="text-sm text-slate-600">
                                             {course.code}
                                             {course.semester ? ` · Semester ${course.semester}` : ""}
                                             {course.credit ? ` · ${course.credit} credits` : ""}
@@ -118,7 +118,7 @@ const TeacherDashboard = () => {
                             {upcoming.slice(0, 5).map((item) => (
                                 <li key={item._id} className="px-4 py-3">
                                     <p className="truncate text-sm font-medium text-slate-900">{item.title}</p>
-                                    <p className="text-xs text-slate-500">Due {formatDate(item.dueDate)}</p>
+                                    <p className="text-sm text-slate-600">Due {formatDate(item.dueDate)}</p>
                                 </li>
                             ))}
                         </ul>
