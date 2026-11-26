@@ -13,6 +13,7 @@ import {
     Clock,
     FileText,
     GraduationCap,
+    Globe,
     ClipboardList,
     LayoutDashboard,
     LogOut,
@@ -163,7 +164,7 @@ const getInitials = (name = "") =>
         .map((part) => part[0]?.toUpperCase())
         .join("") || "U";
 
-const Avatar = ({ user, displayName, size = "h-8 w-8" }) =>
+const Avatar = ({ user, displayName, size = "h-9 w-9" }) =>
     user?.photoURL ? (
         <img
             src={user.photoURL}
@@ -175,7 +176,7 @@ const Avatar = ({ user, displayName, size = "h-8 w-8" }) =>
         />
     ) : (
         <div
-            className={`${size} flex shrink-0 items-center justify-center rounded-full bg-blue-900 text-[11px] font-semibold text-white`}
+            className={`${size} flex shrink-0 items-center justify-center rounded-full bg-blue-900 text-xs font-semibold text-white`}
             aria-hidden="true"
         >
             {getInitials(displayName)}
@@ -246,7 +247,7 @@ const PageSearch = ({ links }) => {
 
     return (
         <div ref={wrapRef} className="relative hidden w-full max-w-sm md:block">
-            <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+            <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" aria-hidden="true" />
 
             <input
                 ref={inputRef}
@@ -261,10 +262,10 @@ const PageSearch = ({ links }) => {
                 onKeyDown={onKeyDown}
                 placeholder="Go to page…"
                 aria-label="Go to page"
-                className="h-9 w-full rounded-md border border-slate-200 bg-slate-50 pl-9 pr-9 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-300 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-800/15"
+                className="h-10 w-full rounded-lg border border-slate-300 bg-white pl-9 pr-9 text-sm text-slate-900 placeholder:text-slate-500 focus:border-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-800/15"
             />
 
-            <kbd className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 rounded border border-slate-200 bg-white px-1.5 text-[11px] font-medium text-slate-400">
+            <kbd className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 rounded border border-slate-300 bg-slate-50 px-1.5 text-xs font-medium text-slate-500">
                 /
             </kbd>
 
@@ -286,9 +287,9 @@ const PageSearch = ({ links }) => {
                                             index === cursor ? "bg-slate-50 text-slate-900" : "text-slate-700"
                                         }`}
                                     >
-                                        <Icon size={15} className="text-slate-400" aria-hidden="true" />
+                                        <Icon size={16} className="text-slate-500" aria-hidden="true" />
                                         <span className="flex-1">{link.name}</span>
-                                        <span className="text-xs text-slate-400">{link.group}</span>
+                                        <span className="text-xs text-slate-500">{link.group}</span>
                                     </button>
                                 </li>
                             );
@@ -328,33 +329,43 @@ const UserMenu = ({ user, displayName, roleTitle, role, onLogout, loggingOut }) 
                 onClick={() => setOpen((value) => !value)}
                 aria-expanded={open}
                 aria-haspopup="menu"
-                className="flex items-center gap-2 rounded-md py-1 pl-1 pr-2 hover:bg-slate-100"
+                className="flex items-center gap-2 rounded-lg py-1 pl-1 pr-2 hover:bg-slate-100"
             >
                 <Avatar user={user} displayName={displayName} />
 
                 <span className="hidden text-left leading-tight sm:block">
-                    <span className="block max-w-[10rem] truncate text-[13px] font-medium text-slate-900">{displayName}</span>
-                    <span className="block text-xs text-slate-500">{roleTitle}</span>
+                    <span className="block max-w-[10rem] truncate text-sm font-semibold text-slate-900">{displayName}</span>
+                    <span className="block text-xs text-slate-600">{roleTitle}</span>
                 </span>
 
                 <ChevronDown size={14} className="hidden text-slate-400 sm:block" aria-hidden="true" />
             </button>
 
             {open && (
-                <div role="menu" className="absolute right-0 top-full z-40 mt-1.5 w-60 rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
+                <div role="menu" className="absolute right-0 top-full z-40 mt-1.5 w-64 rounded-lg border border-slate-200 bg-white py-1 shadow-lg">
                     <div className="border-b border-slate-100 px-3 py-2.5">
                         <p className="truncate text-sm font-medium text-slate-900">{displayName}</p>
-                        <p className="truncate text-xs text-slate-500">{user?.email || roleTitle}</p>
+                        <p className="truncate text-xs text-slate-600">{user?.email || roleTitle}</p>
                     </div>
 
                     <Link
                         to={`/${role}/profile`}
                         role="menuitem"
                         onClick={() => setOpen(false)}
-                        className="flex items-center gap-2.5 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50"
+                        className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-50"
                     >
-                        <UserCircle size={16} className="text-slate-400" aria-hidden="true" />
+                        <UserCircle size={17} className="text-slate-500" aria-hidden="true" />
                         Profile
+                    </Link>
+
+                    <Link
+                        to="/"
+                        role="menuitem"
+                        onClick={() => setOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-50"
+                    >
+                        <Globe size={17} className="text-slate-500" aria-hidden="true" />
+                        Back to Home
                     </Link>
 
                     <button
@@ -362,7 +373,7 @@ const UserMenu = ({ user, displayName, roleTitle, role, onLogout, loggingOut }) 
                         role="menuitem"
                         onClick={onLogout}
                         disabled={loggingOut}
-                        className="flex w-full items-center gap-2.5 px-3 py-2 text-sm text-red-600 hover:bg-red-50 disabled:opacity-60"
+                        className="flex w-full items-center gap-2.5 px-3 py-2.5 text-sm text-red-600 hover:bg-red-50 disabled:opacity-60"
                     >
                         <LogOut size={16} aria-hidden="true" />
                         {loggingOut ? "Signing out…" : "Log out"}
@@ -441,20 +452,20 @@ const DashboardLayout = () => {
 
             {/* Sidebar */}
             <aside
-                className={`fixed inset-y-0 left-0 z-40 flex w-60 flex-col border-r border-slate-200 bg-white transition-transform duration-200 lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 ${
+                className={`fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-slate-200 bg-white transition-transform duration-200 lg:sticky lg:top-0 lg:h-screen lg:translate-x-0 ${
                     sidebarOpen ? "translate-x-0" : "-translate-x-full"
                 }`}
             >
                 {/* Brand */}
-                <div className="flex h-14 shrink-0 items-center justify-between border-b border-slate-200 px-4">
+                <div className="flex h-16 shrink-0 items-center justify-between border-b border-slate-200 px-4">
                     <Link to={dashboardPath} className="flex min-w-0 items-center gap-2.5" aria-label={`${siteConfig.shortName} dashboard`}>
-                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-blue-900 text-white">
-                            <GraduationCap size={17} aria-hidden="true" />
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-900 text-white">
+                            <GraduationCap size={20} aria-hidden="true" />
                         </span>
 
                         <span className="min-w-0 leading-tight">
-                            <span className="block truncate text-sm font-semibold text-slate-900">{siteConfig.shortName} Portal</span>
-                            <span className="block text-[11px] text-slate-500">{roleTitle} workspace</span>
+                            <span className="block truncate text-[15px] font-semibold text-slate-900">{siteConfig.shortName} Portal</span>
+                            <span className="block text-xs text-slate-600">{roleTitle} workspace</span>
                         </span>
                     </Link>
 
@@ -469,10 +480,10 @@ const DashboardLayout = () => {
                 </div>
 
                 {/* Navigation */}
-                <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-4" aria-label="Main navigation">
+                <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-4" aria-label="Main navigation">
                     {groups.map((group) => (
                         <div key={group.label}>
-                            <p className="mb-1.5 px-2.5 text-[11px] font-medium uppercase tracking-wider text-slate-400">{group.label}</p>
+                            <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-slate-500">{group.label}</p>
 
                             <ul className="space-y-0.5">
                                 {group.items.map(({ name, path, icon: Icon }) => (
@@ -481,17 +492,16 @@ const DashboardLayout = () => {
                                             to={path}
                                             end
                                             className={({ isActive }) =>
-                                                `group relative flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] font-medium transition-colors ${
+                                                `group relative flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
                                                     isActive
-                                                        ? "bg-blue-50 text-blue-900"
-                                                        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                                                        ? "bg-blue-900 text-white shadow-sm"
+                                                        : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
                                                 }`
                                             }
                                         >
                                             {({ isActive }) => (
                                                 <>
-                                                    {isActive && <span className="absolute -left-3 top-1.5 bottom-1.5 w-0.5 rounded-r bg-blue-900" aria-hidden="true" />}
-                                                    <Icon size={16} aria-hidden="true" className={isActive ? "text-blue-900" : "text-slate-400 group-hover:text-slate-600"} />
+                                                                                                        <Icon size={18} aria-hidden="true" className={isActive ? "text-white" : "text-slate-500 group-hover:text-slate-700"} />
                                                     <span className="truncate">{name}</span>
                                                 </>
                                             )}
@@ -504,8 +514,16 @@ const DashboardLayout = () => {
                 </nav>
 
                 {/* Sidebar footer */}
-                <div className="shrink-0 border-t border-slate-200 px-4 py-3">
-                    <p className="text-[11px] leading-relaxed text-slate-400">
+                <div className="shrink-0 space-y-3 border-t border-slate-200 px-3 py-3">
+                    <Link
+                        to="/"
+                        className="flex items-center gap-3 rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm font-medium text-slate-800 hover:border-blue-800 hover:bg-blue-50 hover:text-blue-900"
+                    >
+                        <Globe size={18} aria-hidden="true" />
+                        Back to Home
+                    </Link>
+
+                    <p className="px-1 text-xs leading-relaxed text-slate-500">
                         {siteConfig.name}
                         <br />
                         Academic year {siteConfig.admission.session}
@@ -515,7 +533,7 @@ const DashboardLayout = () => {
 
             {/* Main */}
             <div className="flex min-w-0 flex-1 flex-col">
-                <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center gap-3 border-b border-slate-200 bg-white/95 px-4 backdrop-blur md:px-6">
+                <header className="sticky top-0 z-20 flex h-16 shrink-0 items-center gap-3 border-b border-slate-200 bg-white/95 px-4 backdrop-blur md:px-6">
                     <button
                         type="button"
                         onClick={() => setSidebarOpen(true)}
@@ -527,15 +545,25 @@ const DashboardLayout = () => {
 
                     {/* Breadcrumb */}
                     <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1.5 text-sm">
-                        <Link to={dashboardPath} className="hidden text-slate-500 hover:text-slate-900 sm:inline">
+                        <Link to={dashboardPath} className="hidden text-slate-600 hover:text-slate-900 sm:inline">
                             {roleTitle}
                         </Link>
                         <ChevronRight size={14} className="hidden text-slate-300 sm:block" aria-hidden="true" />
-                        <h1 className="truncate font-semibold text-slate-900">{pageTitle}</h1>
+                        <h1 className="truncate text-base font-semibold text-slate-900">{pageTitle}</h1>
                     </nav>
 
                     <div className="ml-auto flex flex-1 items-center justify-end gap-2">
                         <PageSearch links={flatLinks} />
+
+                        <Link
+                            to="/"
+                            title="Back to Home"
+                            className="inline-flex h-10 items-center gap-2 rounded-lg border border-slate-300 bg-white px-3 text-sm font-medium text-slate-800 hover:border-blue-800 hover:bg-blue-50 hover:text-blue-900"
+                        >
+                            <Globe size={17} aria-hidden="true" />
+                            <span className="hidden sm:inline">Home</span>
+                            <span className="sr-only sm:hidden">Back to Home</span>
+                        </Link>
 
                         <NotificationBell />
 
@@ -552,8 +580,8 @@ const DashboardLayout = () => {
                     </div>
                 </header>
 
-                <main className="min-w-0 flex-1 px-4 py-6 md:px-6 md:py-7">
-                    <div className="mx-auto w-full max-w-[84rem]">
+                <main className="min-w-0 flex-1 px-4 py-6 md:px-8 md:py-8">
+                    <div className="mx-auto w-full max-w-[90rem]">
                         <Outlet />
                     </div>
                 </main>
